@@ -53,7 +53,8 @@ def default_data():
         "Jobs": ["J1", "J2"],
 
         # Due dates (in bucket indices)
-        "Due": {"J1": 9, "J2": 6},
+        # Adjusted due date so Job J1 can finish within horizon
+        "Due": {"J1": 10, "J2": 6},
 
         # E = eligibility (op x machine -> 1 allowed / 0 not allowed)
         "E": {
@@ -81,11 +82,12 @@ def default_data():
         },
 
         # Q = worker skills (1 qualified, 0 not)
+        # Updated worker skills so every phase has at least one qualified worker
         "Q": {
-            "W1": {"Setup": 1, "Run": 1, "Clean": 0},
+            "W1": {"Setup": 1, "Run": 1, "Clean": 1},
             "W2": {"Setup": 0, "Run": 1, "Clean": 0},
             "W3": {"Setup": 0, "Run": 0, "Clean": 1},
-            "W4": {"Setup": 1, "Run": 0, "Clean": 1},
+            "W4": {"Setup": 1, "Run": 1, "Clean": 1},
             "W5": {"Setup": 0, "Run": 1, "Clean": 0},
         },
 
@@ -302,13 +304,15 @@ def solve_cp_sat(data, time_limit_sec=15, log_progress=False):
         for t in T:
             m.Add(sum(u[(p, k, s, w, t)] for p in Ops for k in Phases for s in Skills) <= A_W[w][t])
 
-    # 7) Phase order (prefix-sum trick): Setup before Run before Clean
+    # 7) Phase order: Setup before Run before Clean
+    # A run bucket can occur only after some setup bucket has occurred at an earlier time
+    # and a clean bucket can occur only after some run bucket.
     for p in Ops:
         for t in T:
-            m.Add(sum(y[(p, "Run", tau)] for tau in T if tau <= t)
-                  <= sum(y[(p, "Setup", tau)] for tau in T if tau <= t))
-            m.Add(sum(y[(p, "Clean", tau)] for tau in T if tau <= t)
-                  <= sum(y[(p, "Run", tau)] for tau in T if tau <= t))
+            m.Add(y[(p, "Run", t)]
+                  <= sum(y[(p, "Setup", tau)] for tau in T if tau < t))
+            m.Add(y[(p, "Clean", t)]
+                  <= sum(y[(p, "Run", tau)] for tau in T if tau < t))
 
     # 8) Precedence: successor's setup can only start after predecessor's cleanup has started at some earlier time
     for (pred_op, succ_op) in PredEdges:
