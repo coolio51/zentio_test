@@ -216,9 +216,9 @@ def solve_cp_sat(data, time_limit_sec=15, log_progress=False):
     JobOf    = data["JobOf"]                                    # op -> job mapping
     Jobs     = data["Jobs"]                                     # jobs
     Due      = data["Due"]                                      # due dates
-    E        = data["E"]                                        # eligibility
+    E        = data["E"]                                        # eligibility (op x machine)
     D        = data["D"]                                        # durations
-    Need     = data["Need"]                                     # operator needs
+    Need     = data["Need"]                                     # operator needed skills
     Q        = data["Q"]                                        # worker skills
     A_M_raw  = data["A_M"]                                      # machine availability
     A_W_raw  = data["A_W_frac"]                                 # worker availability (fractions)
@@ -408,22 +408,22 @@ st.caption("Discrete-time phased model with machines, worker skills/calendars, a
 
 left, right = st.columns([1,1])
 
-with left:
-    st.subheader("1) Model Data")
-    demo = default_data()
-    default_json = json.dumps(demo, indent=2)
-    if "data_text" not in st.session_state:
-        st.session_state["data_text"] = default_json
+# with left:
+st.subheader("Model Data")
+demo = default_data()
+default_json = json.dumps(demo, indent=2)
+if "data_text" not in st.session_state:
+    st.session_state["data_text"] = default_json
 
-    if st.button("Reset to defaults"):
-        st.session_state["data_text"] = default_json
+if st.button("Reset to defaults"):
+    st.session_state["data_text"] = default_json
 
-    data_text = st.text_area("Edit JSON (or keep defaults)", value=st.session_state["data_text"], height=450)
-    validate_btn = st.button("Validate only")
-    solve_btn = st.button("Solve")
+data_text = st.text_area("Edit JSON (or keep defaults)", value=st.session_state["data_text"], height=450)
+validate_btn = st.button("Validate only")
+solve_btn = st.button("Solve")
 
-with right:
-    st.subheader("2) Results")
+# with right:
+#     st.subheader("2) Results")
 
 def show_errors(errs):
     st.error("Validation errors:")
@@ -458,7 +458,7 @@ if solve_btn:
                 st.json(res["chosen_machines"])
 
                 st.markdown("### Machine schedule (table)")
-                st.dataframe(res["machine_schedule"], use_containerWidth=True)
+                st.dataframe(res["machine_schedule"])#, use_containerWidth=True)
 
                 st.markdown("### Machine schedule (Gantt-like)")
                 df = res["machine_schedule"]
@@ -477,10 +477,10 @@ if solve_btn:
                 st.pyplot(fig)
 
                 st.markdown("### Worker assignments (non-zero)")
-                st.dataframe(res["worker_assignments"], use_container_width=True)
+                st.dataframe(res["worker_assignments"])#, use_container_width=True)
 
                 st.markdown("### Phase activity (y=1)")
-                st.dataframe(res["phase_activity"], use_container_width=True)
+                st.dataframe(res["phase_activity"])#, use_container_width=True)
             else:
                 st.warning("No feasible schedule found. Try relaxing due dates, checking eligibility, or extending T.")
     except Exception as e:
