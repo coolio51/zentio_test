@@ -31,6 +31,28 @@ if "snapshots" not in st.session_state:
     st.session_state["snapshots"] = []   # list of dicts: {"label", "genome_bytes", "csv_bytes"}
 if "data" not in st.session_state:
     st.session_state["data"] = None
+# Expected session_state keys
+# GA best: ga_best_present (bool), ga_best_genome_json, ga_best_sched_csv, ga_best_sched_obj, ga_best_hist,
+#          ga_best_total_ms, ga_best_score, ga_best_genomes_evaluated, ga_best_eval
+# CP-SAT polish: cp_best_present (bool), cp_best_genome_json, cp_best_sched_csv, cp_best_sched_obj,
+#                cp_best_eval, cp_best_polish_ms, cp_best_decode_ms
+st.session_state.setdefault("ga_best_present", False)
+st.session_state.setdefault("cp_best_present", False)
+st.session_state.setdefault("ga_best_genome_json", None)
+st.session_state.setdefault("ga_best_sched_csv", None)
+st.session_state.setdefault("ga_best_sched_obj", None)
+st.session_state.setdefault("ga_best_hist", None)
+st.session_state.setdefault("ga_best_total_ms", None)
+st.session_state.setdefault("ga_best_score", None)
+st.session_state.setdefault("ga_best_genomes_evaluated", None)
+st.session_state.setdefault("ga_best_eval", None)
+st.session_state.setdefault("cp_best_genome_json", None)
+st.session_state.setdefault("cp_best_sched_csv", None)
+st.session_state.setdefault("cp_best_sched_obj", None)
+st.session_state.setdefault("cp_best_eval", None)
+st.session_state.setdefault("cp_best_polish_ms", None)
+st.session_state.setdefault("cp_best_decode_ms", None)
+
 
 # =============== utilities ===============
 def now_ns(): return time.perf_counter_ns()
@@ -599,12 +621,12 @@ if st.sidebar.button("Generate dataset"):
     st.sidebar.success("Dataset generated.")
 
 # Load or default
-if st.session_state["data"] is None:
+if st.session_state.get("data") is None:
     hcfg=HorizonCfg(); scfg=ScaleCfg(); ncfg=NeedsCfg(); mcfg=MaintCfg(); shcfg=ShiftCfg()
     data, ax = generate_stress_dataset(2025, hcfg, scfg, mcfg, ncfg, shcfg)
     st.session_state["data"]=data; st.session_state["ax"]=ax
 
-data=st.session_state["data"]
+data=st.session_state.get("data")
 
 # Build matrices
 t_build0=now_ns(); mats=build_matrices(data); t_build=now_ns()-t_build0
@@ -694,31 +716,31 @@ with tab3:
             st.session_state["ga_best_sched_obj"] = best_sched
             st.session_state["ga_best_eval"] = best["eval"]
 
-        has_ga = st.session_state.get("ga_best_present") and "ga_best_genome_json" in st.session_state and "ga_best_sched_csv" in st.session_state
+        has_ga = st.session_state.get("ga_best_present") and st.session_state.get("ga_best_genome_json") and st.session_state.get("ga_best_sched_csv")
         if has_ga:
-            hist = st.session_state["ga_best_hist"]
-            total_ms = st.session_state["ga_best_total_ms"]
-            best_score = st.session_state["ga_best_score"]
-            genomes_evaluated = st.session_state["ga_best_genomes_evaluated"]
+            hist = st.session_state.get("ga_best_hist")
+            total_ms = st.session_state.get("ga_best_total_ms")
+            best_score = st.session_state.get("ga_best_score")
+            genomes_evaluated = st.session_state.get("ga_best_genomes_evaluated")
             st.success(f"GA completed in {total_ms:.1f} ms • gens: {len(hist['best'])} • best score: {best_score:.2f}")
             st.write(f"≈ Genomes evaluated: {genomes_evaluated} → ~{1000.0*genomes_evaluated/max(1.0,total_ms):.1f} genomes/sec")
 
             fig, axp = plt.subplots(); axp.plot(hist["best"], label="best"); axp.plot(hist["avg"], label="avg")
             axp.set_xlabel("generation"); axp.set_ylabel("score"); axp.legend(); st.pyplot(fig)
 
-            Ops=mats["meta"]["Ops"]; Machines=mats["meta"]["Machines"]; best_sched=st.session_state["ga_best_sched_obj"]
+            Ops=mats["meta"]["Ops"]; Machines=mats["meta"]["Machines"]; best_sched=st.session_state.get("ga_best_sched_obj")
             df_best=pd.DataFrame({"Op":Ops,"Machine":[Machines[m] if m>=0 else "" for m in best_sched["machine"]],
                                   "Start":best_sched["start"],"Finish":best_sched["finish"]}).sort_values(by=["Start"])
             st.dataframe(df_best.head(50))
 
             cA, cB = st.columns(2)
             with cA:
-                st.download_button("Download best genome (JSON)", data=st.session_state["ga_best_genome_json"], file_name="best_genome.json", mime="application/json", key="dl_genome_ga")
-                st.download_button("Download best schedule (CSV)", data=st.session_state["ga_best_sched_csv"], file_name="best_schedule.csv", mime="text/csv", key="dl_sched_ga")
+                st.download_button("Download best genome (JSON)", data=st.session_state.get("ga_best_genome_json"), file_name="best_genome.json", mime="application/json", key="dl_genome_ga")
+                st.download_button("Download best schedule (CSV)", data=st.session_state.get("ga_best_sched_csv"), file_name="best_schedule.csv", mime="text/csv", key="dl_sched_ga")
             with cB:
                 snap_label = st.text_input("Snapshot label", value=f"GA_best_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}")
                 if st.button("Save Snapshot"):
-                    st.session_state["snapshots"].append({"label": snap_label, "genome_bytes": st.session_state["ga_best_genome_json"], "csv_bytes": st.session_state["ga_best_sched_csv"]})
+                    st.session_state.get("snapshots").append({"label": snap_label, "genome_bytes": st.session_state.get("ga_best_genome_json"), "csv_bytes": st.session_state.get("ga_best_sched_csv")})
                     st.success(f"Saved snapshot: {snap_label}")
         else:
             st.caption("Run GA to generate results.")
@@ -758,8 +780,8 @@ with tab4:
     st.caption("Bottlenecks & unscheduled operations (diagnostics).")
     base_choice = st.selectbox("Analyze which schedule", ["Heuristic decode (fresh)", "GA best (if available)"])
     if base_choice == "GA best (if available)" and st.session_state.get("ga_best_present", False):
-        sched = st.session_state["ga_best_sched_obj"]
-        eva = st.session_state["ga_best_eval"]
+        sched = st.session_state.get("ga_best_sched_obj")
+        eva = st.session_state.get("ga_best_eval")
     else:
         op_order, machine_choice = default_genome(mats, strategy="min_total_len")
         sched = decode_schedule(mats, op_order.copy(), machine_choice.copy(), hard_deadlines=False)
@@ -792,8 +814,8 @@ with tab5:
     else:
         use_ga_best = st.checkbox("Use GA best as base (if available)", value=True)
         if use_ga_best and st.session_state.get("ga_best_present", False):
-            base_sched = st.session_state["ga_best_sched_obj"]
-            base_eval = st.session_state["ga_best_eval"]
+            base_sched = st.session_state.get("ga_best_sched_obj")
+            base_eval = st.session_state.get("ga_best_eval")
         else:
             base_oo, base_mc = default_genome(mats, strategy="min_total_len")
             base_sched = decode_schedule(mats, base_oo.copy(), base_mc.copy(), hard_deadlines=False)
@@ -851,17 +873,17 @@ with tab5:
                 st.session_state["cp_best_sched_csv"] = csv_bytes
                 st.session_state["cp_best_genome_json"] = genome_bytes
 
-        has_cp = st.session_state.get("cp_best_present") and "cp_best_genome_json" in st.session_state and "cp_best_sched_csv" in st.session_state
+        has_cp = st.session_state.get("cp_best_present") and st.session_state.get("cp_best_genome_json") and st.session_state.get("cp_best_sched_csv")
         if has_cp:
-            st.write(f"CP-SAT polish time: {st.session_state['cp_best_polish_ms']:.1f} ms")
-            new_sched = st.session_state["cp_best_sched_obj"]
-            new_eval = st.session_state["cp_best_eval"]
+            st.write(f"CP-SAT polish time: {st.session_state.get('cp_best_polish_ms', 0.0):.1f} ms")
+            new_sched = st.session_state.get("cp_best_sched_obj")
+            new_eval = st.session_state.get("cp_best_eval")
 
             d1,d2,d3,d4=st.columns(4)
             d1.metric("New tardiness", new_eval["tardiness"], delta=int(new_eval["tardiness"]-base_eval["tardiness"]))
             d2.metric("New makespan", new_eval["makespan"], delta=int(new_eval["makespan"]-base_eval["makespan"]))
             new_uns = unscheduled_ops(new_sched); d3.metric("New unscheduled", int(len(new_uns)), delta=int(len(new_uns)-len(base_uns)))
-            d4.metric("Re-decode (ms)", f"{st.session_state['cp_best_decode_ms']:.1f}")
+            d4.metric("Re-decode (ms)", f"{st.session_state.get('cp_best_decode_ms', 0.0):.1f}")
 
             # Before/After Gantt for the polished machine and window
             st.markdown("#### Before (base)")
@@ -882,12 +904,12 @@ with tab5:
             # Download buttons and snapshot controls
             cA,cB=st.columns(2)
             with cA:
-                st.download_button("Download polished genome (JSON)", data=st.session_state["cp_best_genome_json"], file_name="polished_genome.json", mime="application/json", key="dl_genome_cp")
-                st.download_button("Download polished schedule (CSV)", data=st.session_state["cp_best_sched_csv"], file_name="polished_schedule.csv", mime="text/csv", key="dl_sched_cp")
+                st.download_button("Download polished genome (JSON)", data=st.session_state.get("cp_best_genome_json"), file_name="polished_genome.json", mime="application/json", key="dl_genome_cp")
+                st.download_button("Download polished schedule (CSV)", data=st.session_state.get("cp_best_sched_csv"), file_name="polished_schedule.csv", mime="text/csv", key="dl_sched_cp")
             with cB:
                 snap_label = st.text_input("Snapshot label (polished)", value=f"CP_polished_{mi_name}_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}")
                 if st.button("Save Snapshot (polished)"):
-                    st.session_state["snapshots"].append({"label": snap_label, "genome_bytes": st.session_state["cp_best_genome_json"], "csv_bytes": st.session_state["cp_best_sched_csv"]})
+                    st.session_state.get("snapshots").append({"label": snap_label, "genome_bytes": st.session_state.get("cp_best_genome_json"), "csv_bytes": st.session_state.get("cp_best_sched_csv")})
                     st.success(f"Saved snapshot: {snap_label}")
         else:
             st.caption("Run CP-SAT polish to generate results.")
@@ -897,8 +919,8 @@ st.sidebar.markdown("---")
 st.sidebar.subheader("Snapshots")
 if st.session_state.get("ga_best_present") or st.session_state.get("cp_best_present"):
     st.sidebar.caption("Current results available in main tabs.")
-if st.session_state["snapshots"]:
-    for i, snap in enumerate(st.session_state["snapshots"]):
+if st.session_state.get("snapshots"):
+    for i, snap in enumerate(st.session_state.get("snapshots", [])):
         st.sidebar.write(snap["label"])
         st.sidebar.download_button(f"Genome {i+1}", data=snap["genome_bytes"], file_name=f"{snap['label']}_genome.json", mime="application/json", key=f"snap_g_{i}")
         st.sidebar.download_button(f"Schedule {i+1}", data=snap["csv_bytes"], file_name=f"{snap['label']}_schedule.csv", mime="text/csv", key=f"snap_s_{i}")
