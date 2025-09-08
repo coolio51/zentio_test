@@ -810,8 +810,15 @@ with tab5:
         run_polish=st.button("Run CP-SAT polish")
 
         if run_polish:
-            t0=now_ns(); new_starts=cpsat_polish_machine_window(mats, base_sched, mi, int(window_start), int(window_len), float(tl)); t1=now_ns()
-            st.write(f"CP-SAT polish time: {ns_to_ms(t1-t0):.1f} ms")
+            # Reset any previous CP-SAT polish results to avoid stale data
+            for k in list(st.session_state.keys()):
+                if k.startswith("cp_best_"):
+                    st.session_state.pop(k)
+
+            t0=now_ns();
+            new_starts=cpsat_polish_machine_window(mats, base_sched, mi, int(window_start), int(window_len), float(tl));
+            t1=now_ns()
+            polish_ms = ns_to_ms(t1-t0)
             if not new_starts:
                 st.warning("No changes (or no ops in window).")
             else:
@@ -823,37 +830,60 @@ with tab5:
                 base_mc = -np.ones(nO, dtype=np.int16)
                 t2=now_ns(); new_sched=decode_schedule(mats, new_order, base_mc, hard_deadlines=False); t3=now_ns()
                 new_eval=evaluate_objective(mats, new_sched)
+                decode_ms = ns_to_ms(t3-t2)
 
-                d1,d2,d3,d4=st.columns(4)
-                d1.metric("New tardiness", new_eval["tardiness"], delta=int(new_eval["tardiness"]-base_eval["tardiness"]))
-                d2.metric("New makespan", new_eval["makespan"], delta=int(new_eval["makespan"]-base_eval["makespan"]))
-                new_uns = unscheduled_ops(new_sched); d3.metric("New unscheduled", int(len(new_uns)), delta=int(len(new_uns)-len(base_uns)))
-                d4.metric("Re-decode (ms)", f"{ns_to_ms(t3-t2):.1f}")
-
-                # Before/After Gantt for the polished machine and window
-                st.markdown("#### Before (base)")
-                fig_before = plot_machine_gantt(mats, base_sched, mi, title=f"Before — {mi_name}", window=(int(window_start), int(window_start+window_len)))
-                st.pyplot(fig_before)
-                st.markdown("#### After (polished)")
-                fig_after = plot_machine_gantt(mats, new_sched, mi, title=f"After — {mi_name}", window=(int(window_start), int(window_start+window_len)))
-                st.pyplot(fig_after)
-
-                # Affected ops table
-                Ops=mats["meta"]["Ops"]
-                rows=[{"Op":Ops[oi], "Old start":int(base_sched["start"][oi]), "New start":int(new_starts[oi])} for oi in polished_ops]
-                df_polished = pd.DataFrame(rows).sort_values(by="New start")
-                st.dataframe(df_polished)
-
-                # Save polished snapshot
-                snap_label = st.text_input("Snapshot label (polished)", value=f"CP_polished_{mi_name}_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}")
                 df_new = pd.DataFrame({"Op":mats["meta"]["Ops"],
                                        "Machine":[mats['meta']['Machines'][m] if m>=0 else "" for m in new_sched["machine"]],
                                        "Start":new_sched["start"],"Finish":new_sched["finish"]}).sort_values(by=["Start"])
                 genome_json = {"op_order": new_order.astype(int).tolist(), "machine_choice": (-np.ones(nO, dtype=int)).tolist(), "alpha": 0.0}
                 genome_bytes = json.dumps(genome_json).encode("utf-8")
                 csv_bytes = df_new.to_csv(index=False).encode("utf-8")
+
+                # Persist polish results in session state
+                st.session_state["cp_best_present"] = True
+                st.session_state["cp_best_polish_ms"] = polish_ms
+                st.session_state["cp_best_decode_ms"] = decode_ms
+                st.session_state["cp_best_sched_obj"] = new_sched
+                st.session_state["cp_best_eval"] = new_eval
+                st.session_state["cp_best_sched_csv"] = csv_bytes
+                st.session_state["cp_best_genome_json"] = genome_bytes
+
+        if st.session_state.get("cp_best_present", False):
+            st.write(f"CP-SAT polish time: {st.session_state['cp_best_polish_ms']:.1f} ms")
+            new_sched = st.session_state["cp_best_sched_obj"]
+            new_eval = st.session_state["cp_best_eval"]
+
+            d1,d2,d3,d4=st.columns(4)
+            d1.metric("New tardiness", new_eval["tardiness"], delta=int(new_eval["tardiness"]-base_eval["tardiness"]))
+            d2.metric("New makespan", new_eval["makespan"], delta=int(new_eval["makespan"]-base_eval["makespan"]))
+            new_uns = unscheduled_ops(new_sched); d3.metric("New unscheduled", int(len(new_uns)), delta=int(len(new_uns)-len(base_uns)))
+            d4.metric("Re-decode (ms)", f"{st.session_state['cp_best_decode_ms']:.1f}")
+
+            # Before/After Gantt for the polished machine and window
+            st.markdown("#### Before (base)")
+            fig_before = plot_machine_gantt(mats, base_sched, mi, title=f"Before — {mi_name}", window=(int(window_start), int(window_start+window_len)))
+            st.pyplot(fig_before)
+            st.markdown("#### After (polished)")
+            fig_after = plot_machine_gantt(mats, new_sched, mi, title=f"After — {mi_name}", window=(int(window_start), int(window_start+window_len)))
+            st.pyplot(fig_after)
+
+            # Affected ops table
+            Ops=mats["meta"]["Ops"]
+            changed=np.where(new_sched["start"]!=base_sched["start"])[0]
+            rows=[{"Op":Ops[oi], "Old start":int(base_sched["start"][oi]), "New start":int(new_sched["start"][oi])} for oi in sorted(changed, key=lambda oi:new_sched["start"][oi])]
+            if rows:
+                df_polished = pd.DataFrame(rows).sort_values(by="New start")
+                st.dataframe(df_polished)
+
+            # Download buttons and snapshot controls
+            cA,cB=st.columns(2)
+            with cA:
+                st.download_button("Download polished genome (JSON)", data=st.session_state["cp_best_genome_json"], file_name="polished_genome.json", mime="application/json", key="dl_genome_cp")
+                st.download_button("Download polished schedule (CSV)", data=st.session_state["cp_best_sched_csv"], file_name="polished_schedule.csv", mime="text/csv", key="dl_sched_cp")
+            with cB:
+                snap_label = st.text_input("Snapshot label (polished)", value=f"CP_polished_{mi_name}_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}")
                 if st.button("Save Snapshot (polished)"):
-                    st.session_state["snapshots"].append({"label": snap_label, "genome_bytes": genome_bytes, "csv_bytes": csv_bytes})
+                    st.session_state["snapshots"].append({"label": snap_label, "genome_bytes": st.session_state["cp_best_genome_json"], "csv_bytes": st.session_state["cp_best_sched_csv"]})
                     st.success(f"Saved snapshot: {snap_label}")
 
 # Sidebar persistent snapshots
