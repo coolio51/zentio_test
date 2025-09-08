@@ -4,7 +4,7 @@
 #   pip install streamlit numpy pandas matplotlib ortools optuna
 #   streamlit run streamlit_matrix_scheduler_ga_cpsat_optuna_snap.py
 
-import json, math, time, random, datetime
+import json, math, time, random, datetime, io
 from dataclasses import dataclass
 from typing import Dict
 import numpy as np
@@ -561,6 +561,60 @@ def unscheduled_ops(sched):
     idx=np.where((start<0) | (finish<0))[0]
     return idx
 
+def load_snapshot(label: str):
+    """Populate session_state with snapshot data and rerender results."""
+    snaps = st.session_state.get("snapshots", [])
+    snap = next((s for s in snaps if s.get("label") == label), None)
+    if not snap:
+        st.warning(f"Snapshot {label} not found")
+        return
+
+    genome_bytes = snap.get("genome_bytes")
+    csv_bytes = snap.get("csv_bytes")
+    try:
+        df = pd.read_csv(io.BytesIO(csv_bytes))
+        Ops = mats["meta"]["Ops"]
+        Machines = mats["meta"]["Machines"]
+        op_idx = {op: i for i, op in enumerate(Ops)}
+        mach_idx = {m: i for i, m in enumerate(Machines)}
+
+        machine = np.full(len(Ops), -1, dtype=np.int16)
+        start = np.full(len(Ops), -1, dtype=np.int32)
+        finish = np.full(len(Ops), -1, dtype=np.int32)
+        for _, r in df.iterrows():
+            oi = op_idx.get(r["Op"])
+            if oi is None:
+                continue
+            mname = r.get("Machine")
+            if isinstance(mname, str):
+                machine[oi] = mach_idx.get(mname, -1)
+            start[oi] = int(r["Start"])
+            finish[oi] = int(r["Finish"])
+        sched = {"machine": machine, "start": start, "finish": finish}
+        eva = evaluate_objective(mats, sched)
+    except Exception as e:
+        st.error(f"Failed to load snapshot {label}: {e}")
+        return
+
+    if label.startswith("GA"):
+        st.session_state["ga_best_present"] = True
+        st.session_state["ga_best_genome_json"] = genome_bytes
+        st.session_state["ga_best_sched_csv"] = csv_bytes
+        st.session_state["ga_best_sched_obj"] = sched
+        st.session_state["ga_best_eval"] = eva
+        st.session_state["ga_best_hist"] = {"best": [], "avg": []}
+        st.session_state["ga_best_total_ms"] = 0.0
+        st.session_state["ga_best_score"] = eva.get("score", 0.0)
+        st.session_state["ga_best_genomes_evaluated"] = 0
+    else:
+        st.session_state["cp_best_present"] = True
+        st.session_state["cp_best_genome_json"] = genome_bytes
+        st.session_state["cp_best_sched_csv"] = csv_bytes
+        st.session_state["cp_best_sched_obj"] = sched
+        st.session_state["cp_best_eval"] = eva
+        st.session_state["cp_best_polish_ms"] = 0.0
+        st.session_state["cp_best_decode_ms"] = 0.0
+
 def plot_machine_gantt(mats, sched, machine_index:int, title:str="", max_ops:int=200, window=None):
     Ops=mats["meta"]["Ops"]; Machines=mats["meta"]["Machines"]
     start=sched["start"]; finish=sched["finish"]; chosen=sched["machine"]
@@ -923,7 +977,10 @@ if st.session_state.get("ga_best_present") or st.session_state.get("cp_best_pres
     st.sidebar.caption("Current results available in main tabs.")
 if st.session_state.get("snapshots"):
     for i, snap in enumerate(st.session_state.get("snapshots", [])):
-        st.sidebar.write(snap["label"])
+        c1, c2 = st.sidebar.columns([3,1])
+        c1.write(snap["label"])
+        if c2.button("Load", key=f"load_snap_{i}"):
+            load_snapshot(snap["label"])
         st.sidebar.download_button(f"Genome {i+1}", data=snap["genome_bytes"], file_name=f"{snap['label']}_genome.json", mime="application/json", key=f"snap_g_{i}")
         st.sidebar.download_button(f"Schedule {i+1}", data=snap["csv_bytes"], file_name=f"{snap['label']}_schedule.csv", mime="text/csv", key=f"snap_s_{i}")
 else:
