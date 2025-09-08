@@ -1,12 +1,12 @@
 
-# Streamlit Matrix Scheduler — GA + CP-SAT + Optuna (Snapshots)
+# Streamlit Matrix Scheduler — GA + CP-SAT + Optuna (Snapshots) — FIXED
 # Run:
 #   pip install streamlit numpy pandas matplotlib ortools optuna
-#   streamlit run streamlit_matrix_scheduler_ga_cpsat_optuna_snap.py
+#   streamlit run streamlit_matrix_scheduler_ga_cpsat_optuna_snap_fixed.py
 
 import json, math, time, random, datetime, io
 from dataclasses import dataclass
-from typing import Dict
+from typing import Dict, List, Tuple
 import numpy as np
 import pandas as pd
 import streamlit as st
@@ -31,11 +31,8 @@ if "snapshots" not in st.session_state:
     st.session_state["snapshots"] = []   # list of dicts: {"label", "genome_bytes", "csv_bytes"}
 if "data" not in st.session_state:
     st.session_state["data"] = None
+
 # Expected session_state keys
-# GA best: ga_best_present (bool), ga_best_genome_json, ga_best_sched_csv, ga_best_sched_obj, ga_best_hist,
-#          ga_best_total_ms, ga_best_score, ga_best_genomes_evaluated, ga_best_eval
-# CP-SAT polish: cp_best_present (bool), cp_best_genome_json, cp_best_sched_csv, cp_best_sched_obj,
-#                cp_best_eval, cp_best_polish_ms, cp_best_decode_ms
 st.session_state.setdefault("ga_best_present", False)
 st.session_state.setdefault("cp_best_present", False)
 st.session_state.setdefault("ga_best_genome_json", None)
@@ -52,7 +49,6 @@ st.session_state.setdefault("cp_best_sched_obj", None)
 st.session_state.setdefault("cp_best_eval", None)
 st.session_state.setdefault("cp_best_polish_ms", None)
 st.session_state.setdefault("cp_best_decode_ms", None)
-
 
 # =============== utilities ===============
 def now_ns(): return time.perf_counter_ns()
@@ -297,9 +293,8 @@ def decode_schedule(mats: Dict, op_order: np.ndarray, machine_choice: np.ndarray
     def earliest_pred_finish(oi):
         if not pred_list[oi]:
             return 0
-        # if ANY predecessor is not scheduled, this op cannot be scheduled now
         if any(finish[p] < 0 for p in pred_list[oi]):
-            return None  # signal "blocked"
+            return None  # blocked by missing predecessor
         return int(max(finish[p] for p in pred_list[oi]))
 
     for oi in op_order:
@@ -307,7 +302,14 @@ def decode_schedule(mats: Dict, op_order: np.ndarray, machine_choice: np.ndarray
         mi_req=machine_choice[oi]; elig=np.where(E[oi])[0]
         cand_machines=list(elig) if mi_req<0 or mi_req not in elig else [mi_req]
         if not cand_machines: dm.ops_failed += 1; continue
-        est=earliest_pred_finish(oi); best_t=None; best_mi=None
+
+        est=earliest_pred_finish(oi)
+        if est is None:
+            dm.ops_failed += 1
+            continue
+
+        best_t=None; best_mi=None
+        candidates: List[Tuple[int,int]] = []  # (t, mi)
         feas_start=now_ns()
         for mi in cand_machines:
             tot=total_len.get((oi,mi), 0);
@@ -324,21 +326,28 @@ def decode_schedule(mats: Dict, op_order: np.ndarray, machine_choice: np.ndarray
                 feas_vec=np.logical_and(feas_vec, aligned)
                 if not feas_vec.any(): break
             if est>0 and est<feas_vec.size: feas_vec[:est]=False
-            # after we build `feas_vec` for a machine
             if feas_vec.any():
-                # get multiple earliest candidates (e.g., up to 20)
                 cand_idx = np.flatnonzero(feas_vec)[:20]
                 for t_candidate in cand_idx:
-                    if worker_assign(oi, mi, t_candidate):
-                        # success: commit chosen start/machine
-                        if (best_t is None) or (t_candidate < best_t):
-                            best_t, best_mi = int(t_candidate), int(mi)
-                        break  # stop scanning this machine
-
+                    candidates.append((int(t_candidate), int(mi)))
         dm.feas_ns += now_ns() - feas_start
-        if best_t is None: dm.ops_failed += 1; continue
-        assign_start=now_ns(); ok=worker_assign(oi, best_mi, best_t); dm.assign_ns += now_ns() - assign_start
-        if not ok: dm.ops_failed += 1; continue
+
+        if not candidates:
+            dm.ops_failed += 1; continue
+
+        candidates.sort(key=lambda x: x[0])
+        assigned_ok = False
+        for t_candidate, mi in candidates:
+            assign_start=now_ns()
+            ok=worker_assign(oi, mi, t_candidate)
+            dm.assign_ns += now_ns() - assign_start
+            if ok:
+                best_t, best_mi = t_candidate, mi
+                assigned_ok = True
+                break
+        if not assigned_ok:
+            dm.ops_failed += 1; continue
+
         tot=total_len[(oi, best_mi)]
         M_busy[best_mi, best_t:best_t+tot]=True; chosen_m[oi]=best_mi; start[oi]=best_t; finish[oi]=best_t+tot
 
@@ -374,9 +383,8 @@ def random_genome(mats: Dict, rng: np.random.Generator):
     return op_order, machine_choice
 
 def evaluate_objective(mats, schedule, alpha=0.03,
-                       lambda_unsched_op=5_000,  # heavy penalty per unscheduled op
-                       horizon_penalty_factor=2):  # push job finish beyond horizon
-
+                       lambda_unsched_op=5_000,
+                       horizon_penalty_factor=2):
     Due = mats["Due"]
     JobOf = mats["JobOf"]
     finish = schedule["finish"]
@@ -393,16 +401,12 @@ def evaluate_objective(mats, schedule, alpha=0.03,
             job_finish[j] = 0
             continue
         if np.any(unsched_ops[ops]):
-            # force this job late by design
             job_finish[j] = nT * horizon_penalty_factor
         else:
             job_finish[j] = int(finish[ops].max())
-
         tardiness += max(0, job_finish[j] - Due[j])
 
-    # add explicit per-op penalty so GA can “see” individual misses
     tardiness += int(lambda_unsched_op) * int(unsched_ops.sum())
-
     makespan = int(np.maximum(0, finish).max()) if finish.size > 0 else 0
     score = float(tardiness + alpha * makespan)
     return {"tardiness": int(tardiness), "makespan": makespan, "score": score, "job_finish": job_finish,
@@ -674,8 +678,8 @@ def plot_machine_gantt(mats, sched, machine_index:int, title:str="", max_ops:int
     return fig
 
 # =============== UI ===============
-st.title("Matrix Scheduler — GA + CP-SAT + Optuna (Snapshots)")
-st.caption("Fast matrix decoder + GA for global search + CP-SAT to polish bottlenecks. With diagnostics, Gantt visuals, and robust snapshot downloads.")
+st.title("Matrix Scheduler — GA + CP-SAT + Optuna (Snapshots) — FIXED")
+st.caption("Vectorized decoder with precedence guard + unscheduled penalties + robust candidate probing.")
 
 with st.expander("Workflow"):
     st.markdown("""
@@ -923,7 +927,6 @@ with tab5:
         run_polish=st.button("Run CP-SAT polish")
 
         if run_polish:
-            # Reset any previous CP-SAT polish results to avoid stale data
             for k in list(st.session_state.keys()):
                 if k.startswith("cp_best_"):
                     st.session_state.pop(k)
@@ -935,7 +938,6 @@ with tab5:
             if not new_starts:
                 st.warning("No changes (or no ops in window).")
             else:
-                # Build a nudged order: polished ops by new start first, then the rest
                 nO=mats["n"]["O"]; base_order=np.arange(nO, dtype=np.int32)
                 polished_ops=sorted(new_starts.keys(), key=lambda oi: new_starts[oi])
                 mask=np.ones_like(base_order, dtype=bool); mask[polished_ops]=False; rest=base_order[mask]
@@ -952,7 +954,6 @@ with tab5:
                 genome_bytes = json.dumps(genome_json).encode("utf-8")
                 csv_bytes = df_new.to_csv(index=False).encode("utf-8")
 
-                # Persist polish results in session state
                 st.session_state["cp_best_present"] = True
                 st.session_state["cp_best_polish_ms"] = polish_ms
                 st.session_state["cp_best_decode_ms"] = decode_ms
@@ -973,7 +974,6 @@ with tab5:
             new_uns = unscheduled_ops(new_sched); d3.metric("New unscheduled", int(len(new_uns)), delta=int(len(new_uns)-len(base_uns)))
             d4.metric("Re-decode (ms)", f"{st.session_state.get('cp_best_decode_ms', 0.0):.1f}")
 
-            # Before/After Gantt for the polished machine and window
             st.markdown("#### Before (base)")
             fig_before = plot_machine_gantt(mats, base_sched, mi, title=f"Before — {mi_name}", window=(int(window_start), int(window_start+window_len)))
             st.pyplot(fig_before)
@@ -981,7 +981,6 @@ with tab5:
             fig_after = plot_machine_gantt(mats, new_sched, mi, title=f"After — {mi_name}", window=(int(window_start), int(window_start+window_len)))
             st.pyplot(fig_after)
 
-            # Affected ops table
             Ops=mats["meta"]["Ops"]
             changed=np.where(new_sched["start"]!=base_sched["start"])[0]
             rows=[{"Op":Ops[oi], "Old start":int(base_sched["start"][oi]), "New start":int(new_sched["start"][oi])} for oi in sorted(changed, key=lambda oi:new_sched["start"][oi])]
@@ -989,7 +988,6 @@ with tab5:
                 df_polished = pd.DataFrame(rows).sort_values(by="New start")
                 st.dataframe(df_polished)
 
-            # Download buttons and snapshot controls
             cA,cB=st.columns(2)
             with cA:
                 st.download_button("Download polished genome (JSON)", data=st.session_state.get("cp_best_genome_json"), file_name="polished_genome.json", mime="application/json", key="dl_genome_cp")
