@@ -1,0 +1,16 @@
+{
+	"name": "@zentio/scheduler",
+	"version": "1.0.0",
+	"description": "Python-based scheduler for Zentio manufacturing resource planning",
+	"private": true,
+	"scripts": {
+		"with-env": "dotenv -e ../../.env --",
+		"install": "uv sync",
+		"dev": "pnpm with-env make dev",
+		"start": "pnpm with-env make dev",
+		"clean": "make clean"
+	},
+	"engines": {
+		"python": ">=3.13"
+	}
+}

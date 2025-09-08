@@ -1,0 +1,2905 @@
+[
+  {
+    "resource_id": "a2cf4108-0d5f-4d38-ae6f-1dfe9a8e7219",
+    "resource_label": "Material Blender",
+    "resource_type": "machine",
+    "operations_skills": [
+      {
+        "operation_id": "ff2f53c1-ae21-4ed3-a538-bf2c4bab9c0a",
+        "operation_name": "Preparation",
+        "operation_phase": "setup"
+      },
+      {
+        "operation_id": "ff2f53c1-ae21-4ed3-a538-bf2c4bab9c0a",
+        "operation_name": "Preparation",
+        "operation_phase": "core_operation"
+      },
+      {
+        "operation_id": "ff2f53c1-ae21-4ed3-a538-bf2c4bab9c0a",
+        "operation_name": "Preparation",
+        "operation_phase": "cleanup"
+      }
+    ],
+    "periods_available": [
+      {
+        "start_datetime": "2025-09-02T12:01:55.585Z",
+        "end_datetime": "2025-12-31T23:59:00.000Z",
+        "capacity": 100
+      }
+    ]
+  },
+  {
+    "resource_id": "6d23c724-7274-4161-88bd-43356775a792",
+    "resource_label": "Injection Molding 1",
+    "resource_type": "machine",
+    "operations_skills": [
+      {
+        "operation_id": "b1930181-9953-4c40-8d52-7d41a8580190",
+        "operation_name": "Injection Molding",
+        "operation_phase": "setup"
+      },
+      {
+        "operation_id": "b1930181-9953-4c40-8d52-7d41a8580190",
+        "operation_name": "Injection Molding",
+        "operation_phase": "core_operation"
+      },
+      {
+        "operation_id": "b1930181-9953-4c40-8d52-7d41a8580190",
+        "operation_name": "Injection Molding",
+        "operation_phase": "cleanup"
+      }
+    ],
+    "periods_available": [
+      {
+        "start_datetime": "2025-09-02T12:01:55.585Z",
+        "end_datetime": "2025-09-03T08:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-03T10:00:00.000Z",
+        "end_datetime": "2025-12-31T23:59:00.000Z",
+        "capacity": 100
+      }
+    ]
+  },
+  {
+    "resource_id": "f91533b1-a54f-4f3f-9b35-7f3363d37b10",
+    "resource_label": "Injection Molding 2",
+    "resource_type": "machine",
+    "operations_skills": [
+      {
+        "operation_id": "b1930181-9953-4c40-8d52-7d41a8580190",
+        "operation_name": "Injection Molding",
+        "operation_phase": "setup"
+      },
+      {
+        "operation_id": "b1930181-9953-4c40-8d52-7d41a8580190",
+        "operation_name": "Injection Molding",
+        "operation_phase": "core_operation"
+      },
+      {
+        "operation_id": "b1930181-9953-4c40-8d52-7d41a8580190",
+        "operation_name": "Injection Molding",
+        "operation_phase": "cleanup"
+      }
+    ],
+    "periods_available": [
+      {
+        "start_datetime": "2025-09-02T12:01:55.585Z",
+        "end_datetime": "2025-12-31T23:59:00.000Z",
+        "capacity": 100
+      }
+    ]
+  },
+  {
+    "resource_id": "9ad14cb2-24cd-477f-a08b-ccd02adb76cb",
+    "resource_label": "Trimming Station",
+    "resource_type": "machine",
+    "operations_skills": [
+      {
+        "operation_id": "fee1ce91-38e1-4121-9db5-180e32d2c4ac",
+        "operation_name": "Post Molding",
+        "operation_phase": "setup"
+      },
+      {
+        "operation_id": "fee1ce91-38e1-4121-9db5-180e32d2c4ac",
+        "operation_name": "Post Molding",
+        "operation_phase": "core_operation"
+      },
+      {
+        "operation_id": "fee1ce91-38e1-4121-9db5-180e32d2c4ac",
+        "operation_name": "Post Molding",
+        "operation_phase": "cleanup"
+      }
+    ],
+    "periods_available": [
+      {
+        "start_datetime": "2025-09-02T12:01:55.585Z",
+        "end_datetime": "2025-12-31T23:59:00.000Z",
+        "capacity": 100
+      }
+    ]
+  },
+  {
+    "resource_id": "68f8bd0f-6208-4cda-9735-144f4264bd48",
+    "resource_label": "Assembly Line 1",
+    "resource_type": "machine",
+    "operations_skills": [
+      {
+        "operation_id": "de6d8c86-1be5-46e9-976f-403afa7769d2",
+        "operation_name": "Assembly",
+        "operation_phase": "setup"
+      },
+      {
+        "operation_id": "de6d8c86-1be5-46e9-976f-403afa7769d2",
+        "operation_name": "Assembly",
+        "operation_phase": "core_operation"
+      },
+      {
+        "operation_id": "de6d8c86-1be5-46e9-976f-403afa7769d2",
+        "operation_name": "Assembly",
+        "operation_phase": "cleanup"
+      }
+    ],
+    "periods_available": [
+      {
+        "start_datetime": "2025-09-02T12:01:55.585Z",
+        "end_datetime": "2025-12-31T23:59:00.000Z",
+        "capacity": 100
+      }
+    ]
+  },
+  {
+    "resource_id": "3a9c060c-261c-46da-b191-b12b4f33c9a5",
+    "resource_label": "Quality Scanner",
+    "resource_type": "machine",
+    "operations_skills": [
+      {
+        "operation_id": "35a0d6ce-363a-49e9-a859-690fcc27649c",
+        "operation_name": "Quality Control",
+        "operation_phase": "setup"
+      },
+      {
+        "operation_id": "35a0d6ce-363a-49e9-a859-690fcc27649c",
+        "operation_name": "Quality Control",
+        "operation_phase": "core_operation"
+      },
+      {
+        "operation_id": "35a0d6ce-363a-49e9-a859-690fcc27649c",
+        "operation_name": "Quality Control",
+        "operation_phase": "cleanup"
+      }
+    ],
+    "periods_available": [
+      {
+        "start_datetime": "2025-09-02T12:01:55.585Z",
+        "end_datetime": "2025-12-31T23:59:00.000Z",
+        "capacity": 100
+      }
+    ]
+  },
+  {
+    "resource_id": "d151d434-c200-46ef-a94e-fee6620d9174",
+    "resource_label": "Packaging Line",
+    "resource_type": "machine",
+    "operations_skills": [
+      {
+        "operation_id": "7bfe7e11-0d4d-44b5-8957-9ca8608e49f6",
+        "operation_name": "Packaging",
+        "operation_phase": "setup"
+      },
+      {
+        "operation_id": "7bfe7e11-0d4d-44b5-8957-9ca8608e49f6",
+        "operation_name": "Packaging",
+        "operation_phase": "core_operation"
+      },
+      {
+        "operation_id": "7bfe7e11-0d4d-44b5-8957-9ca8608e49f6",
+        "operation_name": "Packaging",
+        "operation_phase": "cleanup"
+      }
+    ],
+    "periods_available": [
+      {
+        "start_datetime": "2025-09-02T12:01:55.585Z",
+        "end_datetime": "2025-12-31T23:59:00.000Z",
+        "capacity": 100
+      }
+    ]
+  },
+  {
+    "resource_id": "8205bf17-e793-4c53-be6f-1508e4406bc3",
+    "resource_label": "CNC Machine 1",
+    "resource_type": "machine",
+    "operations_skills": [
+      {
+        "operation_id": "62b437fa-e13e-467b-a071-81264b10796b",
+        "operation_name": "CNC Machining",
+        "operation_phase": "setup"
+      },
+      {
+        "operation_id": "62b437fa-e13e-467b-a071-81264b10796b",
+        "operation_name": "CNC Machining",
+        "operation_phase": "core_operation"
+      },
+      {
+        "operation_id": "62b437fa-e13e-467b-a071-81264b10796b",
+        "operation_name": "CNC Machining",
+        "operation_phase": "cleanup"
+      }
+    ],
+    "periods_available": [
+      {
+        "start_datetime": "2025-09-02T12:01:55.585Z",
+        "end_datetime": "2025-12-31T23:59:00.000Z",
+        "capacity": 100
+      }
+    ]
+  },
+  {
+    "resource_id": "08e37632-a35a-4290-8b28-5ece996501b8",
+    "resource_label": "Welding Station 1",
+    "resource_type": "machine",
+    "operations_skills": [
+      {
+        "operation_id": "c57d4ee2-8e14-4284-bddc-4f43fcb710da",
+        "operation_name": "Welding",
+        "operation_phase": "setup"
+      },
+      {
+        "operation_id": "c57d4ee2-8e14-4284-bddc-4f43fcb710da",
+        "operation_name": "Welding",
+        "operation_phase": "core_operation"
+      },
+      {
+        "operation_id": "c57d4ee2-8e14-4284-bddc-4f43fcb710da",
+        "operation_name": "Welding",
+        "operation_phase": "cleanup"
+      }
+    ],
+    "periods_available": [
+      {
+        "start_datetime": "2025-09-02T12:01:55.585Z",
+        "end_datetime": "2025-12-31T23:59:00.000Z",
+        "capacity": 100
+      }
+    ]
+  },
+  {
+    "resource_id": "0d8b5ed5-0ed7-4bb2-a2b1-bfd5b955fa93",
+    "resource_label": "3D Printer 1",
+    "resource_type": "machine",
+    "operations_skills": [
+      {
+        "operation_id": "886105f3-e29f-491d-bef0-bf2500ef7b3d",
+        "operation_name": "3D Printing",
+        "operation_phase": "setup"
+      },
+      {
+        "operation_id": "886105f3-e29f-491d-bef0-bf2500ef7b3d",
+        "operation_name": "3D Printing",
+        "operation_phase": "core_operation"
+      },
+      {
+        "operation_id": "886105f3-e29f-491d-bef0-bf2500ef7b3d",
+        "operation_name": "3D Printing",
+        "operation_phase": "cleanup"
+      }
+    ],
+    "periods_available": [
+      {
+        "start_datetime": "2025-09-02T12:01:55.585Z",
+        "end_datetime": "2025-12-31T23:59:00.000Z",
+        "capacity": 100
+      }
+    ]
+  },
+  {
+    "resource_id": "ae9459fe-2f84-4387-a18f-958c6838d79d",
+    "resource_label": "Laser Cutter",
+    "resource_type": "machine",
+    "operations_skills": [
+      {
+        "operation_id": "d3cb5756-6eca-459b-91f7-f8b7db977206",
+        "operation_name": "Laser Cutting",
+        "operation_phase": "setup"
+      },
+      {
+        "operation_id": "d3cb5756-6eca-459b-91f7-f8b7db977206",
+        "operation_name": "Laser Cutting",
+        "operation_phase": "core_operation"
+      },
+      {
+        "operation_id": "d3cb5756-6eca-459b-91f7-f8b7db977206",
+        "operation_name": "Laser Cutting",
+        "operation_phase": "cleanup"
+      }
+    ],
+    "periods_available": [
+      {
+        "start_datetime": "2025-09-02T12:01:55.585Z",
+        "end_datetime": "2025-12-31T23:59:00.000Z",
+        "capacity": 100
+      }
+    ]
+  },
+  {
+    "resource_id": "3897b3ff-2a1a-4ab1-9a02-46996265b5a1",
+    "resource_label": "Industrial Furnace",
+    "resource_type": "machine",
+    "operations_skills": [
+      {
+        "operation_id": "0ef515c1-bf8c-47ec-949c-1bca31f4affe",
+        "operation_name": "Heat Treatment",
+        "operation_phase": "setup"
+      },
+      {
+        "operation_id": "0ef515c1-bf8c-47ec-949c-1bca31f4affe",
+        "operation_name": "Heat Treatment",
+        "operation_phase": "core_operation"
+      },
+      {
+        "operation_id": "0ef515c1-bf8c-47ec-949c-1bca31f4affe",
+        "operation_name": "Heat Treatment",
+        "operation_phase": "cleanup"
+      }
+    ],
+    "periods_available": [
+      {
+        "start_datetime": "2025-09-02T12:01:55.585Z",
+        "end_datetime": "2025-12-31T23:59:00.000Z",
+        "capacity": 100
+      }
+    ]
+  },
+  {
+    "resource_id": "5217094c-bb56-4478-8641-da8a277fd9da",
+    "resource_label": "Olivia Smith",
+    "resource_type": "operator",
+    "operations_skills": [
+      {
+        "operation_id": "b1930181-9953-4c40-8d52-7d41a8580190",
+        "operation_name": "Injection Molding",
+        "operation_phase": "setup"
+      },
+      {
+        "operation_id": "b1930181-9953-4c40-8d52-7d41a8580190",
+        "operation_name": "Injection Molding",
+        "operation_phase": "core_operation"
+      },
+      {
+        "operation_id": "b1930181-9953-4c40-8d52-7d41a8580190",
+        "operation_name": "Injection Molding",
+        "operation_phase": "cleanup"
+      },
+      {
+        "operation_id": "de6d8c86-1be5-46e9-976f-403afa7769d2",
+        "operation_name": "Assembly",
+        "operation_phase": "setup"
+      },
+      {
+        "operation_id": "de6d8c86-1be5-46e9-976f-403afa7769d2",
+        "operation_name": "Assembly",
+        "operation_phase": "core_operation"
+      },
+      {
+        "operation_id": "de6d8c86-1be5-46e9-976f-403afa7769d2",
+        "operation_name": "Assembly",
+        "operation_phase": "cleanup"
+      },
+      {
+        "operation_id": "7bfe7e11-0d4d-44b5-8957-9ca8608e49f6",
+        "operation_name": "Packaging",
+        "operation_phase": "setup"
+      },
+      {
+        "operation_id": "7bfe7e11-0d4d-44b5-8957-9ca8608e49f6",
+        "operation_name": "Packaging",
+        "operation_phase": "core_operation"
+      },
+      {
+        "operation_id": "7bfe7e11-0d4d-44b5-8957-9ca8608e49f6",
+        "operation_name": "Packaging",
+        "operation_phase": "cleanup"
+      },
+      {
+        "operation_id": "d3cb5756-6eca-459b-91f7-f8b7db977206",
+        "operation_name": "Laser Cutting",
+        "operation_phase": "setup"
+      },
+      {
+        "operation_id": "d3cb5756-6eca-459b-91f7-f8b7db977206",
+        "operation_name": "Laser Cutting",
+        "operation_phase": "core_operation"
+      },
+      {
+        "operation_id": "d3cb5756-6eca-459b-91f7-f8b7db977206",
+        "operation_name": "Laser Cutting",
+        "operation_phase": "cleanup"
+      }
+    ],
+    "periods_available": [
+      {
+        "start_datetime": "2025-09-02T12:01:55.585Z",
+        "end_datetime": "2025-09-02T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-03T06:00:00.000Z",
+        "end_datetime": "2025-09-03T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-04T06:00:00.000Z",
+        "end_datetime": "2025-09-04T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-05T06:00:00.000Z",
+        "end_datetime": "2025-09-05T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-08T06:00:00.000Z",
+        "end_datetime": "2025-09-08T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-09T06:00:00.000Z",
+        "end_datetime": "2025-09-09T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-10T06:00:00.000Z",
+        "end_datetime": "2025-09-10T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-11T06:00:00.000Z",
+        "end_datetime": "2025-09-11T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-12T06:00:00.000Z",
+        "end_datetime": "2025-09-12T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-15T06:00:00.000Z",
+        "end_datetime": "2025-09-15T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-16T06:00:00.000Z",
+        "end_datetime": "2025-09-16T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-17T06:00:00.000Z",
+        "end_datetime": "2025-09-17T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-18T06:00:00.000Z",
+        "end_datetime": "2025-09-18T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-19T06:00:00.000Z",
+        "end_datetime": "2025-09-19T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-22T06:00:00.000Z",
+        "end_datetime": "2025-09-22T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-23T06:00:00.000Z",
+        "end_datetime": "2025-09-23T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-24T06:00:00.000Z",
+        "end_datetime": "2025-09-24T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-25T06:00:00.000Z",
+        "end_datetime": "2025-09-25T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-26T06:00:00.000Z",
+        "end_datetime": "2025-09-26T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-29T06:00:00.000Z",
+        "end_datetime": "2025-09-29T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-30T06:00:00.000Z",
+        "end_datetime": "2025-09-30T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-01T06:00:00.000Z",
+        "end_datetime": "2025-10-01T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-02T06:00:00.000Z",
+        "end_datetime": "2025-10-02T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-03T06:00:00.000Z",
+        "end_datetime": "2025-10-03T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-06T06:00:00.000Z",
+        "end_datetime": "2025-10-06T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-07T06:00:00.000Z",
+        "end_datetime": "2025-10-07T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-08T06:00:00.000Z",
+        "end_datetime": "2025-10-08T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-09T06:00:00.000Z",
+        "end_datetime": "2025-10-09T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-10T06:00:00.000Z",
+        "end_datetime": "2025-10-10T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-13T06:00:00.000Z",
+        "end_datetime": "2025-10-13T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-14T06:00:00.000Z",
+        "end_datetime": "2025-10-14T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-15T06:00:00.000Z",
+        "end_datetime": "2025-10-15T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-16T06:00:00.000Z",
+        "end_datetime": "2025-10-16T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-17T06:00:00.000Z",
+        "end_datetime": "2025-10-17T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-20T06:00:00.000Z",
+        "end_datetime": "2025-10-20T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-21T06:00:00.000Z",
+        "end_datetime": "2025-10-21T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-22T06:00:00.000Z",
+        "end_datetime": "2025-10-22T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-23T06:00:00.000Z",
+        "end_datetime": "2025-10-23T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-24T06:00:00.000Z",
+        "end_datetime": "2025-10-24T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-27T06:00:00.000Z",
+        "end_datetime": "2025-10-27T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-28T06:00:00.000Z",
+        "end_datetime": "2025-10-28T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-29T06:00:00.000Z",
+        "end_datetime": "2025-10-29T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-30T06:00:00.000Z",
+        "end_datetime": "2025-10-30T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-31T06:00:00.000Z",
+        "end_datetime": "2025-10-31T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-03T06:00:00.000Z",
+        "end_datetime": "2025-11-03T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-04T06:00:00.000Z",
+        "end_datetime": "2025-11-04T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-05T06:00:00.000Z",
+        "end_datetime": "2025-11-05T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-06T06:00:00.000Z",
+        "end_datetime": "2025-11-06T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-07T06:00:00.000Z",
+        "end_datetime": "2025-11-07T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-10T06:00:00.000Z",
+        "end_datetime": "2025-11-10T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-11T06:00:00.000Z",
+        "end_datetime": "2025-11-11T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-12T06:00:00.000Z",
+        "end_datetime": "2025-11-12T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-13T06:00:00.000Z",
+        "end_datetime": "2025-11-13T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-14T06:00:00.000Z",
+        "end_datetime": "2025-11-14T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-17T06:00:00.000Z",
+        "end_datetime": "2025-11-17T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-18T06:00:00.000Z",
+        "end_datetime": "2025-11-18T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-19T06:00:00.000Z",
+        "end_datetime": "2025-11-19T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-20T06:00:00.000Z",
+        "end_datetime": "2025-11-20T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-21T06:00:00.000Z",
+        "end_datetime": "2025-11-21T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-24T06:00:00.000Z",
+        "end_datetime": "2025-11-24T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-25T06:00:00.000Z",
+        "end_datetime": "2025-11-25T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-26T06:00:00.000Z",
+        "end_datetime": "2025-11-26T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-27T06:00:00.000Z",
+        "end_datetime": "2025-11-27T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-28T06:00:00.000Z",
+        "end_datetime": "2025-11-28T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-01T06:00:00.000Z",
+        "end_datetime": "2025-12-01T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-02T06:00:00.000Z",
+        "end_datetime": "2025-12-02T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-03T06:00:00.000Z",
+        "end_datetime": "2025-12-03T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-04T06:00:00.000Z",
+        "end_datetime": "2025-12-04T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-05T06:00:00.000Z",
+        "end_datetime": "2025-12-05T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-08T06:00:00.000Z",
+        "end_datetime": "2025-12-08T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-09T06:00:00.000Z",
+        "end_datetime": "2025-12-09T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-10T06:00:00.000Z",
+        "end_datetime": "2025-12-10T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-11T06:00:00.000Z",
+        "end_datetime": "2025-12-11T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-12T06:00:00.000Z",
+        "end_datetime": "2025-12-12T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-15T06:00:00.000Z",
+        "end_datetime": "2025-12-15T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-16T06:00:00.000Z",
+        "end_datetime": "2025-12-16T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-17T06:00:00.000Z",
+        "end_datetime": "2025-12-17T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-18T06:00:00.000Z",
+        "end_datetime": "2025-12-18T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-19T06:00:00.000Z",
+        "end_datetime": "2025-12-19T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-22T06:00:00.000Z",
+        "end_datetime": "2025-12-22T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-23T06:00:00.000Z",
+        "end_datetime": "2025-12-23T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-24T06:00:00.000Z",
+        "end_datetime": "2025-12-24T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-25T06:00:00.000Z",
+        "end_datetime": "2025-12-25T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-26T06:00:00.000Z",
+        "end_datetime": "2025-12-26T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-29T06:00:00.000Z",
+        "end_datetime": "2025-12-29T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-30T06:00:00.000Z",
+        "end_datetime": "2025-12-30T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-31T06:00:00.000Z",
+        "end_datetime": "2025-12-31T14:00:00.000Z",
+        "capacity": 100
+      }
+    ]
+  },
+  {
+    "resource_id": "d13cb518-a5ae-4471-9daa-f5310fab96ba",
+    "resource_label": "Liam Jones",
+    "resource_type": "operator",
+    "operations_skills": [
+      {
+        "operation_id": "de6d8c86-1be5-46e9-976f-403afa7769d2",
+        "operation_name": "Assembly",
+        "operation_phase": "setup"
+      },
+      {
+        "operation_id": "de6d8c86-1be5-46e9-976f-403afa7769d2",
+        "operation_name": "Assembly",
+        "operation_phase": "core_operation"
+      },
+      {
+        "operation_id": "de6d8c86-1be5-46e9-976f-403afa7769d2",
+        "operation_name": "Assembly",
+        "operation_phase": "cleanup"
+      },
+      {
+        "operation_id": "62b437fa-e13e-467b-a071-81264b10796b",
+        "operation_name": "CNC Machining",
+        "operation_phase": "setup"
+      },
+      {
+        "operation_id": "62b437fa-e13e-467b-a071-81264b10796b",
+        "operation_name": "CNC Machining",
+        "operation_phase": "core_operation"
+      },
+      {
+        "operation_id": "62b437fa-e13e-467b-a071-81264b10796b",
+        "operation_name": "CNC Machining",
+        "operation_phase": "cleanup"
+      },
+      {
+        "operation_id": "b1930181-9953-4c40-8d52-7d41a8580190",
+        "operation_name": "Injection Molding",
+        "operation_phase": "setup"
+      },
+      {
+        "operation_id": "b1930181-9953-4c40-8d52-7d41a8580190",
+        "operation_name": "Injection Molding",
+        "operation_phase": "core_operation"
+      },
+      {
+        "operation_id": "b1930181-9953-4c40-8d52-7d41a8580190",
+        "operation_name": "Injection Molding",
+        "operation_phase": "cleanup"
+      },
+      {
+        "operation_id": "886105f3-e29f-491d-bef0-bf2500ef7b3d",
+        "operation_name": "3D Printing",
+        "operation_phase": "setup"
+      },
+      {
+        "operation_id": "886105f3-e29f-491d-bef0-bf2500ef7b3d",
+        "operation_name": "3D Printing",
+        "operation_phase": "core_operation"
+      },
+      {
+        "operation_id": "886105f3-e29f-491d-bef0-bf2500ef7b3d",
+        "operation_name": "3D Printing",
+        "operation_phase": "cleanup"
+      },
+      {
+        "operation_id": "d3cb5756-6eca-459b-91f7-f8b7db977206",
+        "operation_name": "Laser Cutting",
+        "operation_phase": "setup"
+      },
+      {
+        "operation_id": "d3cb5756-6eca-459b-91f7-f8b7db977206",
+        "operation_name": "Laser Cutting",
+        "operation_phase": "core_operation"
+      },
+      {
+        "operation_id": "d3cb5756-6eca-459b-91f7-f8b7db977206",
+        "operation_name": "Laser Cutting",
+        "operation_phase": "cleanup"
+      }
+    ],
+    "periods_available": [
+      {
+        "start_datetime": "2025-09-02T14:00:00.000Z",
+        "end_datetime": "2025-09-02T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-03T14:00:00.000Z",
+        "end_datetime": "2025-09-03T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-04T14:00:00.000Z",
+        "end_datetime": "2025-09-04T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-05T14:00:00.000Z",
+        "end_datetime": "2025-09-05T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-08T14:00:00.000Z",
+        "end_datetime": "2025-09-08T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-09T14:00:00.000Z",
+        "end_datetime": "2025-09-09T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-10T14:00:00.000Z",
+        "end_datetime": "2025-09-10T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-11T14:00:00.000Z",
+        "end_datetime": "2025-09-11T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-12T14:00:00.000Z",
+        "end_datetime": "2025-09-12T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-15T14:00:00.000Z",
+        "end_datetime": "2025-09-15T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-16T14:00:00.000Z",
+        "end_datetime": "2025-09-16T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-17T14:00:00.000Z",
+        "end_datetime": "2025-09-17T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-18T14:00:00.000Z",
+        "end_datetime": "2025-09-18T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-19T14:00:00.000Z",
+        "end_datetime": "2025-09-19T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-22T14:00:00.000Z",
+        "end_datetime": "2025-09-22T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-23T14:00:00.000Z",
+        "end_datetime": "2025-09-23T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-24T14:00:00.000Z",
+        "end_datetime": "2025-09-24T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-25T14:00:00.000Z",
+        "end_datetime": "2025-09-25T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-26T14:00:00.000Z",
+        "end_datetime": "2025-09-26T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-29T14:00:00.000Z",
+        "end_datetime": "2025-09-29T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-30T14:00:00.000Z",
+        "end_datetime": "2025-09-30T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-01T14:00:00.000Z",
+        "end_datetime": "2025-10-01T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-02T14:00:00.000Z",
+        "end_datetime": "2025-10-02T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-03T14:00:00.000Z",
+        "end_datetime": "2025-10-03T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-06T14:00:00.000Z",
+        "end_datetime": "2025-10-06T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-07T14:00:00.000Z",
+        "end_datetime": "2025-10-07T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-08T14:00:00.000Z",
+        "end_datetime": "2025-10-08T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-09T14:00:00.000Z",
+        "end_datetime": "2025-10-09T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-10T14:00:00.000Z",
+        "end_datetime": "2025-10-10T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-13T14:00:00.000Z",
+        "end_datetime": "2025-10-13T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-14T14:00:00.000Z",
+        "end_datetime": "2025-10-14T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-15T14:00:00.000Z",
+        "end_datetime": "2025-10-15T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-16T14:00:00.000Z",
+        "end_datetime": "2025-10-16T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-17T14:00:00.000Z",
+        "end_datetime": "2025-10-17T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-20T14:00:00.000Z",
+        "end_datetime": "2025-10-20T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-21T14:00:00.000Z",
+        "end_datetime": "2025-10-21T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-22T14:00:00.000Z",
+        "end_datetime": "2025-10-22T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-23T14:00:00.000Z",
+        "end_datetime": "2025-10-23T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-24T14:00:00.000Z",
+        "end_datetime": "2025-10-24T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-27T14:00:00.000Z",
+        "end_datetime": "2025-10-27T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-28T14:00:00.000Z",
+        "end_datetime": "2025-10-28T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-29T14:00:00.000Z",
+        "end_datetime": "2025-10-29T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-30T14:00:00.000Z",
+        "end_datetime": "2025-10-30T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-31T14:00:00.000Z",
+        "end_datetime": "2025-10-31T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-03T14:00:00.000Z",
+        "end_datetime": "2025-11-03T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-04T14:00:00.000Z",
+        "end_datetime": "2025-11-04T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-05T14:00:00.000Z",
+        "end_datetime": "2025-11-05T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-06T14:00:00.000Z",
+        "end_datetime": "2025-11-06T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-07T14:00:00.000Z",
+        "end_datetime": "2025-11-07T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-10T14:00:00.000Z",
+        "end_datetime": "2025-11-10T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-11T14:00:00.000Z",
+        "end_datetime": "2025-11-11T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-12T14:00:00.000Z",
+        "end_datetime": "2025-11-12T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-13T14:00:00.000Z",
+        "end_datetime": "2025-11-13T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-14T14:00:00.000Z",
+        "end_datetime": "2025-11-14T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-17T14:00:00.000Z",
+        "end_datetime": "2025-11-17T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-18T14:00:00.000Z",
+        "end_datetime": "2025-11-18T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-19T14:00:00.000Z",
+        "end_datetime": "2025-11-19T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-20T14:00:00.000Z",
+        "end_datetime": "2025-11-20T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-21T14:00:00.000Z",
+        "end_datetime": "2025-11-21T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-24T14:00:00.000Z",
+        "end_datetime": "2025-11-24T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-25T14:00:00.000Z",
+        "end_datetime": "2025-11-25T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-26T14:00:00.000Z",
+        "end_datetime": "2025-11-26T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-27T14:00:00.000Z",
+        "end_datetime": "2025-11-27T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-28T14:00:00.000Z",
+        "end_datetime": "2025-11-28T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-01T14:00:00.000Z",
+        "end_datetime": "2025-12-01T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-02T14:00:00.000Z",
+        "end_datetime": "2025-12-02T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-03T14:00:00.000Z",
+        "end_datetime": "2025-12-03T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-04T14:00:00.000Z",
+        "end_datetime": "2025-12-04T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-05T14:00:00.000Z",
+        "end_datetime": "2025-12-05T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-08T14:00:00.000Z",
+        "end_datetime": "2025-12-08T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-09T14:00:00.000Z",
+        "end_datetime": "2025-12-09T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-10T14:00:00.000Z",
+        "end_datetime": "2025-12-10T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-11T14:00:00.000Z",
+        "end_datetime": "2025-12-11T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-12T14:00:00.000Z",
+        "end_datetime": "2025-12-12T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-15T14:00:00.000Z",
+        "end_datetime": "2025-12-15T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-16T14:00:00.000Z",
+        "end_datetime": "2025-12-16T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-17T14:00:00.000Z",
+        "end_datetime": "2025-12-17T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-18T14:00:00.000Z",
+        "end_datetime": "2025-12-18T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-19T14:00:00.000Z",
+        "end_datetime": "2025-12-19T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-22T14:00:00.000Z",
+        "end_datetime": "2025-12-22T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-23T14:00:00.000Z",
+        "end_datetime": "2025-12-23T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-24T14:00:00.000Z",
+        "end_datetime": "2025-12-24T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-25T14:00:00.000Z",
+        "end_datetime": "2025-12-25T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-26T14:00:00.000Z",
+        "end_datetime": "2025-12-26T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-29T14:00:00.000Z",
+        "end_datetime": "2025-12-29T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-30T14:00:00.000Z",
+        "end_datetime": "2025-12-30T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-31T14:00:00.000Z",
+        "end_datetime": "2025-12-31T22:00:00.000Z",
+        "capacity": 100
+      }
+    ]
+  },
+  {
+    "resource_id": "17cae77c-4c64-4b20-a103-d23d17bff110",
+    "resource_label": "Sophia Williams",
+    "resource_type": "operator",
+    "operations_skills": [
+      {
+        "operation_id": "ff2f53c1-ae21-4ed3-a538-bf2c4bab9c0a",
+        "operation_name": "Preparation",
+        "operation_phase": "setup"
+      },
+      {
+        "operation_id": "ff2f53c1-ae21-4ed3-a538-bf2c4bab9c0a",
+        "operation_name": "Preparation",
+        "operation_phase": "core_operation"
+      },
+      {
+        "operation_id": "ff2f53c1-ae21-4ed3-a538-bf2c4bab9c0a",
+        "operation_name": "Preparation",
+        "operation_phase": "cleanup"
+      },
+      {
+        "operation_id": "fee1ce91-38e1-4121-9db5-180e32d2c4ac",
+        "operation_name": "Post Molding",
+        "operation_phase": "setup"
+      },
+      {
+        "operation_id": "fee1ce91-38e1-4121-9db5-180e32d2c4ac",
+        "operation_name": "Post Molding",
+        "operation_phase": "core_operation"
+      },
+      {
+        "operation_id": "fee1ce91-38e1-4121-9db5-180e32d2c4ac",
+        "operation_name": "Post Molding",
+        "operation_phase": "cleanup"
+      },
+      {
+        "operation_id": "35a0d6ce-363a-49e9-a859-690fcc27649c",
+        "operation_name": "Quality Control",
+        "operation_phase": "setup"
+      },
+      {
+        "operation_id": "35a0d6ce-363a-49e9-a859-690fcc27649c",
+        "operation_name": "Quality Control",
+        "operation_phase": "core_operation"
+      },
+      {
+        "operation_id": "35a0d6ce-363a-49e9-a859-690fcc27649c",
+        "operation_name": "Quality Control",
+        "operation_phase": "cleanup"
+      },
+      {
+        "operation_id": "62b437fa-e13e-467b-a071-81264b10796b",
+        "operation_name": "CNC Machining",
+        "operation_phase": "setup"
+      },
+      {
+        "operation_id": "62b437fa-e13e-467b-a071-81264b10796b",
+        "operation_name": "CNC Machining",
+        "operation_phase": "core_operation"
+      },
+      {
+        "operation_id": "62b437fa-e13e-467b-a071-81264b10796b",
+        "operation_name": "CNC Machining",
+        "operation_phase": "cleanup"
+      }
+    ],
+    "periods_available": [
+      {
+        "start_datetime": "2025-09-02T12:01:55.585Z",
+        "end_datetime": "2025-09-02T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-03T06:00:00.000Z",
+        "end_datetime": "2025-09-03T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-04T06:00:00.000Z",
+        "end_datetime": "2025-09-04T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-08T06:00:00.000Z",
+        "end_datetime": "2025-09-08T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-09T06:00:00.000Z",
+        "end_datetime": "2025-09-09T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-10T06:00:00.000Z",
+        "end_datetime": "2025-09-10T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-11T06:00:00.000Z",
+        "end_datetime": "2025-09-11T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-12T10:00:00.000Z",
+        "end_datetime": "2025-09-12T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-15T06:00:00.000Z",
+        "end_datetime": "2025-09-15T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-16T06:00:00.000Z",
+        "end_datetime": "2025-09-16T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-17T06:00:00.000Z",
+        "end_datetime": "2025-09-17T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-18T06:00:00.000Z",
+        "end_datetime": "2025-09-18T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-19T06:00:00.000Z",
+        "end_datetime": "2025-09-19T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-22T06:00:00.000Z",
+        "end_datetime": "2025-09-22T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-23T06:00:00.000Z",
+        "end_datetime": "2025-09-23T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-24T06:00:00.000Z",
+        "end_datetime": "2025-09-24T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-25T06:00:00.000Z",
+        "end_datetime": "2025-09-25T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-26T06:00:00.000Z",
+        "end_datetime": "2025-09-26T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-29T06:00:00.000Z",
+        "end_datetime": "2025-09-29T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-30T06:00:00.000Z",
+        "end_datetime": "2025-09-30T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-01T06:00:00.000Z",
+        "end_datetime": "2025-10-01T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-02T06:00:00.000Z",
+        "end_datetime": "2025-10-02T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-03T06:00:00.000Z",
+        "end_datetime": "2025-10-03T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-06T06:00:00.000Z",
+        "end_datetime": "2025-10-06T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-07T06:00:00.000Z",
+        "end_datetime": "2025-10-07T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-08T06:00:00.000Z",
+        "end_datetime": "2025-10-08T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-09T06:00:00.000Z",
+        "end_datetime": "2025-10-09T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-10T06:00:00.000Z",
+        "end_datetime": "2025-10-10T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-13T06:00:00.000Z",
+        "end_datetime": "2025-10-13T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-14T06:00:00.000Z",
+        "end_datetime": "2025-10-14T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-15T06:00:00.000Z",
+        "end_datetime": "2025-10-15T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-16T06:00:00.000Z",
+        "end_datetime": "2025-10-16T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-17T06:00:00.000Z",
+        "end_datetime": "2025-10-17T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-20T06:00:00.000Z",
+        "end_datetime": "2025-10-20T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-21T06:00:00.000Z",
+        "end_datetime": "2025-10-21T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-22T06:00:00.000Z",
+        "end_datetime": "2025-10-22T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-23T06:00:00.000Z",
+        "end_datetime": "2025-10-23T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-24T06:00:00.000Z",
+        "end_datetime": "2025-10-24T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-27T06:00:00.000Z",
+        "end_datetime": "2025-10-27T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-28T06:00:00.000Z",
+        "end_datetime": "2025-10-28T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-29T06:00:00.000Z",
+        "end_datetime": "2025-10-29T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-30T06:00:00.000Z",
+        "end_datetime": "2025-10-30T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-31T06:00:00.000Z",
+        "end_datetime": "2025-10-31T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-03T06:00:00.000Z",
+        "end_datetime": "2025-11-03T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-04T06:00:00.000Z",
+        "end_datetime": "2025-11-04T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-05T06:00:00.000Z",
+        "end_datetime": "2025-11-05T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-06T06:00:00.000Z",
+        "end_datetime": "2025-11-06T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-07T06:00:00.000Z",
+        "end_datetime": "2025-11-07T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-10T06:00:00.000Z",
+        "end_datetime": "2025-11-10T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-11T06:00:00.000Z",
+        "end_datetime": "2025-11-11T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-12T06:00:00.000Z",
+        "end_datetime": "2025-11-12T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-13T06:00:00.000Z",
+        "end_datetime": "2025-11-13T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-14T06:00:00.000Z",
+        "end_datetime": "2025-11-14T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-17T06:00:00.000Z",
+        "end_datetime": "2025-11-17T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-18T06:00:00.000Z",
+        "end_datetime": "2025-11-18T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-19T06:00:00.000Z",
+        "end_datetime": "2025-11-19T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-20T06:00:00.000Z",
+        "end_datetime": "2025-11-20T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-21T06:00:00.000Z",
+        "end_datetime": "2025-11-21T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-24T06:00:00.000Z",
+        "end_datetime": "2025-11-24T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-25T06:00:00.000Z",
+        "end_datetime": "2025-11-25T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-26T06:00:00.000Z",
+        "end_datetime": "2025-11-26T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-27T06:00:00.000Z",
+        "end_datetime": "2025-11-27T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-28T06:00:00.000Z",
+        "end_datetime": "2025-11-28T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-01T06:00:00.000Z",
+        "end_datetime": "2025-12-01T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-02T06:00:00.000Z",
+        "end_datetime": "2025-12-02T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-03T06:00:00.000Z",
+        "end_datetime": "2025-12-03T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-04T06:00:00.000Z",
+        "end_datetime": "2025-12-04T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-05T06:00:00.000Z",
+        "end_datetime": "2025-12-05T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-08T06:00:00.000Z",
+        "end_datetime": "2025-12-08T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-09T06:00:00.000Z",
+        "end_datetime": "2025-12-09T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-10T06:00:00.000Z",
+        "end_datetime": "2025-12-10T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-11T06:00:00.000Z",
+        "end_datetime": "2025-12-11T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-12T06:00:00.000Z",
+        "end_datetime": "2025-12-12T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-15T06:00:00.000Z",
+        "end_datetime": "2025-12-15T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-16T06:00:00.000Z",
+        "end_datetime": "2025-12-16T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-17T06:00:00.000Z",
+        "end_datetime": "2025-12-17T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-18T06:00:00.000Z",
+        "end_datetime": "2025-12-18T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-19T06:00:00.000Z",
+        "end_datetime": "2025-12-19T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-22T06:00:00.000Z",
+        "end_datetime": "2025-12-22T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-23T06:00:00.000Z",
+        "end_datetime": "2025-12-23T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-24T06:00:00.000Z",
+        "end_datetime": "2025-12-24T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-25T06:00:00.000Z",
+        "end_datetime": "2025-12-25T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-26T06:00:00.000Z",
+        "end_datetime": "2025-12-26T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-29T06:00:00.000Z",
+        "end_datetime": "2025-12-29T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-30T06:00:00.000Z",
+        "end_datetime": "2025-12-30T14:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-31T06:00:00.000Z",
+        "end_datetime": "2025-12-31T14:00:00.000Z",
+        "capacity": 100
+      }
+    ]
+  },
+  {
+    "resource_id": "2200043e-9171-4c04-a372-aeb0273f2abe",
+    "resource_label": "Noah Brown",
+    "resource_type": "operator",
+    "operations_skills": [
+      {
+        "operation_id": "c57d4ee2-8e14-4284-bddc-4f43fcb710da",
+        "operation_name": "Welding",
+        "operation_phase": "setup"
+      },
+      {
+        "operation_id": "c57d4ee2-8e14-4284-bddc-4f43fcb710da",
+        "operation_name": "Welding",
+        "operation_phase": "core_operation"
+      },
+      {
+        "operation_id": "c57d4ee2-8e14-4284-bddc-4f43fcb710da",
+        "operation_name": "Welding",
+        "operation_phase": "cleanup"
+      },
+      {
+        "operation_id": "35a0d6ce-363a-49e9-a859-690fcc27649c",
+        "operation_name": "Quality Control",
+        "operation_phase": "setup"
+      },
+      {
+        "operation_id": "35a0d6ce-363a-49e9-a859-690fcc27649c",
+        "operation_name": "Quality Control",
+        "operation_phase": "core_operation"
+      },
+      {
+        "operation_id": "35a0d6ce-363a-49e9-a859-690fcc27649c",
+        "operation_name": "Quality Control",
+        "operation_phase": "cleanup"
+      },
+      {
+        "operation_id": "ff2f53c1-ae21-4ed3-a538-bf2c4bab9c0a",
+        "operation_name": "Preparation",
+        "operation_phase": "setup"
+      },
+      {
+        "operation_id": "ff2f53c1-ae21-4ed3-a538-bf2c4bab9c0a",
+        "operation_name": "Preparation",
+        "operation_phase": "core_operation"
+      },
+      {
+        "operation_id": "ff2f53c1-ae21-4ed3-a538-bf2c4bab9c0a",
+        "operation_name": "Preparation",
+        "operation_phase": "cleanup"
+      },
+      {
+        "operation_id": "886105f3-e29f-491d-bef0-bf2500ef7b3d",
+        "operation_name": "3D Printing",
+        "operation_phase": "setup"
+      },
+      {
+        "operation_id": "886105f3-e29f-491d-bef0-bf2500ef7b3d",
+        "operation_name": "3D Printing",
+        "operation_phase": "core_operation"
+      },
+      {
+        "operation_id": "886105f3-e29f-491d-bef0-bf2500ef7b3d",
+        "operation_name": "3D Printing",
+        "operation_phase": "cleanup"
+      },
+      {
+        "operation_id": "0ef515c1-bf8c-47ec-949c-1bca31f4affe",
+        "operation_name": "Heat Treatment",
+        "operation_phase": "setup"
+      },
+      {
+        "operation_id": "0ef515c1-bf8c-47ec-949c-1bca31f4affe",
+        "operation_name": "Heat Treatment",
+        "operation_phase": "core_operation"
+      },
+      {
+        "operation_id": "0ef515c1-bf8c-47ec-949c-1bca31f4affe",
+        "operation_name": "Heat Treatment",
+        "operation_phase": "cleanup"
+      }
+    ],
+    "periods_available": [
+      {
+        "start_datetime": "2025-09-02T14:00:00.000Z",
+        "end_datetime": "2025-09-02T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-03T14:00:00.000Z",
+        "end_datetime": "2025-09-03T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-04T14:00:00.000Z",
+        "end_datetime": "2025-09-04T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-05T14:00:00.000Z",
+        "end_datetime": "2025-09-05T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-08T14:00:00.000Z",
+        "end_datetime": "2025-09-08T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-09T14:00:00.000Z",
+        "end_datetime": "2025-09-09T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-10T14:00:00.000Z",
+        "end_datetime": "2025-09-10T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-11T14:00:00.000Z",
+        "end_datetime": "2025-09-11T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-12T14:00:00.000Z",
+        "end_datetime": "2025-09-12T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-15T14:00:00.000Z",
+        "end_datetime": "2025-09-15T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-16T14:00:00.000Z",
+        "end_datetime": "2025-09-16T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-17T14:00:00.000Z",
+        "end_datetime": "2025-09-17T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-18T14:00:00.000Z",
+        "end_datetime": "2025-09-18T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-19T14:00:00.000Z",
+        "end_datetime": "2025-09-19T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-22T14:00:00.000Z",
+        "end_datetime": "2025-09-22T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-23T14:00:00.000Z",
+        "end_datetime": "2025-09-23T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-24T14:00:00.000Z",
+        "end_datetime": "2025-09-24T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-25T14:00:00.000Z",
+        "end_datetime": "2025-09-25T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-26T14:00:00.000Z",
+        "end_datetime": "2025-09-26T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-29T14:00:00.000Z",
+        "end_datetime": "2025-09-29T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-30T14:00:00.000Z",
+        "end_datetime": "2025-09-30T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-01T14:00:00.000Z",
+        "end_datetime": "2025-10-01T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-02T14:00:00.000Z",
+        "end_datetime": "2025-10-02T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-03T14:00:00.000Z",
+        "end_datetime": "2025-10-03T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-06T14:00:00.000Z",
+        "end_datetime": "2025-10-06T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-07T14:00:00.000Z",
+        "end_datetime": "2025-10-07T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-08T14:00:00.000Z",
+        "end_datetime": "2025-10-08T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-09T14:00:00.000Z",
+        "end_datetime": "2025-10-09T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-10T14:00:00.000Z",
+        "end_datetime": "2025-10-10T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-13T14:00:00.000Z",
+        "end_datetime": "2025-10-13T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-14T14:00:00.000Z",
+        "end_datetime": "2025-10-14T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-15T14:00:00.000Z",
+        "end_datetime": "2025-10-15T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-16T14:00:00.000Z",
+        "end_datetime": "2025-10-16T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-17T14:00:00.000Z",
+        "end_datetime": "2025-10-17T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-20T14:00:00.000Z",
+        "end_datetime": "2025-10-20T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-21T14:00:00.000Z",
+        "end_datetime": "2025-10-21T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-22T14:00:00.000Z",
+        "end_datetime": "2025-10-22T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-23T14:00:00.000Z",
+        "end_datetime": "2025-10-23T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-24T14:00:00.000Z",
+        "end_datetime": "2025-10-24T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-27T14:00:00.000Z",
+        "end_datetime": "2025-10-27T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-28T14:00:00.000Z",
+        "end_datetime": "2025-10-28T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-29T14:00:00.000Z",
+        "end_datetime": "2025-10-29T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-30T14:00:00.000Z",
+        "end_datetime": "2025-10-30T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-31T14:00:00.000Z",
+        "end_datetime": "2025-10-31T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-03T14:00:00.000Z",
+        "end_datetime": "2025-11-03T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-04T14:00:00.000Z",
+        "end_datetime": "2025-11-04T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-05T14:00:00.000Z",
+        "end_datetime": "2025-11-05T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-06T14:00:00.000Z",
+        "end_datetime": "2025-11-06T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-07T14:00:00.000Z",
+        "end_datetime": "2025-11-07T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-10T14:00:00.000Z",
+        "end_datetime": "2025-11-10T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-11T14:00:00.000Z",
+        "end_datetime": "2025-11-11T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-12T14:00:00.000Z",
+        "end_datetime": "2025-11-12T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-13T14:00:00.000Z",
+        "end_datetime": "2025-11-13T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-14T14:00:00.000Z",
+        "end_datetime": "2025-11-14T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-17T14:00:00.000Z",
+        "end_datetime": "2025-11-17T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-18T14:00:00.000Z",
+        "end_datetime": "2025-11-18T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-19T14:00:00.000Z",
+        "end_datetime": "2025-11-19T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-20T14:00:00.000Z",
+        "end_datetime": "2025-11-20T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-21T14:00:00.000Z",
+        "end_datetime": "2025-11-21T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-24T14:00:00.000Z",
+        "end_datetime": "2025-11-24T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-25T14:00:00.000Z",
+        "end_datetime": "2025-11-25T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-26T14:00:00.000Z",
+        "end_datetime": "2025-11-26T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-27T14:00:00.000Z",
+        "end_datetime": "2025-11-27T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-28T14:00:00.000Z",
+        "end_datetime": "2025-11-28T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-01T14:00:00.000Z",
+        "end_datetime": "2025-12-01T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-02T14:00:00.000Z",
+        "end_datetime": "2025-12-02T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-03T14:00:00.000Z",
+        "end_datetime": "2025-12-03T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-04T14:00:00.000Z",
+        "end_datetime": "2025-12-04T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-05T14:00:00.000Z",
+        "end_datetime": "2025-12-05T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-08T14:00:00.000Z",
+        "end_datetime": "2025-12-08T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-09T14:00:00.000Z",
+        "end_datetime": "2025-12-09T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-10T14:00:00.000Z",
+        "end_datetime": "2025-12-10T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-11T14:00:00.000Z",
+        "end_datetime": "2025-12-11T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-12T14:00:00.000Z",
+        "end_datetime": "2025-12-12T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-15T14:00:00.000Z",
+        "end_datetime": "2025-12-15T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-16T14:00:00.000Z",
+        "end_datetime": "2025-12-16T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-17T14:00:00.000Z",
+        "end_datetime": "2025-12-17T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-18T14:00:00.000Z",
+        "end_datetime": "2025-12-18T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-19T14:00:00.000Z",
+        "end_datetime": "2025-12-19T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-22T14:00:00.000Z",
+        "end_datetime": "2025-12-22T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-23T14:00:00.000Z",
+        "end_datetime": "2025-12-23T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-24T14:00:00.000Z",
+        "end_datetime": "2025-12-24T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-25T14:00:00.000Z",
+        "end_datetime": "2025-12-25T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-26T14:00:00.000Z",
+        "end_datetime": "2025-12-26T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-29T14:00:00.000Z",
+        "end_datetime": "2025-12-29T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-30T14:00:00.000Z",
+        "end_datetime": "2025-12-30T22:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-31T14:00:00.000Z",
+        "end_datetime": "2025-12-31T22:00:00.000Z",
+        "capacity": 100
+      }
+    ]
+  },
+  {
+    "resource_id": "dca1d27f-318d-4165-942b-86acc55a3249",
+    "resource_label": "Emma Johnson",
+    "resource_type": "operator",
+    "operations_skills": [
+      {
+        "operation_id": "0ef515c1-bf8c-47ec-949c-1bca31f4affe",
+        "operation_name": "Heat Treatment",
+        "operation_phase": "setup"
+      },
+      {
+        "operation_id": "0ef515c1-bf8c-47ec-949c-1bca31f4affe",
+        "operation_name": "Heat Treatment",
+        "operation_phase": "core_operation"
+      },
+      {
+        "operation_id": "0ef515c1-bf8c-47ec-949c-1bca31f4affe",
+        "operation_name": "Heat Treatment",
+        "operation_phase": "cleanup"
+      },
+      {
+        "operation_id": "7bfe7e11-0d4d-44b5-8957-9ca8608e49f6",
+        "operation_name": "Packaging",
+        "operation_phase": "setup"
+      },
+      {
+        "operation_id": "7bfe7e11-0d4d-44b5-8957-9ca8608e49f6",
+        "operation_name": "Packaging",
+        "operation_phase": "core_operation"
+      },
+      {
+        "operation_id": "7bfe7e11-0d4d-44b5-8957-9ca8608e49f6",
+        "operation_name": "Packaging",
+        "operation_phase": "cleanup"
+      },
+      {
+        "operation_id": "fee1ce91-38e1-4121-9db5-180e32d2c4ac",
+        "operation_name": "Post Molding",
+        "operation_phase": "setup"
+      },
+      {
+        "operation_id": "fee1ce91-38e1-4121-9db5-180e32d2c4ac",
+        "operation_name": "Post Molding",
+        "operation_phase": "core_operation"
+      },
+      {
+        "operation_id": "fee1ce91-38e1-4121-9db5-180e32d2c4ac",
+        "operation_name": "Post Molding",
+        "operation_phase": "cleanup"
+      },
+      {
+        "operation_id": "c57d4ee2-8e14-4284-bddc-4f43fcb710da",
+        "operation_name": "Welding",
+        "operation_phase": "setup"
+      },
+      {
+        "operation_id": "c57d4ee2-8e14-4284-bddc-4f43fcb710da",
+        "operation_name": "Welding",
+        "operation_phase": "core_operation"
+      },
+      {
+        "operation_id": "c57d4ee2-8e14-4284-bddc-4f43fcb710da",
+        "operation_name": "Welding",
+        "operation_phase": "cleanup"
+      },
+      {
+        "operation_id": "886105f3-e29f-491d-bef0-bf2500ef7b3d",
+        "operation_name": "3D Printing",
+        "operation_phase": "setup"
+      },
+      {
+        "operation_id": "886105f3-e29f-491d-bef0-bf2500ef7b3d",
+        "operation_name": "3D Printing",
+        "operation_phase": "core_operation"
+      },
+      {
+        "operation_id": "886105f3-e29f-491d-bef0-bf2500ef7b3d",
+        "operation_name": "3D Printing",
+        "operation_phase": "cleanup"
+      }
+    ],
+    "periods_available": [
+      {
+        "start_datetime": "2025-09-02T22:00:00.000Z",
+        "end_datetime": "2025-09-03T06:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-03T22:00:00.000Z",
+        "end_datetime": "2025-09-04T06:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-04T22:00:00.000Z",
+        "end_datetime": "2025-09-05T06:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-05T22:00:00.000Z",
+        "end_datetime": "2025-09-06T06:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-10T22:00:00.000Z",
+        "end_datetime": "2025-09-11T06:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-11T22:00:00.000Z",
+        "end_datetime": "2025-09-12T06:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-12T22:00:00.000Z",
+        "end_datetime": "2025-09-13T06:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-15T22:00:00.000Z",
+        "end_datetime": "2025-09-16T06:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-16T22:00:00.000Z",
+        "end_datetime": "2025-09-17T06:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-17T22:00:00.000Z",
+        "end_datetime": "2025-09-18T06:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-18T22:00:00.000Z",
+        "end_datetime": "2025-09-19T06:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-19T22:00:00.000Z",
+        "end_datetime": "2025-09-20T06:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-22T22:00:00.000Z",
+        "end_datetime": "2025-09-23T06:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-23T22:00:00.000Z",
+        "end_datetime": "2025-09-24T06:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-24T22:00:00.000Z",
+        "end_datetime": "2025-09-25T06:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-25T22:00:00.000Z",
+        "end_datetime": "2025-09-26T06:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-26T22:00:00.000Z",
+        "end_datetime": "2025-09-27T06:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-29T22:00:00.000Z",
+        "end_datetime": "2025-09-30T06:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-09-30T22:00:00.000Z",
+        "end_datetime": "2025-10-01T06:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-01T22:00:00.000Z",
+        "end_datetime": "2025-10-02T06:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-02T22:00:00.000Z",
+        "end_datetime": "2025-10-03T06:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-03T22:00:00.000Z",
+        "end_datetime": "2025-10-04T06:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-06T22:00:00.000Z",
+        "end_datetime": "2025-10-07T06:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-07T22:00:00.000Z",
+        "end_datetime": "2025-10-08T06:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-08T22:00:00.000Z",
+        "end_datetime": "2025-10-09T06:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-09T22:00:00.000Z",
+        "end_datetime": "2025-10-10T06:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-10T22:00:00.000Z",
+        "end_datetime": "2025-10-11T06:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-13T22:00:00.000Z",
+        "end_datetime": "2025-10-14T06:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-14T22:00:00.000Z",
+        "end_datetime": "2025-10-15T06:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-15T22:00:00.000Z",
+        "end_datetime": "2025-10-16T06:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-16T22:00:00.000Z",
+        "end_datetime": "2025-10-17T06:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-17T22:00:00.000Z",
+        "end_datetime": "2025-10-18T06:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-20T22:00:00.000Z",
+        "end_datetime": "2025-10-21T06:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-21T22:00:00.000Z",
+        "end_datetime": "2025-10-22T06:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-22T22:00:00.000Z",
+        "end_datetime": "2025-10-23T06:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-23T22:00:00.000Z",
+        "end_datetime": "2025-10-24T06:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-24T22:00:00.000Z",
+        "end_datetime": "2025-10-25T06:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-27T22:00:00.000Z",
+        "end_datetime": "2025-10-28T06:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-28T22:00:00.000Z",
+        "end_datetime": "2025-10-29T06:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-29T22:00:00.000Z",
+        "end_datetime": "2025-10-30T06:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-30T22:00:00.000Z",
+        "end_datetime": "2025-10-31T06:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-10-31T22:00:00.000Z",
+        "end_datetime": "2025-11-01T06:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-03T22:00:00.000Z",
+        "end_datetime": "2025-11-04T06:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-04T22:00:00.000Z",
+        "end_datetime": "2025-11-05T06:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-05T22:00:00.000Z",
+        "end_datetime": "2025-11-06T06:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-06T22:00:00.000Z",
+        "end_datetime": "2025-11-07T06:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-07T22:00:00.000Z",
+        "end_datetime": "2025-11-08T06:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-10T22:00:00.000Z",
+        "end_datetime": "2025-11-11T06:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-11T22:00:00.000Z",
+        "end_datetime": "2025-11-12T06:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-12T22:00:00.000Z",
+        "end_datetime": "2025-11-13T06:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-13T22:00:00.000Z",
+        "end_datetime": "2025-11-14T06:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-14T22:00:00.000Z",
+        "end_datetime": "2025-11-15T06:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-17T22:00:00.000Z",
+        "end_datetime": "2025-11-18T06:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-18T22:00:00.000Z",
+        "end_datetime": "2025-11-19T06:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-19T22:00:00.000Z",
+        "end_datetime": "2025-11-20T06:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-20T22:00:00.000Z",
+        "end_datetime": "2025-11-21T06:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-21T22:00:00.000Z",
+        "end_datetime": "2025-11-22T06:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-24T22:00:00.000Z",
+        "end_datetime": "2025-11-25T06:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-25T22:00:00.000Z",
+        "end_datetime": "2025-11-26T06:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-26T22:00:00.000Z",
+        "end_datetime": "2025-11-27T06:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-27T22:00:00.000Z",
+        "end_datetime": "2025-11-28T06:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-11-28T22:00:00.000Z",
+        "end_datetime": "2025-11-29T06:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-01T22:00:00.000Z",
+        "end_datetime": "2025-12-02T06:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-02T22:00:00.000Z",
+        "end_datetime": "2025-12-03T06:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-03T22:00:00.000Z",
+        "end_datetime": "2025-12-04T06:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-04T22:00:00.000Z",
+        "end_datetime": "2025-12-05T06:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-05T22:00:00.000Z",
+        "end_datetime": "2025-12-06T06:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-08T22:00:00.000Z",
+        "end_datetime": "2025-12-09T06:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-09T22:00:00.000Z",
+        "end_datetime": "2025-12-10T06:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-10T22:00:00.000Z",
+        "end_datetime": "2025-12-11T06:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-11T22:00:00.000Z",
+        "end_datetime": "2025-12-12T06:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-12T22:00:00.000Z",
+        "end_datetime": "2025-12-13T06:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-15T22:00:00.000Z",
+        "end_datetime": "2025-12-16T06:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-16T22:00:00.000Z",
+        "end_datetime": "2025-12-17T06:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-17T22:00:00.000Z",
+        "end_datetime": "2025-12-18T06:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-18T22:00:00.000Z",
+        "end_datetime": "2025-12-19T06:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-19T22:00:00.000Z",
+        "end_datetime": "2025-12-20T06:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-22T22:00:00.000Z",
+        "end_datetime": "2025-12-23T06:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-23T22:00:00.000Z",
+        "end_datetime": "2025-12-24T06:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-24T22:00:00.000Z",
+        "end_datetime": "2025-12-25T06:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-25T22:00:00.000Z",
+        "end_datetime": "2025-12-26T06:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-26T22:00:00.000Z",
+        "end_datetime": "2025-12-27T06:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-29T22:00:00.000Z",
+        "end_datetime": "2025-12-30T06:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-30T22:00:00.000Z",
+        "end_datetime": "2025-12-31T06:00:00.000Z",
+        "capacity": 100
+      },
+      {
+        "start_datetime": "2025-12-31T22:00:00.000Z",
+        "end_datetime": "2026-01-01T06:00:00.000Z",
+        "capacity": 100
+      }
+    ]
+  }
+]
