@@ -1,0 +1,8 @@
+# This directory contains real production data exported from the live system
+# Files in this directory:
+# - real_manufacturing_orders.json: Manufacturing orders data
+# - real_resources.json: Resources and capabilities data
+# - real_metadata.json: Export metadata (dates, organization, etc.)
+# - real_combined.json: All data combined in one file
+#
+# To generate these files, run: make export-data

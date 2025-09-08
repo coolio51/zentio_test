@@ -1,0 +1,6002 @@
+[
+	{
+		"manufacturing_order_id": "def3fbdd-60ed-437b-a317-0dc2318c2eac",
+		"article_id": "4d621eac-cfee-420d-b941-7a6bc624c124",
+		"article_name": "Plastic Container Lid",
+		"quantity": 100,
+		"required_date": "2025-08-16T09:38:58.123Z",
+		"priority": "low",
+		"operations_requirements": [
+			{
+				"operation_id": "62c50ada-9f24-473c-a968-ca5557c0bcdb",
+				"operation_name": "Preparation",
+				"quantity": 100,
+				"sequence": 1,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 300
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 15
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 15
+					}
+				]
+			},
+			{
+				"operation_id": "10b83f07-f542-461e-ac9b-b74bdb4352f0",
+				"operation_name": "Injection Molding",
+				"quantity": 100,
+				"sequence": 2,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 600
+					},
+					{
+						"phase": "setup",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 600
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 1
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 1
+					},
+					{
+						"phase": "cleanup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 300
+					}
+				]
+			},
+			{
+				"operation_id": "2db8bb86-fbd1-46d2-9ffa-13c0d05eae41",
+				"operation_name": "Post Molding",
+				"quantity": 100,
+				"sequence": 3,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 600
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 30
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 30
+					}
+				]
+			},
+			{
+				"operation_id": "742de54b-21ba-4633-87aa-243ba3dbca0f",
+				"operation_name": "Quality Control",
+				"quantity": 100,
+				"sequence": 4,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 120
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 10
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 10
+					}
+				]
+			},
+			{
+				"operation_id": "5b4ed40d-5082-41f4-b5ef-53639d164160",
+				"operation_name": "Packaging",
+				"quantity": 100,
+				"sequence": 5,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 180
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 20
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 20
+					}
+				]
+			}
+		]
+	},
+	{
+		"manufacturing_order_id": "68bb775e-d7b4-4361-9e7e-ba4c10ad59bc",
+		"article_id": "06d24446-f889-4a27-88b5-86fa18eaff6d",
+		"article_name": "Bottle Cap",
+		"quantity": 250,
+		"required_date": "2025-08-15T09:38:58.126Z",
+		"priority": "low",
+		"operations_requirements": [
+			{
+				"operation_id": "62c50ada-9f24-473c-a968-ca5557c0bcdb",
+				"operation_name": "Preparation",
+				"quantity": 250,
+				"sequence": 1,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 450
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 20
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 20
+					}
+				]
+			},
+			{
+				"operation_id": "10b83f07-f542-461e-ac9b-b74bdb4352f0",
+				"operation_name": "Injection Molding",
+				"quantity": 250,
+				"sequence": 2,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 480
+					},
+					{
+						"phase": "setup",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 480
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 1
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 1
+					},
+					{
+						"phase": "cleanup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 240
+					}
+				]
+			},
+			{
+				"operation_id": "2db8bb86-fbd1-46d2-9ffa-13c0d05eae41",
+				"operation_name": "Post Molding",
+				"quantity": 250,
+				"sequence": 3,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 300
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 25
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 25
+					}
+				]
+			},
+			{
+				"operation_id": "742de54b-21ba-4633-87aa-243ba3dbca0f",
+				"operation_name": "Quality Control",
+				"quantity": 250,
+				"sequence": 4,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 90
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 8
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 8
+					}
+				]
+			},
+			{
+				"operation_id": "5b4ed40d-5082-41f4-b5ef-53639d164160",
+				"operation_name": "Packaging",
+				"quantity": 250,
+				"sequence": 5,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 120
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 15
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 15
+					}
+				]
+			}
+		]
+	},
+	{
+		"manufacturing_order_id": "47d7c85e-5221-4981-a395-5924cc64af38",
+		"article_id": "f5896bc3-6fcf-4632-9b34-444ea6408da0",
+		"article_name": "Plastic Storage Box",
+		"quantity": 50,
+		"required_date": "2025-08-11T09:38:58.127Z",
+		"priority": "low",
+		"operations_requirements": [
+			{
+				"operation_id": "62c50ada-9f24-473c-a968-ca5557c0bcdb",
+				"operation_name": "Preparation",
+				"quantity": 50,
+				"sequence": 1,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 400
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 25
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 25
+					}
+				]
+			},
+			{
+				"operation_id": "10b83f07-f542-461e-ac9b-b74bdb4352f0",
+				"operation_name": "Injection Molding",
+				"quantity": 50,
+				"sequence": 2,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 720
+					},
+					{
+						"phase": "setup",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 720
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 2
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 2
+					},
+					{
+						"phase": "cleanup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 360
+					}
+				]
+			},
+			{
+				"operation_id": "2db8bb86-fbd1-46d2-9ffa-13c0d05eae41",
+				"operation_name": "Post Molding",
+				"quantity": 50,
+				"sequence": 3,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 450
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 35
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 35
+					}
+				]
+			},
+			{
+				"operation_id": "2f369f3c-58c8-41a6-b6ed-05678ac24945",
+				"operation_name": "Assembly",
+				"quantity": 50,
+				"sequence": 4,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 180
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 25
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 25
+					}
+				]
+			},
+			{
+				"operation_id": "742de54b-21ba-4633-87aa-243ba3dbca0f",
+				"operation_name": "Quality Control",
+				"quantity": 50,
+				"sequence": 5,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 150
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 12
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 12
+					}
+				]
+			},
+			{
+				"operation_id": "5b4ed40d-5082-41f4-b5ef-53639d164160",
+				"operation_name": "Packaging",
+				"quantity": 50,
+				"sequence": 6,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 240
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 30
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 30
+					}
+				]
+			}
+		]
+	},
+	{
+		"manufacturing_order_id": "b2537d43-bf79-4a61-82a9-1240849615e8",
+		"article_id": "44f69f6d-1c11-4069-b757-61843410dd01",
+		"article_name": "Phone Case",
+		"quantity": 150,
+		"required_date": "2025-08-08T09:50:55.895Z",
+		"priority": "low",
+		"operations_requirements": [
+			{
+				"operation_id": "e801a353-08ec-4d62-80de-34e3846ef130",
+				"operation_name": "3D Printing",
+				"quantity": 150,
+				"sequence": 1,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 20
+					},
+					{
+						"phase": "setup",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 20
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 120
+					},
+					{
+						"phase": "cleanup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 10
+					}
+				]
+			},
+			{
+				"operation_id": "742de54b-21ba-4633-87aa-243ba3dbca0f",
+				"operation_name": "Quality Control",
+				"quantity": 150,
+				"sequence": 2,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 2
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 8
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 8
+					}
+				]
+			},
+			{
+				"operation_id": "5b4ed40d-5082-41f4-b5ef-53639d164160",
+				"operation_name": "Packaging",
+				"quantity": 150,
+				"sequence": 3,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 3
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 5
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 5
+					}
+				]
+			}
+		]
+	},
+	{
+		"manufacturing_order_id": "a814b536-237b-4ad4-ab2c-67fbdf4afab9",
+		"article_id": "9016ffe9-2f03-472c-bbbf-202c6fdc4ea6",
+		"article_name": "Plastic Gear",
+		"quantity": 25,
+		"required_date": "2025-08-08T09:50:55.896Z",
+		"priority": "low",
+		"operations_requirements": [
+			{
+				"operation_id": "50feb16d-aebc-4285-9c06-46b02f1802f1",
+				"operation_name": "CNC Machining",
+				"quantity": 25,
+				"sequence": 1,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 15
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 20
+					},
+					{
+						"phase": "cleanup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 10
+					}
+				]
+			},
+			{
+				"operation_id": "9e9a3b2c-3599-4264-9a1e-7cc6984d0e2d",
+				"operation_name": "Heat Treatment",
+				"quantity": 25,
+				"sequence": 2,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 30
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 180
+					},
+					{
+						"phase": "cleanup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 15
+					}
+				]
+			},
+			{
+				"operation_id": "2f369f3c-58c8-41a6-b6ed-05678ac24945",
+				"operation_name": "Assembly",
+				"quantity": 25,
+				"sequence": 3,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 5
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 15
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 15
+					}
+				]
+			},
+			{
+				"operation_id": "742de54b-21ba-4633-87aa-243ba3dbca0f",
+				"operation_name": "Quality Control",
+				"quantity": 25,
+				"sequence": 4,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 2
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 8
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 8
+					}
+				]
+			}
+		]
+	},
+	{
+		"manufacturing_order_id": "ccc71af9-7177-4a37-96e7-42928c0391c7",
+		"article_id": "a1b4855a-7362-4868-848e-3b77b18a05b3",
+		"article_name": "Plastic Mounting Bracket",
+		"quantity": 100,
+		"required_date": "2025-08-20T09:38:58.128Z",
+		"priority": "low",
+		"operations_requirements": [
+			{
+				"operation_id": "50feb16d-aebc-4285-9c06-46b02f1802f1",
+				"operation_name": "CNC Machining",
+				"quantity": 100,
+				"sequence": 1,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 15
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 20
+					},
+					{
+						"phase": "cleanup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 10
+					}
+				]
+			},
+			{
+				"operation_id": "2f369f3c-58c8-41a6-b6ed-05678ac24945",
+				"operation_name": "Assembly",
+				"quantity": 100,
+				"sequence": 2,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 5
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 15
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 15
+					}
+				]
+			},
+			{
+				"operation_id": "742de54b-21ba-4633-87aa-243ba3dbca0f",
+				"operation_name": "Quality Control",
+				"quantity": 100,
+				"sequence": 3,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 2
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 8
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 8
+					}
+				]
+			}
+		]
+	},
+	{
+		"manufacturing_order_id": "4df44122-b770-466b-b666-d2d753867637",
+		"article_id": "223c8602-1bd4-40a4-9a47-5e3baaedcfe9",
+		"article_name": "Plastic Keychain",
+		"quantity": 150,
+		"required_date": "2025-08-20T09:38:58.128Z",
+		"priority": "low",
+		"operations_requirements": [
+			{
+				"operation_id": "e801a353-08ec-4d62-80de-34e3846ef130",
+				"operation_name": "3D Printing",
+				"quantity": 150,
+				"sequence": 1,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 20
+					},
+					{
+						"phase": "setup",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 20
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 120
+					},
+					{
+						"phase": "cleanup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 10
+					}
+				]
+			},
+			{
+				"operation_id": "2db8bb86-fbd1-46d2-9ffa-13c0d05eae41",
+				"operation_name": "Post Molding",
+				"quantity": 150,
+				"sequence": 2,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 10
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 10
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 10
+					}
+				]
+			},
+			{
+				"operation_id": "5b4ed40d-5082-41f4-b5ef-53639d164160",
+				"operation_name": "Packaging",
+				"quantity": 150,
+				"sequence": 3,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 3
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 5
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 5
+					}
+				]
+			}
+		]
+	},
+	{
+		"manufacturing_order_id": "b37736d8-8a49-4f52-922a-31c7a81eeb56",
+		"article_id": "61580f78-7af3-4cb0-9bf5-90f2f8813f74",
+		"article_name": "Plastic Lamp Shade",
+		"quantity": 50,
+		"required_date": "2025-08-22T09:38:58.129Z",
+		"priority": "low",
+		"operations_requirements": [
+			{
+				"operation_id": "88220d47-d5bd-4f2e-a82d-3a29063e01a6",
+				"operation_name": "Laser Cutting",
+				"quantity": 50,
+				"sequence": 1,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 5
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 8
+					},
+					{
+						"phase": "cleanup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 3
+					}
+				]
+			},
+			{
+				"operation_id": "946b0a47-0276-4f75-9d77-cdee874ef7f0",
+				"operation_name": "Welding",
+				"quantity": 50,
+				"sequence": 2,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 8
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 12
+					},
+					{
+						"phase": "cleanup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 5
+					}
+				]
+			},
+			{
+				"operation_id": "742de54b-21ba-4633-87aa-243ba3dbca0f",
+				"operation_name": "Quality Control",
+				"quantity": 50,
+				"sequence": 3,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 2
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 8
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 8
+					}
+				]
+			},
+			{
+				"operation_id": "5b4ed40d-5082-41f4-b5ef-53639d164160",
+				"operation_name": "Packaging",
+				"quantity": 50,
+				"sequence": 4,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 3
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 5
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 5
+					}
+				]
+			}
+		]
+	},
+	{
+		"manufacturing_order_id": "93a85f2b-a60d-46d2-a2ec-ba6c65d9fca3",
+		"article_id": "6008da4e-cbc6-4eda-9a82-cb788bc665f1",
+		"article_name": "Plastic Connector",
+		"quantity": 100,
+		"required_date": "2025-08-22T09:38:58.129Z",
+		"priority": "low",
+		"operations_requirements": [
+			{
+				"operation_id": "88220d47-d5bd-4f2e-a82d-3a29063e01a6",
+				"operation_name": "Laser Cutting",
+				"quantity": 100,
+				"sequence": 1,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 5
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 8
+					},
+					{
+						"phase": "cleanup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 3
+					}
+				]
+			},
+			{
+				"operation_id": "9e9a3b2c-3599-4264-9a1e-7cc6984d0e2d",
+				"operation_name": "Heat Treatment",
+				"quantity": 100,
+				"sequence": 2,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 30
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 180
+					},
+					{
+						"phase": "cleanup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 15
+					}
+				]
+			},
+			{
+				"operation_id": "742de54b-21ba-4633-87aa-243ba3dbca0f",
+				"operation_name": "Quality Control",
+				"quantity": 100,
+				"sequence": 3,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 2
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 8
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 8
+					}
+				]
+			}
+		]
+	},
+	{
+		"manufacturing_order_id": "abe54f96-8954-41e6-b074-004bcddf7613",
+		"article_id": "e0b878c3-f3c7-4a80-b461-f1c69a55b534",
+		"article_name": "Plastic Device Housing",
+		"quantity": 75,
+		"required_date": "2025-08-22T09:38:58.129Z",
+		"priority": "low",
+		"operations_requirements": [
+			{
+				"operation_id": "10b83f07-f542-461e-ac9b-b74bdb4352f0",
+				"operation_name": "Injection Molding",
+				"quantity": 75,
+				"sequence": 1,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 600
+					},
+					{
+						"phase": "setup",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 600
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 1
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 1
+					},
+					{
+						"phase": "cleanup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 300
+					}
+				]
+			},
+			{
+				"operation_id": "2f369f3c-58c8-41a6-b6ed-05678ac24945",
+				"operation_name": "Assembly",
+				"quantity": 75,
+				"sequence": 2,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 5
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 15
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 15
+					}
+				]
+			},
+			{
+				"operation_id": "742de54b-21ba-4633-87aa-243ba3dbca0f",
+				"operation_name": "Quality Control",
+				"quantity": 75,
+				"sequence": 3,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 2
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 8
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 8
+					}
+				]
+			},
+			{
+				"operation_id": "5b4ed40d-5082-41f4-b5ef-53639d164160",
+				"operation_name": "Packaging",
+				"quantity": 75,
+				"sequence": 4,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 3
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 5
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 5
+					}
+				]
+			}
+		]
+	},
+	{
+		"manufacturing_order_id": "1db1700d-8f06-4cb7-b681-46d8ee2a385e",
+		"article_id": "4d621eac-cfee-420d-b941-7a6bc624c124",
+		"article_name": "Plastic Container Lid",
+		"quantity": 150,
+		"required_date": "2025-08-22T09:38:58.129Z",
+		"priority": "low",
+		"operations_requirements": [
+			{
+				"operation_id": "62c50ada-9f24-473c-a968-ca5557c0bcdb",
+				"operation_name": "Preparation",
+				"quantity": 150,
+				"sequence": 1,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 300
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 15
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 15
+					}
+				]
+			},
+			{
+				"operation_id": "10b83f07-f542-461e-ac9b-b74bdb4352f0",
+				"operation_name": "Injection Molding",
+				"quantity": 150,
+				"sequence": 2,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 600
+					},
+					{
+						"phase": "setup",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 600
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 1
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 1
+					},
+					{
+						"phase": "cleanup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 300
+					}
+				]
+			},
+			{
+				"operation_id": "2db8bb86-fbd1-46d2-9ffa-13c0d05eae41",
+				"operation_name": "Post Molding",
+				"quantity": 150,
+				"sequence": 3,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 600
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 30
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 30
+					}
+				]
+			},
+			{
+				"operation_id": "742de54b-21ba-4633-87aa-243ba3dbca0f",
+				"operation_name": "Quality Control",
+				"quantity": 150,
+				"sequence": 4,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 120
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 10
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 10
+					}
+				]
+			},
+			{
+				"operation_id": "5b4ed40d-5082-41f4-b5ef-53639d164160",
+				"operation_name": "Packaging",
+				"quantity": 150,
+				"sequence": 5,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 180
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 20
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 20
+					}
+				]
+			}
+		]
+	},
+	{
+		"manufacturing_order_id": "2527d719-bb9f-4ad6-bd1d-59b1de8362b5",
+		"article_id": "06d24446-f889-4a27-88b5-86fa18eaff6d",
+		"article_name": "Bottle Cap",
+		"quantity": 300,
+		"required_date": "2025-08-22T09:38:58.129Z",
+		"priority": "low",
+		"operations_requirements": [
+			{
+				"operation_id": "62c50ada-9f24-473c-a968-ca5557c0bcdb",
+				"operation_name": "Preparation",
+				"quantity": 300,
+				"sequence": 1,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 450
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 20
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 20
+					}
+				]
+			},
+			{
+				"operation_id": "10b83f07-f542-461e-ac9b-b74bdb4352f0",
+				"operation_name": "Injection Molding",
+				"quantity": 300,
+				"sequence": 2,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 480
+					},
+					{
+						"phase": "setup",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 480
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 1
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 1
+					},
+					{
+						"phase": "cleanup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 240
+					}
+				]
+			},
+			{
+				"operation_id": "2db8bb86-fbd1-46d2-9ffa-13c0d05eae41",
+				"operation_name": "Post Molding",
+				"quantity": 300,
+				"sequence": 3,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 300
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 25
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 25
+					}
+				]
+			},
+			{
+				"operation_id": "742de54b-21ba-4633-87aa-243ba3dbca0f",
+				"operation_name": "Quality Control",
+				"quantity": 300,
+				"sequence": 4,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 90
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 8
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 8
+					}
+				]
+			},
+			{
+				"operation_id": "5b4ed40d-5082-41f4-b5ef-53639d164160",
+				"operation_name": "Packaging",
+				"quantity": 300,
+				"sequence": 5,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 120
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 15
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 15
+					}
+				]
+			}
+		]
+	},
+	{
+		"manufacturing_order_id": "ed79a0fe-9c37-4680-bbe1-4d3d1560178e",
+		"article_id": "f5896bc3-6fcf-4632-9b34-444ea6408da0",
+		"article_name": "Plastic Storage Box",
+		"quantity": 30,
+		"required_date": "2025-08-22T09:38:58.129Z",
+		"priority": "low",
+		"operations_requirements": [
+			{
+				"operation_id": "62c50ada-9f24-473c-a968-ca5557c0bcdb",
+				"operation_name": "Preparation",
+				"quantity": 30,
+				"sequence": 1,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 400
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 25
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 25
+					}
+				]
+			},
+			{
+				"operation_id": "10b83f07-f542-461e-ac9b-b74bdb4352f0",
+				"operation_name": "Injection Molding",
+				"quantity": 30,
+				"sequence": 2,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 720
+					},
+					{
+						"phase": "setup",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 720
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 2
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 2
+					},
+					{
+						"phase": "cleanup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 360
+					}
+				]
+			},
+			{
+				"operation_id": "2db8bb86-fbd1-46d2-9ffa-13c0d05eae41",
+				"operation_name": "Post Molding",
+				"quantity": 30,
+				"sequence": 3,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 450
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 35
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 35
+					}
+				]
+			},
+			{
+				"operation_id": "2f369f3c-58c8-41a6-b6ed-05678ac24945",
+				"operation_name": "Assembly",
+				"quantity": 30,
+				"sequence": 4,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 180
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 25
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 25
+					}
+				]
+			},
+			{
+				"operation_id": "742de54b-21ba-4633-87aa-243ba3dbca0f",
+				"operation_name": "Quality Control",
+				"quantity": 30,
+				"sequence": 5,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 150
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 12
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 12
+					}
+				]
+			},
+			{
+				"operation_id": "5b4ed40d-5082-41f4-b5ef-53639d164160",
+				"operation_name": "Packaging",
+				"quantity": 30,
+				"sequence": 6,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 240
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 30
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 30
+					}
+				]
+			}
+		]
+	},
+	{
+		"manufacturing_order_id": "6af6b35d-1424-4c37-8c40-cb2682cf39ff",
+		"article_id": "44f69f6d-1c11-4069-b757-61843410dd01",
+		"article_name": "Phone Case",
+		"quantity": 200,
+		"required_date": "2025-08-22T09:38:58.129Z",
+		"priority": "low",
+		"operations_requirements": [
+			{
+				"operation_id": "e801a353-08ec-4d62-80de-34e3846ef130",
+				"operation_name": "3D Printing",
+				"quantity": 200,
+				"sequence": 1,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 20
+					},
+					{
+						"phase": "setup",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 20
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 120
+					},
+					{
+						"phase": "cleanup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 10
+					}
+				]
+			},
+			{
+				"operation_id": "742de54b-21ba-4633-87aa-243ba3dbca0f",
+				"operation_name": "Quality Control",
+				"quantity": 200,
+				"sequence": 2,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 2
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 8
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 8
+					}
+				]
+			},
+			{
+				"operation_id": "5b4ed40d-5082-41f4-b5ef-53639d164160",
+				"operation_name": "Packaging",
+				"quantity": 200,
+				"sequence": 3,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 3
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 5
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 5
+					}
+				]
+			}
+		]
+	},
+	{
+		"manufacturing_order_id": "83d5645f-1a25-40ae-a3c5-35f2bc711ac6",
+		"article_id": "9016ffe9-2f03-472c-bbbf-202c6fdc4ea6",
+		"article_name": "Plastic Gear",
+		"quantity": 40,
+		"required_date": "2025-08-22T09:38:58.129Z",
+		"priority": "low",
+		"operations_requirements": [
+			{
+				"operation_id": "50feb16d-aebc-4285-9c06-46b02f1802f1",
+				"operation_name": "CNC Machining",
+				"quantity": 40,
+				"sequence": 1,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 15
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 20
+					},
+					{
+						"phase": "cleanup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 10
+					}
+				]
+			},
+			{
+				"operation_id": "9e9a3b2c-3599-4264-9a1e-7cc6984d0e2d",
+				"operation_name": "Heat Treatment",
+				"quantity": 40,
+				"sequence": 2,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 30
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 180
+					},
+					{
+						"phase": "cleanup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 15
+					}
+				]
+			},
+			{
+				"operation_id": "2f369f3c-58c8-41a6-b6ed-05678ac24945",
+				"operation_name": "Assembly",
+				"quantity": 40,
+				"sequence": 3,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 5
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 15
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 15
+					}
+				]
+			},
+			{
+				"operation_id": "742de54b-21ba-4633-87aa-243ba3dbca0f",
+				"operation_name": "Quality Control",
+				"quantity": 40,
+				"sequence": 4,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 2
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 8
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 8
+					}
+				]
+			}
+		]
+	},
+	{
+		"manufacturing_order_id": "db216c7d-e9b6-4d6d-ad8d-a84d74b8b311",
+		"article_id": "61580f78-7af3-4cb0-9bf5-90f2f8813f74",
+		"article_name": "Plastic Lamp Shade",
+		"quantity": 60,
+		"required_date": "2025-08-22T09:38:58.129Z",
+		"priority": "low",
+		"operations_requirements": [
+			{
+				"operation_id": "88220d47-d5bd-4f2e-a82d-3a29063e01a6",
+				"operation_name": "Laser Cutting",
+				"quantity": 60,
+				"sequence": 1,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 5
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 8
+					},
+					{
+						"phase": "cleanup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 3
+					}
+				]
+			},
+			{
+				"operation_id": "946b0a47-0276-4f75-9d77-cdee874ef7f0",
+				"operation_name": "Welding",
+				"quantity": 60,
+				"sequence": 2,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 8
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 12
+					},
+					{
+						"phase": "cleanup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 5
+					}
+				]
+			},
+			{
+				"operation_id": "742de54b-21ba-4633-87aa-243ba3dbca0f",
+				"operation_name": "Quality Control",
+				"quantity": 60,
+				"sequence": 3,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 2
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 8
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 8
+					}
+				]
+			},
+			{
+				"operation_id": "5b4ed40d-5082-41f4-b5ef-53639d164160",
+				"operation_name": "Packaging",
+				"quantity": 60,
+				"sequence": 4,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 3
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 5
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 5
+					}
+				]
+			}
+		]
+	},
+	{
+		"manufacturing_order_id": "923daa3f-0243-4cf5-907d-a76f81d8778e",
+		"article_id": "a1b4855a-7362-4868-848e-3b77b18a05b3",
+		"article_name": "Plastic Mounting Bracket",
+		"quantity": 120,
+		"required_date": "2025-08-22T09:38:58.129Z",
+		"priority": "low",
+		"operations_requirements": [
+			{
+				"operation_id": "50feb16d-aebc-4285-9c06-46b02f1802f1",
+				"operation_name": "CNC Machining",
+				"quantity": 120,
+				"sequence": 1,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 15
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 20
+					},
+					{
+						"phase": "cleanup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 10
+					}
+				]
+			},
+			{
+				"operation_id": "2f369f3c-58c8-41a6-b6ed-05678ac24945",
+				"operation_name": "Assembly",
+				"quantity": 120,
+				"sequence": 2,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 5
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 15
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 15
+					}
+				]
+			},
+			{
+				"operation_id": "742de54b-21ba-4633-87aa-243ba3dbca0f",
+				"operation_name": "Quality Control",
+				"quantity": 120,
+				"sequence": 3,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 2
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 8
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 8
+					}
+				]
+			}
+		]
+	},
+	{
+		"manufacturing_order_id": "589f44c7-94f5-4fca-9eb2-e120428286ed",
+		"article_id": "223c8602-1bd4-40a4-9a47-5e3baaedcfe9",
+		"article_name": "Plastic Keychain",
+		"quantity": 180,
+		"required_date": "2025-08-22T09:38:58.129Z",
+		"priority": "low",
+		"operations_requirements": [
+			{
+				"operation_id": "e801a353-08ec-4d62-80de-34e3846ef130",
+				"operation_name": "3D Printing",
+				"quantity": 180,
+				"sequence": 1,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 20
+					},
+					{
+						"phase": "setup",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 20
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 120
+					},
+					{
+						"phase": "cleanup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 10
+					}
+				]
+			},
+			{
+				"operation_id": "2db8bb86-fbd1-46d2-9ffa-13c0d05eae41",
+				"operation_name": "Post Molding",
+				"quantity": 180,
+				"sequence": 2,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 10
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 10
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 10
+					}
+				]
+			},
+			{
+				"operation_id": "5b4ed40d-5082-41f4-b5ef-53639d164160",
+				"operation_name": "Packaging",
+				"quantity": 180,
+				"sequence": 3,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 3
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 5
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 5
+					}
+				]
+			}
+		]
+	},
+	{
+		"manufacturing_order_id": "529e3e6d-7194-4393-98c1-c18710007b3b",
+		"article_id": "6008da4e-cbc6-4eda-9a82-cb788bc665f1",
+		"article_name": "Plastic Connector",
+		"quantity": 90,
+		"required_date": "2025-08-22T09:38:58.129Z",
+		"priority": "low",
+		"operations_requirements": [
+			{
+				"operation_id": "88220d47-d5bd-4f2e-a82d-3a29063e01a6",
+				"operation_name": "Laser Cutting",
+				"quantity": 90,
+				"sequence": 1,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 5
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 8
+					},
+					{
+						"phase": "cleanup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 3
+					}
+				]
+			},
+			{
+				"operation_id": "9e9a3b2c-3599-4264-9a1e-7cc6984d0e2d",
+				"operation_name": "Heat Treatment",
+				"quantity": 90,
+				"sequence": 2,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 30
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 180
+					},
+					{
+						"phase": "cleanup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 15
+					}
+				]
+			},
+			{
+				"operation_id": "742de54b-21ba-4633-87aa-243ba3dbca0f",
+				"operation_name": "Quality Control",
+				"quantity": 90,
+				"sequence": 3,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 2
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 8
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 8
+					}
+				]
+			}
+		]
+	},
+	{
+		"manufacturing_order_id": "6ae6c35d-c123-4edc-8f95-4c1224114ca2",
+		"article_id": "e0b878c3-f3c7-4a80-b461-f1c69a55b534",
+		"article_name": "Plastic Device Housing",
+		"quantity": 75,
+		"required_date": "2025-08-22T09:38:58.129Z",
+		"priority": "low",
+		"operations_requirements": [
+			{
+				"operation_id": "10b83f07-f542-461e-ac9b-b74bdb4352f0",
+				"operation_name": "Injection Molding",
+				"quantity": 75,
+				"sequence": 1,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 600
+					},
+					{
+						"phase": "setup",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 600
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 1
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 1
+					},
+					{
+						"phase": "cleanup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 300
+					}
+				]
+			},
+			{
+				"operation_id": "2f369f3c-58c8-41a6-b6ed-05678ac24945",
+				"operation_name": "Assembly",
+				"quantity": 75,
+				"sequence": 2,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 5
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 15
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 15
+					}
+				]
+			},
+			{
+				"operation_id": "742de54b-21ba-4633-87aa-243ba3dbca0f",
+				"operation_name": "Quality Control",
+				"quantity": 75,
+				"sequence": 3,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 2
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 8
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 8
+					}
+				]
+			},
+			{
+				"operation_id": "5b4ed40d-5082-41f4-b5ef-53639d164160",
+				"operation_name": "Packaging",
+				"quantity": 75,
+				"sequence": 4,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 3
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 5
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 5
+					}
+				]
+			}
+		]
+	},
+	{
+		"manufacturing_order_id": "f234901f-bdbf-4e9e-9672-372b12596484",
+		"article_id": "4d621eac-cfee-420d-b941-7a6bc624c124",
+		"article_name": "Plastic Container Lid",
+		"quantity": 150,
+		"required_date": "2025-08-22T09:38:58.129Z",
+		"priority": "low",
+		"operations_requirements": [
+			{
+				"operation_id": "62c50ada-9f24-473c-a968-ca5557c0bcdb",
+				"operation_name": "Preparation",
+				"quantity": 150,
+				"sequence": 1,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 300
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 15
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 15
+					}
+				]
+			},
+			{
+				"operation_id": "10b83f07-f542-461e-ac9b-b74bdb4352f0",
+				"operation_name": "Injection Molding",
+				"quantity": 150,
+				"sequence": 2,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 600
+					},
+					{
+						"phase": "setup",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 600
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 1
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 1
+					},
+					{
+						"phase": "cleanup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 300
+					}
+				]
+			},
+			{
+				"operation_id": "2db8bb86-fbd1-46d2-9ffa-13c0d05eae41",
+				"operation_name": "Post Molding",
+				"quantity": 150,
+				"sequence": 3,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 600
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 30
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 30
+					}
+				]
+			},
+			{
+				"operation_id": "742de54b-21ba-4633-87aa-243ba3dbca0f",
+				"operation_name": "Quality Control",
+				"quantity": 150,
+				"sequence": 4,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 120
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 10
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 10
+					}
+				]
+			},
+			{
+				"operation_id": "5b4ed40d-5082-41f4-b5ef-53639d164160",
+				"operation_name": "Packaging",
+				"quantity": 150,
+				"sequence": 5,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 180
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 20
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 20
+					}
+				]
+			}
+		]
+	},
+	{
+		"manufacturing_order_id": "d82af03f-b9fa-4216-9d2b-a66c4bc9d633",
+		"article_id": "06d24446-f889-4a27-88b5-86fa18eaff6d",
+		"article_name": "Bottle Cap",
+		"quantity": 300,
+		"required_date": "2025-08-22T09:38:58.129Z",
+		"priority": "low",
+		"operations_requirements": [
+			{
+				"operation_id": "62c50ada-9f24-473c-a968-ca5557c0bcdb",
+				"operation_name": "Preparation",
+				"quantity": 300,
+				"sequence": 1,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 450
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 20
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 20
+					}
+				]
+			},
+			{
+				"operation_id": "10b83f07-f542-461e-ac9b-b74bdb4352f0",
+				"operation_name": "Injection Molding",
+				"quantity": 300,
+				"sequence": 2,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 480
+					},
+					{
+						"phase": "setup",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 480
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 1
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 1
+					},
+					{
+						"phase": "cleanup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 240
+					}
+				]
+			},
+			{
+				"operation_id": "2db8bb86-fbd1-46d2-9ffa-13c0d05eae41",
+				"operation_name": "Post Molding",
+				"quantity": 300,
+				"sequence": 3,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 300
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 25
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 25
+					}
+				]
+			},
+			{
+				"operation_id": "742de54b-21ba-4633-87aa-243ba3dbca0f",
+				"operation_name": "Quality Control",
+				"quantity": 300,
+				"sequence": 4,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 90
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 8
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 8
+					}
+				]
+			},
+			{
+				"operation_id": "5b4ed40d-5082-41f4-b5ef-53639d164160",
+				"operation_name": "Packaging",
+				"quantity": 300,
+				"sequence": 5,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 120
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 15
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 15
+					}
+				]
+			}
+		]
+	},
+	{
+		"manufacturing_order_id": "b36bdbc2-2ad2-413b-adde-b5967c00945d",
+		"article_id": "f5896bc3-6fcf-4632-9b34-444ea6408da0",
+		"article_name": "Plastic Storage Box",
+		"quantity": 30,
+		"required_date": "2025-08-22T09:38:58.129Z",
+		"priority": "low",
+		"operations_requirements": [
+			{
+				"operation_id": "62c50ada-9f24-473c-a968-ca5557c0bcdb",
+				"operation_name": "Preparation",
+				"quantity": 30,
+				"sequence": 1,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 400
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 25
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 25
+					}
+				]
+			},
+			{
+				"operation_id": "10b83f07-f542-461e-ac9b-b74bdb4352f0",
+				"operation_name": "Injection Molding",
+				"quantity": 30,
+				"sequence": 2,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 720
+					},
+					{
+						"phase": "setup",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 720
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 2
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 2
+					},
+					{
+						"phase": "cleanup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 360
+					}
+				]
+			},
+			{
+				"operation_id": "2db8bb86-fbd1-46d2-9ffa-13c0d05eae41",
+				"operation_name": "Post Molding",
+				"quantity": 30,
+				"sequence": 3,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 450
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 35
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 35
+					}
+				]
+			},
+			{
+				"operation_id": "2f369f3c-58c8-41a6-b6ed-05678ac24945",
+				"operation_name": "Assembly",
+				"quantity": 30,
+				"sequence": 4,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 180
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 25
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 25
+					}
+				]
+			},
+			{
+				"operation_id": "742de54b-21ba-4633-87aa-243ba3dbca0f",
+				"operation_name": "Quality Control",
+				"quantity": 30,
+				"sequence": 5,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 150
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 12
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 12
+					}
+				]
+			},
+			{
+				"operation_id": "5b4ed40d-5082-41f4-b5ef-53639d164160",
+				"operation_name": "Packaging",
+				"quantity": 30,
+				"sequence": 6,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 240
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 30
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 30
+					}
+				]
+			}
+		]
+	},
+	{
+		"manufacturing_order_id": "79deff51-f68b-4d92-8ebc-ca18c5fc37c0",
+		"article_id": "44f69f6d-1c11-4069-b757-61843410dd01",
+		"article_name": "Phone Case",
+		"quantity": 200,
+		"required_date": "2025-08-22T09:38:58.129Z",
+		"priority": "low",
+		"operations_requirements": [
+			{
+				"operation_id": "e801a353-08ec-4d62-80de-34e3846ef130",
+				"operation_name": "3D Printing",
+				"quantity": 200,
+				"sequence": 1,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 20
+					},
+					{
+						"phase": "setup",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 20
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 120
+					},
+					{
+						"phase": "cleanup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 10
+					}
+				]
+			},
+			{
+				"operation_id": "742de54b-21ba-4633-87aa-243ba3dbca0f",
+				"operation_name": "Quality Control",
+				"quantity": 200,
+				"sequence": 2,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 2
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 8
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 8
+					}
+				]
+			},
+			{
+				"operation_id": "5b4ed40d-5082-41f4-b5ef-53639d164160",
+				"operation_name": "Packaging",
+				"quantity": 200,
+				"sequence": 3,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 3
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 5
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 5
+					}
+				]
+			}
+		]
+	},
+	{
+		"manufacturing_order_id": "c443fc08-f7e5-4366-b201-b3a1d694efe0",
+		"article_id": "9016ffe9-2f03-472c-bbbf-202c6fdc4ea6",
+		"article_name": "Plastic Gear",
+		"quantity": 40,
+		"required_date": "2025-08-22T09:38:58.129Z",
+		"priority": "low",
+		"operations_requirements": [
+			{
+				"operation_id": "50feb16d-aebc-4285-9c06-46b02f1802f1",
+				"operation_name": "CNC Machining",
+				"quantity": 40,
+				"sequence": 1,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 15
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 20
+					},
+					{
+						"phase": "cleanup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 10
+					}
+				]
+			},
+			{
+				"operation_id": "9e9a3b2c-3599-4264-9a1e-7cc6984d0e2d",
+				"operation_name": "Heat Treatment",
+				"quantity": 40,
+				"sequence": 2,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 30
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 180
+					},
+					{
+						"phase": "cleanup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 15
+					}
+				]
+			},
+			{
+				"operation_id": "2f369f3c-58c8-41a6-b6ed-05678ac24945",
+				"operation_name": "Assembly",
+				"quantity": 40,
+				"sequence": 3,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 5
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 15
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 15
+					}
+				]
+			},
+			{
+				"operation_id": "742de54b-21ba-4633-87aa-243ba3dbca0f",
+				"operation_name": "Quality Control",
+				"quantity": 40,
+				"sequence": 4,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 2
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 8
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 8
+					}
+				]
+			}
+		]
+	},
+	{
+		"manufacturing_order_id": "678d719b-427b-4f85-8698-6acf56d505e0",
+		"article_id": "61580f78-7af3-4cb0-9bf5-90f2f8813f74",
+		"article_name": "Plastic Lamp Shade",
+		"quantity": 60,
+		"required_date": "2025-08-22T09:38:58.129Z",
+		"priority": "low",
+		"operations_requirements": [
+			{
+				"operation_id": "88220d47-d5bd-4f2e-a82d-3a29063e01a6",
+				"operation_name": "Laser Cutting",
+				"quantity": 60,
+				"sequence": 1,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 5
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 8
+					},
+					{
+						"phase": "cleanup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 3
+					}
+				]
+			},
+			{
+				"operation_id": "946b0a47-0276-4f75-9d77-cdee874ef7f0",
+				"operation_name": "Welding",
+				"quantity": 60,
+				"sequence": 2,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 8
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 12
+					},
+					{
+						"phase": "cleanup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 5
+					}
+				]
+			},
+			{
+				"operation_id": "742de54b-21ba-4633-87aa-243ba3dbca0f",
+				"operation_name": "Quality Control",
+				"quantity": 60,
+				"sequence": 3,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 2
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 8
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 8
+					}
+				]
+			},
+			{
+				"operation_id": "5b4ed40d-5082-41f4-b5ef-53639d164160",
+				"operation_name": "Packaging",
+				"quantity": 60,
+				"sequence": 4,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 3
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 5
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 5
+					}
+				]
+			}
+		]
+	},
+	{
+		"manufacturing_order_id": "fc568def-6bbc-4d17-a8c5-4bbcd118709d",
+		"article_id": "a1b4855a-7362-4868-848e-3b77b18a05b3",
+		"article_name": "Plastic Mounting Bracket",
+		"quantity": 120,
+		"required_date": "2025-08-22T09:38:58.129Z",
+		"priority": "low",
+		"operations_requirements": [
+			{
+				"operation_id": "50feb16d-aebc-4285-9c06-46b02f1802f1",
+				"operation_name": "CNC Machining",
+				"quantity": 120,
+				"sequence": 1,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 15
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 20
+					},
+					{
+						"phase": "cleanup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 10
+					}
+				]
+			},
+			{
+				"operation_id": "2f369f3c-58c8-41a6-b6ed-05678ac24945",
+				"operation_name": "Assembly",
+				"quantity": 120,
+				"sequence": 2,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 5
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 15
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 15
+					}
+				]
+			},
+			{
+				"operation_id": "742de54b-21ba-4633-87aa-243ba3dbca0f",
+				"operation_name": "Quality Control",
+				"quantity": 120,
+				"sequence": 3,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 2
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 8
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 8
+					}
+				]
+			}
+		]
+	},
+	{
+		"manufacturing_order_id": "094d68aa-7d7b-442c-b126-9bb78f420f75",
+		"article_id": "223c8602-1bd4-40a4-9a47-5e3baaedcfe9",
+		"article_name": "Plastic Keychain",
+		"quantity": 180,
+		"required_date": "2025-08-22T09:38:58.129Z",
+		"priority": "low",
+		"operations_requirements": [
+			{
+				"operation_id": "e801a353-08ec-4d62-80de-34e3846ef130",
+				"operation_name": "3D Printing",
+				"quantity": 180,
+				"sequence": 1,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 20
+					},
+					{
+						"phase": "setup",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 20
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 120
+					},
+					{
+						"phase": "cleanup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 10
+					}
+				]
+			},
+			{
+				"operation_id": "2db8bb86-fbd1-46d2-9ffa-13c0d05eae41",
+				"operation_name": "Post Molding",
+				"quantity": 180,
+				"sequence": 2,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 10
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 10
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 10
+					}
+				]
+			},
+			{
+				"operation_id": "5b4ed40d-5082-41f4-b5ef-53639d164160",
+				"operation_name": "Packaging",
+				"quantity": 180,
+				"sequence": 3,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 3
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 5
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 5
+					}
+				]
+			}
+		]
+	},
+	{
+		"manufacturing_order_id": "b048747f-8e69-4e5f-b8e8-ca4854b8aefc",
+		"article_id": "6008da4e-cbc6-4eda-9a82-cb788bc665f1",
+		"article_name": "Plastic Connector",
+		"quantity": 90,
+		"required_date": "2025-08-22T09:38:58.129Z",
+		"priority": "low",
+		"operations_requirements": [
+			{
+				"operation_id": "88220d47-d5bd-4f2e-a82d-3a29063e01a6",
+				"operation_name": "Laser Cutting",
+				"quantity": 90,
+				"sequence": 1,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 5
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 8
+					},
+					{
+						"phase": "cleanup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 3
+					}
+				]
+			},
+			{
+				"operation_id": "9e9a3b2c-3599-4264-9a1e-7cc6984d0e2d",
+				"operation_name": "Heat Treatment",
+				"quantity": 90,
+				"sequence": 2,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 30
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 180
+					},
+					{
+						"phase": "cleanup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 15
+					}
+				]
+			},
+			{
+				"operation_id": "742de54b-21ba-4633-87aa-243ba3dbca0f",
+				"operation_name": "Quality Control",
+				"quantity": 90,
+				"sequence": 3,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 2
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 8
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 8
+					}
+				]
+			}
+		]
+	},
+	{
+		"manufacturing_order_id": "7760b06e-4ae9-4639-9b6c-91afa35e07df",
+		"article_id": "e0b878c3-f3c7-4a80-b461-f1c69a55b534",
+		"article_name": "Plastic Device Housing",
+		"quantity": 75,
+		"required_date": "2025-08-22T09:38:58.129Z",
+		"priority": "low",
+		"operations_requirements": [
+			{
+				"operation_id": "10b83f07-f542-461e-ac9b-b74bdb4352f0",
+				"operation_name": "Injection Molding",
+				"quantity": 75,
+				"sequence": 1,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 600
+					},
+					{
+						"phase": "setup",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 600
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 1
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 1
+					},
+					{
+						"phase": "cleanup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 300
+					}
+				]
+			},
+			{
+				"operation_id": "2f369f3c-58c8-41a6-b6ed-05678ac24945",
+				"operation_name": "Assembly",
+				"quantity": 75,
+				"sequence": 2,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 5
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 15
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 15
+					}
+				]
+			},
+			{
+				"operation_id": "742de54b-21ba-4633-87aa-243ba3dbca0f",
+				"operation_name": "Quality Control",
+				"quantity": 75,
+				"sequence": 3,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 2
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 8
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 8
+					}
+				]
+			},
+			{
+				"operation_id": "5b4ed40d-5082-41f4-b5ef-53639d164160",
+				"operation_name": "Packaging",
+				"quantity": 75,
+				"sequence": 4,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 3
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 5
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 5
+					}
+				]
+			}
+		]
+	},
+	{
+		"manufacturing_order_id": "c25e7ee8-f389-428b-941c-8072e391120a",
+		"article_id": "4d621eac-cfee-420d-b941-7a6bc624c124",
+		"article_name": "Plastic Container Lid",
+		"quantity": 150,
+		"required_date": "2025-08-22T09:38:58.129Z",
+		"priority": "low",
+		"operations_requirements": [
+			{
+				"operation_id": "62c50ada-9f24-473c-a968-ca5557c0bcdb",
+				"operation_name": "Preparation",
+				"quantity": 150,
+				"sequence": 1,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 300
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 15
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 15
+					}
+				]
+			},
+			{
+				"operation_id": "10b83f07-f542-461e-ac9b-b74bdb4352f0",
+				"operation_name": "Injection Molding",
+				"quantity": 150,
+				"sequence": 2,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 600
+					},
+					{
+						"phase": "setup",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 600
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 1
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 1
+					},
+					{
+						"phase": "cleanup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 300
+					}
+				]
+			},
+			{
+				"operation_id": "2db8bb86-fbd1-46d2-9ffa-13c0d05eae41",
+				"operation_name": "Post Molding",
+				"quantity": 150,
+				"sequence": 3,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 600
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 30
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 30
+					}
+				]
+			},
+			{
+				"operation_id": "742de54b-21ba-4633-87aa-243ba3dbca0f",
+				"operation_name": "Quality Control",
+				"quantity": 150,
+				"sequence": 4,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 120
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 10
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 10
+					}
+				]
+			},
+			{
+				"operation_id": "5b4ed40d-5082-41f4-b5ef-53639d164160",
+				"operation_name": "Packaging",
+				"quantity": 150,
+				"sequence": 5,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 180
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 20
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 20
+					}
+				]
+			}
+		]
+	},
+	{
+		"manufacturing_order_id": "186305cc-3a35-4ae8-8a92-7a411521dbe9",
+		"article_id": "06d24446-f889-4a27-88b5-86fa18eaff6d",
+		"article_name": "Bottle Cap",
+		"quantity": 300,
+		"required_date": "2025-08-22T09:38:58.129Z",
+		"priority": "low",
+		"operations_requirements": [
+			{
+				"operation_id": "62c50ada-9f24-473c-a968-ca5557c0bcdb",
+				"operation_name": "Preparation",
+				"quantity": 300,
+				"sequence": 1,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 450
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 20
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 20
+					}
+				]
+			},
+			{
+				"operation_id": "10b83f07-f542-461e-ac9b-b74bdb4352f0",
+				"operation_name": "Injection Molding",
+				"quantity": 300,
+				"sequence": 2,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 480
+					},
+					{
+						"phase": "setup",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 480
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 1
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 1
+					},
+					{
+						"phase": "cleanup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 240
+					}
+				]
+			},
+			{
+				"operation_id": "2db8bb86-fbd1-46d2-9ffa-13c0d05eae41",
+				"operation_name": "Post Molding",
+				"quantity": 300,
+				"sequence": 3,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 300
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 25
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 25
+					}
+				]
+			},
+			{
+				"operation_id": "742de54b-21ba-4633-87aa-243ba3dbca0f",
+				"operation_name": "Quality Control",
+				"quantity": 300,
+				"sequence": 4,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 90
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 8
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 8
+					}
+				]
+			},
+			{
+				"operation_id": "5b4ed40d-5082-41f4-b5ef-53639d164160",
+				"operation_name": "Packaging",
+				"quantity": 300,
+				"sequence": 5,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 120
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 15
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 15
+					}
+				]
+			}
+		]
+	},
+	{
+		"manufacturing_order_id": "40e09c27-0aef-4e32-8521-b8d4c2ac5667",
+		"article_id": "f5896bc3-6fcf-4632-9b34-444ea6408da0",
+		"article_name": "Plastic Storage Box",
+		"quantity": 30,
+		"required_date": "2025-08-22T09:38:58.129Z",
+		"priority": "low",
+		"operations_requirements": [
+			{
+				"operation_id": "62c50ada-9f24-473c-a968-ca5557c0bcdb",
+				"operation_name": "Preparation",
+				"quantity": 30,
+				"sequence": 1,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 400
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 25
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 25
+					}
+				]
+			},
+			{
+				"operation_id": "10b83f07-f542-461e-ac9b-b74bdb4352f0",
+				"operation_name": "Injection Molding",
+				"quantity": 30,
+				"sequence": 2,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 720
+					},
+					{
+						"phase": "setup",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 720
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 2
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 2
+					},
+					{
+						"phase": "cleanup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 360
+					}
+				]
+			},
+			{
+				"operation_id": "2db8bb86-fbd1-46d2-9ffa-13c0d05eae41",
+				"operation_name": "Post Molding",
+				"quantity": 30,
+				"sequence": 3,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 450
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 35
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 35
+					}
+				]
+			},
+			{
+				"operation_id": "2f369f3c-58c8-41a6-b6ed-05678ac24945",
+				"operation_name": "Assembly",
+				"quantity": 30,
+				"sequence": 4,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 180
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 25
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 25
+					}
+				]
+			},
+			{
+				"operation_id": "742de54b-21ba-4633-87aa-243ba3dbca0f",
+				"operation_name": "Quality Control",
+				"quantity": 30,
+				"sequence": 5,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 150
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 12
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 12
+					}
+				]
+			},
+			{
+				"operation_id": "5b4ed40d-5082-41f4-b5ef-53639d164160",
+				"operation_name": "Packaging",
+				"quantity": 30,
+				"sequence": 6,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 240
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 30
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 30
+					}
+				]
+			}
+		]
+	},
+	{
+		"manufacturing_order_id": "06f1c375-a402-4b66-877d-dca2d067c2b2",
+		"article_id": "44f69f6d-1c11-4069-b757-61843410dd01",
+		"article_name": "Phone Case",
+		"quantity": 200,
+		"required_date": "2025-08-22T09:38:58.129Z",
+		"priority": "low",
+		"operations_requirements": [
+			{
+				"operation_id": "e801a353-08ec-4d62-80de-34e3846ef130",
+				"operation_name": "3D Printing",
+				"quantity": 200,
+				"sequence": 1,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 20
+					},
+					{
+						"phase": "setup",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 20
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 120
+					},
+					{
+						"phase": "cleanup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 10
+					}
+				]
+			},
+			{
+				"operation_id": "742de54b-21ba-4633-87aa-243ba3dbca0f",
+				"operation_name": "Quality Control",
+				"quantity": 200,
+				"sequence": 2,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 2
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 8
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 8
+					}
+				]
+			},
+			{
+				"operation_id": "5b4ed40d-5082-41f4-b5ef-53639d164160",
+				"operation_name": "Packaging",
+				"quantity": 200,
+				"sequence": 3,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 3
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 5
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 5
+					}
+				]
+			}
+		]
+	},
+	{
+		"manufacturing_order_id": "0782cd35-e954-42ab-83ce-7b1d49e62a4d",
+		"article_id": "9016ffe9-2f03-472c-bbbf-202c6fdc4ea6",
+		"article_name": "Plastic Gear",
+		"quantity": 40,
+		"required_date": "2025-08-22T09:38:58.129Z",
+		"priority": "low",
+		"operations_requirements": [
+			{
+				"operation_id": "50feb16d-aebc-4285-9c06-46b02f1802f1",
+				"operation_name": "CNC Machining",
+				"quantity": 40,
+				"sequence": 1,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 15
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 20
+					},
+					{
+						"phase": "cleanup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 10
+					}
+				]
+			},
+			{
+				"operation_id": "9e9a3b2c-3599-4264-9a1e-7cc6984d0e2d",
+				"operation_name": "Heat Treatment",
+				"quantity": 40,
+				"sequence": 2,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 30
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 180
+					},
+					{
+						"phase": "cleanup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 15
+					}
+				]
+			},
+			{
+				"operation_id": "2f369f3c-58c8-41a6-b6ed-05678ac24945",
+				"operation_name": "Assembly",
+				"quantity": 40,
+				"sequence": 3,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 5
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 15
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 15
+					}
+				]
+			},
+			{
+				"operation_id": "742de54b-21ba-4633-87aa-243ba3dbca0f",
+				"operation_name": "Quality Control",
+				"quantity": 40,
+				"sequence": 4,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 2
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 8
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 8
+					}
+				]
+			}
+		]
+	},
+	{
+		"manufacturing_order_id": "a491a48e-aad5-4048-b3dd-2920e09446e8",
+		"article_id": "61580f78-7af3-4cb0-9bf5-90f2f8813f74",
+		"article_name": "Plastic Lamp Shade",
+		"quantity": 60,
+		"required_date": "2025-08-22T09:38:58.129Z",
+		"priority": "low",
+		"operations_requirements": [
+			{
+				"operation_id": "88220d47-d5bd-4f2e-a82d-3a29063e01a6",
+				"operation_name": "Laser Cutting",
+				"quantity": 60,
+				"sequence": 1,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 5
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 8
+					},
+					{
+						"phase": "cleanup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 3
+					}
+				]
+			},
+			{
+				"operation_id": "946b0a47-0276-4f75-9d77-cdee874ef7f0",
+				"operation_name": "Welding",
+				"quantity": 60,
+				"sequence": 2,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 8
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 12
+					},
+					{
+						"phase": "cleanup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 5
+					}
+				]
+			},
+			{
+				"operation_id": "742de54b-21ba-4633-87aa-243ba3dbca0f",
+				"operation_name": "Quality Control",
+				"quantity": 60,
+				"sequence": 3,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 2
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 8
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 8
+					}
+				]
+			},
+			{
+				"operation_id": "5b4ed40d-5082-41f4-b5ef-53639d164160",
+				"operation_name": "Packaging",
+				"quantity": 60,
+				"sequence": 4,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 3
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 5
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 5
+					}
+				]
+			}
+		]
+	},
+	{
+		"manufacturing_order_id": "5fca752d-a81e-4675-8fc5-85da048957a5",
+		"article_id": "a1b4855a-7362-4868-848e-3b77b18a05b3",
+		"article_name": "Plastic Mounting Bracket",
+		"quantity": 120,
+		"required_date": "2025-08-22T09:38:58.129Z",
+		"priority": "low",
+		"operations_requirements": [
+			{
+				"operation_id": "50feb16d-aebc-4285-9c06-46b02f1802f1",
+				"operation_name": "CNC Machining",
+				"quantity": 120,
+				"sequence": 1,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 15
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 20
+					},
+					{
+						"phase": "cleanup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 10
+					}
+				]
+			},
+			{
+				"operation_id": "2f369f3c-58c8-41a6-b6ed-05678ac24945",
+				"operation_name": "Assembly",
+				"quantity": 120,
+				"sequence": 2,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 5
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 15
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 15
+					}
+				]
+			},
+			{
+				"operation_id": "742de54b-21ba-4633-87aa-243ba3dbca0f",
+				"operation_name": "Quality Control",
+				"quantity": 120,
+				"sequence": 3,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 2
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 8
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 8
+					}
+				]
+			}
+		]
+	},
+	{
+		"manufacturing_order_id": "70c18f00-30a7-4cea-82c8-74f745a1cf73",
+		"article_id": "223c8602-1bd4-40a4-9a47-5e3baaedcfe9",
+		"article_name": "Plastic Keychain",
+		"quantity": 180,
+		"required_date": "2025-08-22T09:38:58.129Z",
+		"priority": "low",
+		"operations_requirements": [
+			{
+				"operation_id": "e801a353-08ec-4d62-80de-34e3846ef130",
+				"operation_name": "3D Printing",
+				"quantity": 180,
+				"sequence": 1,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 20
+					},
+					{
+						"phase": "setup",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 20
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 120
+					},
+					{
+						"phase": "cleanup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 10
+					}
+				]
+			},
+			{
+				"operation_id": "2db8bb86-fbd1-46d2-9ffa-13c0d05eae41",
+				"operation_name": "Post Molding",
+				"quantity": 180,
+				"sequence": 2,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 10
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 10
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 10
+					}
+				]
+			},
+			{
+				"operation_id": "5b4ed40d-5082-41f4-b5ef-53639d164160",
+				"operation_name": "Packaging",
+				"quantity": 180,
+				"sequence": 3,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 3
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 5
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 5
+					}
+				]
+			}
+		]
+	},
+	{
+		"manufacturing_order_id": "d1f6252f-8e25-4be0-b4f8-21388c1f71cc",
+		"article_id": "6008da4e-cbc6-4eda-9a82-cb788bc665f1",
+		"article_name": "Plastic Connector",
+		"quantity": 90,
+		"required_date": "2025-08-22T09:38:58.129Z",
+		"priority": "low",
+		"operations_requirements": [
+			{
+				"operation_id": "88220d47-d5bd-4f2e-a82d-3a29063e01a6",
+				"operation_name": "Laser Cutting",
+				"quantity": 90,
+				"sequence": 1,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 5
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 8
+					},
+					{
+						"phase": "cleanup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 3
+					}
+				]
+			},
+			{
+				"operation_id": "9e9a3b2c-3599-4264-9a1e-7cc6984d0e2d",
+				"operation_name": "Heat Treatment",
+				"quantity": 90,
+				"sequence": 2,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 30
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 180
+					},
+					{
+						"phase": "cleanup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 15
+					}
+				]
+			},
+			{
+				"operation_id": "742de54b-21ba-4633-87aa-243ba3dbca0f",
+				"operation_name": "Quality Control",
+				"quantity": 90,
+				"sequence": 3,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 2
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 8
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 8
+					}
+				]
+			}
+		]
+	},
+	{
+		"manufacturing_order_id": "0cb346eb-0852-456a-9b94-16315e1daf22",
+		"article_id": "e0b878c3-f3c7-4a80-b461-f1c69a55b534",
+		"article_name": "Plastic Device Housing",
+		"quantity": 75,
+		"required_date": "2025-08-22T09:38:58.129Z",
+		"priority": "low",
+		"operations_requirements": [
+			{
+				"operation_id": "10b83f07-f542-461e-ac9b-b74bdb4352f0",
+				"operation_name": "Injection Molding",
+				"quantity": 75,
+				"sequence": 1,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 600
+					},
+					{
+						"phase": "setup",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 600
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 1
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 1
+					},
+					{
+						"phase": "cleanup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 300
+					}
+				]
+			},
+			{
+				"operation_id": "2f369f3c-58c8-41a6-b6ed-05678ac24945",
+				"operation_name": "Assembly",
+				"quantity": 75,
+				"sequence": 2,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 5
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 15
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 15
+					}
+				]
+			},
+			{
+				"operation_id": "742de54b-21ba-4633-87aa-243ba3dbca0f",
+				"operation_name": "Quality Control",
+				"quantity": 75,
+				"sequence": 3,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 2
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 8
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 8
+					}
+				]
+			},
+			{
+				"operation_id": "5b4ed40d-5082-41f4-b5ef-53639d164160",
+				"operation_name": "Packaging",
+				"quantity": 75,
+				"sequence": 4,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 3
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 5
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 5
+					}
+				]
+			}
+		]
+	},
+	{
+		"manufacturing_order_id": "fecc1920-e7e1-4eca-abba-91944d81026b",
+		"article_id": "4d621eac-cfee-420d-b941-7a6bc624c124",
+		"article_name": "Plastic Container Lid",
+		"quantity": 150,
+		"required_date": "2025-08-22T09:38:58.129Z",
+		"priority": "low",
+		"operations_requirements": [
+			{
+				"operation_id": "62c50ada-9f24-473c-a968-ca5557c0bcdb",
+				"operation_name": "Preparation",
+				"quantity": 150,
+				"sequence": 1,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 300
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 15
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 15
+					}
+				]
+			},
+			{
+				"operation_id": "10b83f07-f542-461e-ac9b-b74bdb4352f0",
+				"operation_name": "Injection Molding",
+				"quantity": 150,
+				"sequence": 2,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 600
+					},
+					{
+						"phase": "setup",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 600
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 1
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 1
+					},
+					{
+						"phase": "cleanup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 300
+					}
+				]
+			},
+			{
+				"operation_id": "2db8bb86-fbd1-46d2-9ffa-13c0d05eae41",
+				"operation_name": "Post Molding",
+				"quantity": 150,
+				"sequence": 3,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 600
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 30
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 30
+					}
+				]
+			},
+			{
+				"operation_id": "742de54b-21ba-4633-87aa-243ba3dbca0f",
+				"operation_name": "Quality Control",
+				"quantity": 150,
+				"sequence": 4,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 120
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 10
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 10
+					}
+				]
+			},
+			{
+				"operation_id": "5b4ed40d-5082-41f4-b5ef-53639d164160",
+				"operation_name": "Packaging",
+				"quantity": 150,
+				"sequence": 5,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 180
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 20
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 20
+					}
+				]
+			}
+		]
+	},
+	{
+		"manufacturing_order_id": "160ff00d-8444-4093-ae5f-628186e39ea2",
+		"article_id": "06d24446-f889-4a27-88b5-86fa18eaff6d",
+		"article_name": "Bottle Cap",
+		"quantity": 300,
+		"required_date": "2025-08-22T09:38:58.129Z",
+		"priority": "low",
+		"operations_requirements": [
+			{
+				"operation_id": "62c50ada-9f24-473c-a968-ca5557c0bcdb",
+				"operation_name": "Preparation",
+				"quantity": 300,
+				"sequence": 1,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 450
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 20
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 20
+					}
+				]
+			},
+			{
+				"operation_id": "10b83f07-f542-461e-ac9b-b74bdb4352f0",
+				"operation_name": "Injection Molding",
+				"quantity": 300,
+				"sequence": 2,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 480
+					},
+					{
+						"phase": "setup",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 480
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 1
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 1
+					},
+					{
+						"phase": "cleanup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 240
+					}
+				]
+			},
+			{
+				"operation_id": "2db8bb86-fbd1-46d2-9ffa-13c0d05eae41",
+				"operation_name": "Post Molding",
+				"quantity": 300,
+				"sequence": 3,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 300
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 25
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 25
+					}
+				]
+			},
+			{
+				"operation_id": "742de54b-21ba-4633-87aa-243ba3dbca0f",
+				"operation_name": "Quality Control",
+				"quantity": 300,
+				"sequence": 4,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 90
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 8
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 8
+					}
+				]
+			},
+			{
+				"operation_id": "5b4ed40d-5082-41f4-b5ef-53639d164160",
+				"operation_name": "Packaging",
+				"quantity": 300,
+				"sequence": 5,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 120
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 15
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 15
+					}
+				]
+			}
+		]
+	},
+	{
+		"manufacturing_order_id": "28f1ab0a-7835-4d6e-94b7-b966bc322074",
+		"article_id": "f5896bc3-6fcf-4632-9b34-444ea6408da0",
+		"article_name": "Plastic Storage Box",
+		"quantity": 30,
+		"required_date": "2025-08-22T09:38:58.129Z",
+		"priority": "low",
+		"operations_requirements": [
+			{
+				"operation_id": "62c50ada-9f24-473c-a968-ca5557c0bcdb",
+				"operation_name": "Preparation",
+				"quantity": 30,
+				"sequence": 1,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 400
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 25
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 25
+					}
+				]
+			},
+			{
+				"operation_id": "10b83f07-f542-461e-ac9b-b74bdb4352f0",
+				"operation_name": "Injection Molding",
+				"quantity": 30,
+				"sequence": 2,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 720
+					},
+					{
+						"phase": "setup",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 720
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 2
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 2
+					},
+					{
+						"phase": "cleanup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 360
+					}
+				]
+			},
+			{
+				"operation_id": "2db8bb86-fbd1-46d2-9ffa-13c0d05eae41",
+				"operation_name": "Post Molding",
+				"quantity": 30,
+				"sequence": 3,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 450
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 35
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 35
+					}
+				]
+			},
+			{
+				"operation_id": "2f369f3c-58c8-41a6-b6ed-05678ac24945",
+				"operation_name": "Assembly",
+				"quantity": 30,
+				"sequence": 4,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 180
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 25
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 25
+					}
+				]
+			},
+			{
+				"operation_id": "742de54b-21ba-4633-87aa-243ba3dbca0f",
+				"operation_name": "Quality Control",
+				"quantity": 30,
+				"sequence": 5,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 150
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 12
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 12
+					}
+				]
+			},
+			{
+				"operation_id": "5b4ed40d-5082-41f4-b5ef-53639d164160",
+				"operation_name": "Packaging",
+				"quantity": 30,
+				"sequence": 6,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 240
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 30
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 30
+					}
+				]
+			}
+		]
+	},
+	{
+		"manufacturing_order_id": "89362278-edb5-4ddf-bbe2-30de67bca331",
+		"article_id": "44f69f6d-1c11-4069-b757-61843410dd01",
+		"article_name": "Phone Case",
+		"quantity": 200,
+		"required_date": "2025-08-22T09:38:58.129Z",
+		"priority": "low",
+		"operations_requirements": [
+			{
+				"operation_id": "e801a353-08ec-4d62-80de-34e3846ef130",
+				"operation_name": "3D Printing",
+				"quantity": 200,
+				"sequence": 1,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 20
+					},
+					{
+						"phase": "setup",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 20
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 120
+					},
+					{
+						"phase": "cleanup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 10
+					}
+				]
+			},
+			{
+				"operation_id": "742de54b-21ba-4633-87aa-243ba3dbca0f",
+				"operation_name": "Quality Control",
+				"quantity": 200,
+				"sequence": 2,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 2
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 8
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 8
+					}
+				]
+			},
+			{
+				"operation_id": "5b4ed40d-5082-41f4-b5ef-53639d164160",
+				"operation_name": "Packaging",
+				"quantity": 200,
+				"sequence": 3,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 3
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 5
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 5
+					}
+				]
+			}
+		]
+	},
+	{
+		"manufacturing_order_id": "376927cc-6bfd-478b-a60f-c0d0b3d1314c",
+		"article_id": "9016ffe9-2f03-472c-bbbf-202c6fdc4ea6",
+		"article_name": "Plastic Gear",
+		"quantity": 40,
+		"required_date": "2025-08-22T09:38:58.129Z",
+		"priority": "low",
+		"operations_requirements": [
+			{
+				"operation_id": "50feb16d-aebc-4285-9c06-46b02f1802f1",
+				"operation_name": "CNC Machining",
+				"quantity": 40,
+				"sequence": 1,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 15
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 20
+					},
+					{
+						"phase": "cleanup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 10
+					}
+				]
+			},
+			{
+				"operation_id": "9e9a3b2c-3599-4264-9a1e-7cc6984d0e2d",
+				"operation_name": "Heat Treatment",
+				"quantity": 40,
+				"sequence": 2,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 30
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 180
+					},
+					{
+						"phase": "cleanup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 15
+					}
+				]
+			},
+			{
+				"operation_id": "2f369f3c-58c8-41a6-b6ed-05678ac24945",
+				"operation_name": "Assembly",
+				"quantity": 40,
+				"sequence": 3,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 5
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 15
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 15
+					}
+				]
+			},
+			{
+				"operation_id": "742de54b-21ba-4633-87aa-243ba3dbca0f",
+				"operation_name": "Quality Control",
+				"quantity": 40,
+				"sequence": 4,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 2
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 8
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 8
+					}
+				]
+			}
+		]
+	},
+	{
+		"manufacturing_order_id": "b0e11d5f-627b-45a7-921d-afaad8fc5a99",
+		"article_id": "61580f78-7af3-4cb0-9bf5-90f2f8813f74",
+		"article_name": "Plastic Lamp Shade",
+		"quantity": 60,
+		"required_date": "2025-08-22T09:38:58.129Z",
+		"priority": "low",
+		"operations_requirements": [
+			{
+				"operation_id": "88220d47-d5bd-4f2e-a82d-3a29063e01a6",
+				"operation_name": "Laser Cutting",
+				"quantity": 60,
+				"sequence": 1,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 5
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 8
+					},
+					{
+						"phase": "cleanup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 3
+					}
+				]
+			},
+			{
+				"operation_id": "946b0a47-0276-4f75-9d77-cdee874ef7f0",
+				"operation_name": "Welding",
+				"quantity": 60,
+				"sequence": 2,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 8
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 12
+					},
+					{
+						"phase": "cleanup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 5
+					}
+				]
+			},
+			{
+				"operation_id": "742de54b-21ba-4633-87aa-243ba3dbca0f",
+				"operation_name": "Quality Control",
+				"quantity": 60,
+				"sequence": 3,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 2
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 8
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 8
+					}
+				]
+			},
+			{
+				"operation_id": "5b4ed40d-5082-41f4-b5ef-53639d164160",
+				"operation_name": "Packaging",
+				"quantity": 60,
+				"sequence": 4,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 3
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 5
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 5
+					}
+				]
+			}
+		]
+	},
+	{
+		"manufacturing_order_id": "a880be93-5568-4322-b525-d46918e120ce",
+		"article_id": "a1b4855a-7362-4868-848e-3b77b18a05b3",
+		"article_name": "Plastic Mounting Bracket",
+		"quantity": 120,
+		"required_date": "2025-08-22T09:38:58.129Z",
+		"priority": "low",
+		"operations_requirements": [
+			{
+				"operation_id": "50feb16d-aebc-4285-9c06-46b02f1802f1",
+				"operation_name": "CNC Machining",
+				"quantity": 120,
+				"sequence": 1,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 15
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 20
+					},
+					{
+						"phase": "cleanup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 10
+					}
+				]
+			},
+			{
+				"operation_id": "2f369f3c-58c8-41a6-b6ed-05678ac24945",
+				"operation_name": "Assembly",
+				"quantity": 120,
+				"sequence": 2,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 5
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 15
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 15
+					}
+				]
+			},
+			{
+				"operation_id": "742de54b-21ba-4633-87aa-243ba3dbca0f",
+				"operation_name": "Quality Control",
+				"quantity": 120,
+				"sequence": 3,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 2
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 8
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 8
+					}
+				]
+			}
+		]
+	},
+	{
+		"manufacturing_order_id": "42edf3a7-ddcf-4f13-950d-c2000236709e",
+		"article_id": "223c8602-1bd4-40a4-9a47-5e3baaedcfe9",
+		"article_name": "Plastic Keychain",
+		"quantity": 180,
+		"required_date": "2025-08-22T09:38:58.129Z",
+		"priority": "low",
+		"operations_requirements": [
+			{
+				"operation_id": "e801a353-08ec-4d62-80de-34e3846ef130",
+				"operation_name": "3D Printing",
+				"quantity": 180,
+				"sequence": 1,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 20
+					},
+					{
+						"phase": "setup",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 20
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 120
+					},
+					{
+						"phase": "cleanup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 10
+					}
+				]
+			},
+			{
+				"operation_id": "2db8bb86-fbd1-46d2-9ffa-13c0d05eae41",
+				"operation_name": "Post Molding",
+				"quantity": 180,
+				"sequence": 2,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 10
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 10
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 10
+					}
+				]
+			},
+			{
+				"operation_id": "5b4ed40d-5082-41f4-b5ef-53639d164160",
+				"operation_name": "Packaging",
+				"quantity": 180,
+				"sequence": 3,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 3
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 5
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 5
+					}
+				]
+			}
+		]
+	},
+	{
+		"manufacturing_order_id": "2f53cfe0-9c85-4018-83e8-2f8f92c0130b",
+		"article_id": "6008da4e-cbc6-4eda-9a82-cb788bc665f1",
+		"article_name": "Plastic Connector",
+		"quantity": 90,
+		"required_date": "2025-08-22T09:38:58.129Z",
+		"priority": "low",
+		"operations_requirements": [
+			{
+				"operation_id": "88220d47-d5bd-4f2e-a82d-3a29063e01a6",
+				"operation_name": "Laser Cutting",
+				"quantity": 90,
+				"sequence": 1,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 5
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 8
+					},
+					{
+						"phase": "cleanup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 3
+					}
+				]
+			},
+			{
+				"operation_id": "9e9a3b2c-3599-4264-9a1e-7cc6984d0e2d",
+				"operation_name": "Heat Treatment",
+				"quantity": 90,
+				"sequence": 2,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 30
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 180
+					},
+					{
+						"phase": "cleanup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 15
+					}
+				]
+			},
+			{
+				"operation_id": "742de54b-21ba-4633-87aa-243ba3dbca0f",
+				"operation_name": "Quality Control",
+				"quantity": 90,
+				"sequence": 3,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 2
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 8
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 8
+					}
+				]
+			}
+		]
+	},
+	{
+		"manufacturing_order_id": "19f44c5b-bd4d-49ee-a858-f573647005cc",
+		"article_id": "e0b878c3-f3c7-4a80-b461-f1c69a55b534",
+		"article_name": "Plastic Device Housing",
+		"quantity": 75,
+		"required_date": "2025-08-22T09:38:58.129Z",
+		"priority": "low",
+		"operations_requirements": [
+			{
+				"operation_id": "10b83f07-f542-461e-ac9b-b74bdb4352f0",
+				"operation_name": "Injection Molding",
+				"quantity": 75,
+				"sequence": 1,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 600
+					},
+					{
+						"phase": "setup",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 600
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 1
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 1
+					},
+					{
+						"phase": "cleanup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 300
+					}
+				]
+			},
+			{
+				"operation_id": "2f369f3c-58c8-41a6-b6ed-05678ac24945",
+				"operation_name": "Assembly",
+				"quantity": 75,
+				"sequence": 2,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 5
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 15
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 15
+					}
+				]
+			},
+			{
+				"operation_id": "742de54b-21ba-4633-87aa-243ba3dbca0f",
+				"operation_name": "Quality Control",
+				"quantity": 75,
+				"sequence": 3,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 2
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 8
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 8
+					}
+				]
+			},
+			{
+				"operation_id": "5b4ed40d-5082-41f4-b5ef-53639d164160",
+				"operation_name": "Packaging",
+				"quantity": 75,
+				"sequence": 4,
+				"operation_resource_capacities": [
+					{
+						"phase": "setup",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 3
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "operator",
+						"capacity": 100,
+						"duration_seconds": 5
+					},
+					{
+						"phase": "core_operation",
+						"resource_type": "machine",
+						"capacity": 100,
+						"duration_seconds": 5
+					}
+				]
+			}
+		]
+	}
+]
