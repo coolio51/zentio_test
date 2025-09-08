@@ -694,7 +694,8 @@ with tab3:
             st.session_state["ga_best_sched_obj"] = best_sched
             st.session_state["ga_best_eval"] = best["eval"]
 
-        if st.session_state.get("ga_best_present", False):
+        has_ga = st.session_state.get("ga_best_present") and "ga_best_genome_json" in st.session_state and "ga_best_sched_csv" in st.session_state
+        if has_ga:
             hist = st.session_state["ga_best_hist"]
             total_ms = st.session_state["ga_best_total_ms"]
             best_score = st.session_state["ga_best_score"]
@@ -719,6 +720,8 @@ with tab3:
                 if st.button("Save Snapshot"):
                     st.session_state["snapshots"].append({"label": snap_label, "genome_bytes": st.session_state["ga_best_genome_json"], "csv_bytes": st.session_state["ga_best_sched_csv"]})
                     st.success(f"Saved snapshot: {snap_label}")
+        else:
+            st.caption("Run GA to generate results.")
 
     with subtab[1]:
         st.caption("Use Optuna to discover good GA hyperparameters for this dataset size.")
@@ -848,7 +851,8 @@ with tab5:
                 st.session_state["cp_best_sched_csv"] = csv_bytes
                 st.session_state["cp_best_genome_json"] = genome_bytes
 
-        if st.session_state.get("cp_best_present", False):
+        has_cp = st.session_state.get("cp_best_present") and "cp_best_genome_json" in st.session_state and "cp_best_sched_csv" in st.session_state
+        if has_cp:
             st.write(f"CP-SAT polish time: {st.session_state['cp_best_polish_ms']:.1f} ms")
             new_sched = st.session_state["cp_best_sched_obj"]
             new_eval = st.session_state["cp_best_eval"]
@@ -885,10 +889,14 @@ with tab5:
                 if st.button("Save Snapshot (polished)"):
                     st.session_state["snapshots"].append({"label": snap_label, "genome_bytes": st.session_state["cp_best_genome_json"], "csv_bytes": st.session_state["cp_best_sched_csv"]})
                     st.success(f"Saved snapshot: {snap_label}")
+        else:
+            st.caption("Run CP-SAT polish to generate results.")
 
 # Sidebar persistent snapshots
 st.sidebar.markdown("---")
 st.sidebar.subheader("Snapshots")
+if st.session_state.get("ga_best_present") or st.session_state.get("cp_best_present"):
+    st.sidebar.caption("Current results available in main tabs.")
 if st.session_state["snapshots"]:
     for i, snap in enumerate(st.session_state["snapshots"]):
         st.sidebar.write(snap["label"])
