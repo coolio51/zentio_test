@@ -673,37 +673,51 @@ with tab3:
                 pct=int(100*(gen_idx+1)/max(1,settings.gens)); progress.progress(min(pct,100)); status.text(f"Gen {gen_idx+1}/{settings.gens} — best {best_score:.2f} · avg {avg_score:.2f}")
             t0=time.perf_counter_ns(); best, hist, stats=run_ga(mats, settings, hard_deadlines=hard_deadlines_ga, progress_cb=cb); t1=time.perf_counter_ns()
             total_ms=(t1-t0)/1e6
-            st.success(f"GA completed in {total_ms:.1f} ms • gens: {len(hist['best'])} • best score: {best['score']:.2f}")
             genomes_evaluated=settings.pop * max(1, len(hist["best"]) + 1)
-            st.write(f"≈ Genomes evaluated: {genomes_evaluated} → ~{1000.0*genomes_evaluated/max(1.0,total_ms):.1f} genomes/sec")
-
-            fig, axp=plt.subplots(); axp.plot(hist["best"], label="best"); axp.plot(hist["avg"], label="avg")
-            axp.set_xlabel("generation"); axp.set_ylabel("score"); axp.legend(); st.pyplot(fig)
 
             Ops=mats["meta"]["Ops"]; Machines=mats["meta"]["Machines"]; best_sched=best["sched"]
             df_best=pd.DataFrame({"Op":Ops,"Machine":[Machines[m] if m>=0 else "" for m in best_sched["machine"]],
                                   "Start":best_sched["start"],"Finish":best_sched["finish"]}).sort_values(by=["Start"])
-            st.dataframe(df_best.head(50))
 
-            # Persist results in memory and snapshot option
+            # Persist results in memory
             best_oo,best_mc=best["genome"]
             genome_json={"op_order":best_oo.astype(int).tolist(),"machine_choice":best_mc.astype(int).tolist(),"alpha":settings.alpha}
             genome_bytes = json.dumps(genome_json).encode("utf-8")
             csv_bytes = df_best.to_csv(index=False).encode("utf-8")
+            st.session_state["ga_best_present"] = True
+            st.session_state["ga_best_total_ms"] = total_ms
+            st.session_state["ga_best_score"] = float(best["score"])
+            st.session_state["ga_best_hist"] = hist
+            st.session_state["ga_best_genomes_evaluated"] = genomes_evaluated
             st.session_state["ga_best_genome_json"] = genome_bytes
             st.session_state["ga_best_sched_csv"] = csv_bytes
-            st.session_state["ga_best_present"] = True
             st.session_state["ga_best_sched_obj"] = best_sched
             st.session_state["ga_best_eval"] = best["eval"]
 
+        if st.session_state.get("ga_best_present", False):
+            hist = st.session_state["ga_best_hist"]
+            total_ms = st.session_state["ga_best_total_ms"]
+            best_score = st.session_state["ga_best_score"]
+            genomes_evaluated = st.session_state["ga_best_genomes_evaluated"]
+            st.success(f"GA completed in {total_ms:.1f} ms • gens: {len(hist['best'])} • best score: {best_score:.2f}")
+            st.write(f"≈ Genomes evaluated: {genomes_evaluated} → ~{1000.0*genomes_evaluated/max(1.0,total_ms):.1f} genomes/sec")
+
+            fig, axp = plt.subplots(); axp.plot(hist["best"], label="best"); axp.plot(hist["avg"], label="avg")
+            axp.set_xlabel("generation"); axp.set_ylabel("score"); axp.legend(); st.pyplot(fig)
+
+            Ops=mats["meta"]["Ops"]; Machines=mats["meta"]["Machines"]; best_sched=st.session_state["ga_best_sched_obj"]
+            df_best=pd.DataFrame({"Op":Ops,"Machine":[Machines[m] if m>=0 else "" for m in best_sched["machine"]],
+                                  "Start":best_sched["start"],"Finish":best_sched["finish"]}).sort_values(by=["Start"])
+            st.dataframe(df_best.head(50))
+
             cA, cB = st.columns(2)
             with cA:
-                st.download_button("Download best genome (JSON)", data=genome_bytes, file_name="best_genome.json", mime="application/json", key="dl_genome_ga")
-                st.download_button("Download best schedule (CSV)", data=csv_bytes, file_name="best_schedule.csv", mime="text/csv", key="dl_sched_ga")
+                st.download_button("Download best genome (JSON)", data=st.session_state["ga_best_genome_json"], file_name="best_genome.json", mime="application/json", key="dl_genome_ga")
+                st.download_button("Download best schedule (CSV)", data=st.session_state["ga_best_sched_csv"], file_name="best_schedule.csv", mime="text/csv", key="dl_sched_ga")
             with cB:
                 snap_label = st.text_input("Snapshot label", value=f"GA_best_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}")
                 if st.button("Save Snapshot"):
-                    st.session_state["snapshots"].append({"label": snap_label, "genome_bytes": genome_bytes, "csv_bytes": csv_bytes})
+                    st.session_state["snapshots"].append({"label": snap_label, "genome_bytes": st.session_state["ga_best_genome_json"], "csv_bytes": st.session_state["ga_best_sched_csv"]})
                     st.success(f"Saved snapshot: {snap_label}")
 
     with subtab[1]:
