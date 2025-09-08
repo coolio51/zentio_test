@@ -739,7 +739,8 @@ with tab3:
                 st.download_button("Download best schedule (CSV)", data=st.session_state.get("ga_best_sched_csv"), file_name="best_schedule.csv", mime="text/csv", key="dl_sched_ga")
             with cB:
                 snap_label = st.text_input("Snapshot label", value=f"GA_best_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}")
-                if st.button("Save Snapshot"):
+                save_snapshot_ga = st.button("Save Snapshot", key="save_snapshot_ga")
+                if save_snapshot_ga:
                     st.session_state.get("snapshots").append({"label": snap_label, "genome_bytes": st.session_state.get("ga_best_genome_json"), "csv_bytes": st.session_state.get("ga_best_sched_csv")})
                     st.success(f"Saved snapshot: {snap_label}")
         else:
@@ -908,7 +909,8 @@ with tab5:
                 st.download_button("Download polished schedule (CSV)", data=st.session_state.get("cp_best_sched_csv"), file_name="polished_schedule.csv", mime="text/csv", key="dl_sched_cp")
             with cB:
                 snap_label = st.text_input("Snapshot label (polished)", value=f"CP_polished_{mi_name}_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}")
-                if st.button("Save Snapshot (polished)"):
+                save_snapshot_cp = st.button("Save Snapshot (polished)", key="save_snapshot_cp")
+                if save_snapshot_cp:
                     st.session_state.get("snapshots").append({"label": snap_label, "genome_bytes": st.session_state.get("cp_best_genome_json"), "csv_bytes": st.session_state.get("cp_best_sched_csv")})
                     st.success(f"Saved snapshot: {snap_label}")
         else:
