@@ -642,13 +642,18 @@ def cpsat_polish_machine_window(mats, base_sched, machine_index: int, window_sta
         for p in pred_map.get(oi, []):
             if p in cand_ops: model.Add(s_var[oi] >= e_var[p])
     # Stability + due soft penalties
+    obj_terms=[]
     for oi in cand_ops:
         orig = int(start[oi])
         delta = model.NewIntVar(-horizon, horizon, f"delta_{oi}")
         model.Add(delta == s_var[oi] - orig)
         absd = model.NewIntVar(0, horizon, f"abs_{oi}")
-        model.AddAbsEquality(absd, delta); model.Minimize(absd)
-        j=JobOf[oi]; due=int(Due[j]); late=model.NewIntVar(0, horizon, f"late_{oi}"); model.Add(late >= e_var[oi] - due); model.Minimize(late)
+        model.AddAbsEquality(absd, delta)
+        j=JobOf[oi]; due=int(Due[j])
+        late=model.NewIntVar(0, horizon, f"late_{oi}")
+        model.Add(late >= e_var[oi] - due)
+        obj_terms.append(absd); obj_terms.append(late)
+    model.Minimize(sum(obj_terms))
     solver=cp_model.CpSolver(); solver.parameters.max_time_in_seconds=float(time_limit_s); solver.parameters.num_search_workers=8
     res=solver.Solve(model)
     if res not in (cp_model.OPTIMAL, cp_model.FEASIBLE): return {}
