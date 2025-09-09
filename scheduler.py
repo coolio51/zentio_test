@@ -240,12 +240,33 @@ def random_genome(mats: Dict, rng: np.random.Generator):
     return op_order, machine_choice
 
 def evaluate_objective(mats: Dict, schedule: Dict, alpha: float = 0.03):
-    Due=mats["Due"]; JobOf=mats["JobOf"]; finish=schedule["finish"]; nJ=Due.shape[0]; job_finish=np.zeros(nJ, dtype=np.int32)
+    """Lexicographic objective: prioritize scheduling all operations."""
+    Due = mats["Due"]
+    JobOf = mats["JobOf"]
+    finish = schedule["finish"]
+    nJ = Due.shape[0]
+    job_finish = np.zeros(nJ, dtype=np.int32)
+    unsched_mask = finish < 0
+
     for j in range(nJ):
-        ops=np.where(JobOf==j)[0]
-        if ops.size>0: job_finish[j]=np.max(finish[ops])
-    tardiness=int(np.maximum(0, job_finish - Due).sum()); makespan=int(finish.max()) if finish.size>0 else 0
-    score=float(tardiness + alpha * makespan); return {"tardiness":tardiness,"makespan":makespan,"score":score,"job_finish":job_finish}
+        ops = np.where(JobOf == j)[0]
+        if ops.size == 0:
+            continue
+        valid = finish[ops]
+        valid = valid[valid >= 0]
+        if valid.size > 0:
+            job_finish[j] = int(valid.max())
+
+    tardiness = int(np.maximum(0, job_finish - Due).sum())
+    makespan = int(finish[finish >= 0].max()) if np.any(finish >= 0) else 0
+    score = float(int(unsched_mask.sum()) * 1_000_000_000 + tardiness + alpha * makespan)
+    return {
+        "unscheduled_ops": int(unsched_mask.sum()),
+        "tardiness": tardiness,
+        "makespan": makespan,
+        "score": score,
+        "job_finish": job_finish,
+    }
 
 @dataclass
 class GASettings: pop:int=150; gens:int=40; elite:int=10; tour_k:int=4; swap_rate:float=0.30; flip_rate:float=0.20; alpha:float=0.03; seed:int=123; patience:int=8
