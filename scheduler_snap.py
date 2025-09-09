@@ -249,46 +249,71 @@ def build_matrices(data: Dict):
 @dataclass
 class DecodeMetrics: total_ns:int=0; feas_ns:int=0; assign_ns:int=0; ops_scheduled:int=0; ops_failed:int=0; tries:int=0
 
-def decode_schedule(mats: Dict, op_order: np.ndarray, machine_choice: np.ndarray, hard_deadlines: bool=False) -> Dict:
-    t0=now_ns()
-    A_M=mats["A_M"].copy(); C_S_base=mats["C_S"].copy(); E=mats["E"]; NeedK=mats["NeedKernels"]; total_len=mats["total_len"]; preds=mats["preds"]
+def decode_schedule(mats: Dict, op_order: np.ndarray, machine_choice: np.ndarray,
+                    hard_deadlines: bool=False, max_rounds: int = 4,
+                    max_candidates_per_op: int = 2000) -> Dict:
+    t0 = now_ns()
+    A_M = mats["A_M"].copy(); C_S_base = mats["C_S"].copy(); E = mats["E"]
+    NeedK = mats["NeedKernels"]; total_len = mats["total_len"]; preds = mats["preds"]
     nO, nT, CAP = mats["n"]["O"], mats["n"]["T"], mats["n"]["CAP"]
-    M_busy=np.zeros_like(A_M, dtype=bool); S_used=np.zeros_like(C_S_base, dtype=np.int16); W_busy=np.zeros((mats["n"]["W"], nT), dtype=bool)
-    Q=mats["Q"]; C_W=mats["C_W"]
-    pred_list=[[] for _ in range(nO)]
-    for a,b in preds: pred_list[b].append(a)
-    start=np.full(nO, -1, dtype=np.int32); finish=np.full(nO, -1, dtype=np.int32); chosen_m=np.full(nO, -1, dtype=np.int16)
-    assigned_workers={}; dm=DecodeMetrics()
+    M_busy = np.zeros_like(A_M, dtype=bool)
+    S_used = np.zeros_like(C_S_base, dtype=np.int16)
+    W_busy = np.zeros((mats["n"]["W"], nT), dtype=bool)
+    Q = mats["Q"]; C_W = mats["C_W"]
+    pred_list = [[] for _ in range(nO)]
+    for a, b in preds:
+        pred_list[b].append(a)
+    start = np.full(nO, -1, dtype=np.int32)
+    finish = np.full(nO, -1, dtype=np.int32)
+    chosen_m = np.full(nO, -1, dtype=np.int16)
+    assigned_workers = {}
+    dm = DecodeMetrics()
 
-    def worker_assign(oi, mi, t_start)->bool:
+    def worker_assign(oi, mi, t_start) -> bool:
         nonlocal S_used, W_busy, assigned_workers
-        segments=NeedK.get((oi,mi), []);
-        if not segments: return True
-        t_end=t_start + total_len[(oi,mi)]
-        req={}
+        segments = NeedK.get((oi, mi), [])
+        if not segments:
+            return True
+        t_end = t_start + total_len[(oi, mi)]
+        req = {}
         for (si, off, Ls, demand) in segments:
-            for t in range(t_start+off, t_start+off+Ls):
+            for t in range(t_start + off, t_start + off + Ls):
                 req.setdefault(si, np.zeros((t_end - t_start,), dtype=np.int16))
                 req[si][t - t_start] += demand
-        op_assign={}
+        op_assign = {}
+        w_mod = []
+        s_mod = []
         for local_t in range(t_end - t_start):
-            abs_t=t_start + local_t
-            skills_here=[si for si,arr in req.items() if arr[local_t] > 0]
-            if not skills_here: continue
-            counts=[]
+            abs_t = t_start + local_t
+            skills_here = [si for si, arr in req.items() if arr[local_t] > 0]
+            if not skills_here:
+                continue
+            counts = []
             for si in skills_here:
-                cand=np.where(np.logical_and(Q[:,si], np.logical_and(C_W[:,abs_t]>0, np.logical_not(W_busy[:,abs_t]))))[0]
+                cand = np.where(np.logical_and(Q[:, si], np.logical_and(C_W[:, abs_t] > 0, np.logical_not(W_busy[:, abs_t]))))[0]
                 counts.append((si, cand.size))
-            skills_sorted=[si for si,_ in sorted(counts, key=lambda x:x[1])]
+            skills_sorted = [si for si, _ in sorted(counts, key=lambda x: x[1])]
             for si in skills_sorted:
-                need_units=req[si][local_t];
-                if need_units<=0: continue
-                K=int(math.ceil(need_units / CAP))
-                cand=np.where(np.logical_and(Q[:,si], np.logical_and(C_W[:,abs_t]>0, np.logical_not(W_busy[:,abs_t]))))[0]
-                if cand.size < K: return False
-                chosen=cand[:K]; W_busy[chosen,abs_t]=True; S_used[si,abs_t]+=K*CAP; op_assign.setdefault(abs_t, [])
-                for w in chosen: op_assign[abs_t].append((int(w), int(si)))
-        assigned_workers[oi]=op_assign; return True
+                need_units = req[si][local_t]
+                if need_units <= 0:
+                    continue
+                K = int(math.ceil(need_units / CAP))
+                cand = np.where(np.logical_and(Q[:, si], np.logical_and(C_W[:, abs_t] > 0, np.logical_not(W_busy[:, abs_t]))))[0]
+                if cand.size < K:
+                    for w, t in w_mod:
+                        W_busy[w, t] = False
+                    for si2, t, units in s_mod:
+                        S_used[si2, t] -= units
+                    return False
+                chosen = cand[:K]
+                for w in chosen:
+                    W_busy[w, abs_t] = True
+                    w_mod.append((int(w), abs_t))
+                    op_assign.setdefault(abs_t, []).append((int(w), int(si)))
+                S_used[si, abs_t] += K * CAP
+                s_mod.append((int(si), abs_t, K * CAP))
+        assigned_workers[oi] = op_assign
+        return True
 
     def earliest_pred_finish(oi):
         if not pred_list[oi]:
@@ -297,63 +322,93 @@ def decode_schedule(mats: Dict, op_order: np.ndarray, machine_choice: np.ndarray
             return None  # blocked by missing predecessor
         return int(max(finish[p] for p in pred_list[oi]))
 
-    for oi in op_order:
-        dm.ops_scheduled += 1; dm.tries += 1
-        mi_req=machine_choice[oi]; elig=np.where(E[oi])[0]
-        cand_machines=list(elig) if mi_req<0 or mi_req not in elig else [mi_req]
-        if not cand_machines: dm.ops_failed += 1; continue
-
-        est=earliest_pred_finish(oi)
-        if est is None:
-            dm.ops_failed += 1
-            continue
-
-        best_t=None; best_mi=None
-        candidates: List[Tuple[int,int]] = []  # (t, mi)
-        feas_start=now_ns()
-        for mi in cand_machines:
-            tot=total_len.get((oi,mi), 0);
-            if tot<=0: continue
-            free_m=np.logical_and(A_M[mi], np.logical_not(M_busy[mi]))
-            mach_ok=sliding_all_true(free_m, tot)
-            if mach_ok.size==0: continue
-            Rem=C_S_base - S_used; feas_vec=mach_ok.copy()
-            for (si, off, Ls, demand) in NeedK.get((oi,mi), []):
-                ok=sliding_all_true(Rem[si] >= demand, Ls)
-                if ok.size==0: feas_vec[:]=False; break
-                aligned=np.zeros_like(feas_vec, dtype=bool); max_t=min(feas_vec.size, ok.size - off)
-                if max_t>0: aligned[:max_t]=ok[off:off+max_t]
-                feas_vec=np.logical_and(feas_vec, aligned)
-                if not feas_vec.any(): break
-            if est>0 and est<feas_vec.size: feas_vec[:est]=False
-            if feas_vec.any():
-                cand_idx = np.flatnonzero(feas_vec)[:20]
-                for t_candidate in cand_idx:
-                    candidates.append((int(t_candidate), int(mi)))
-        dm.feas_ns += now_ns() - feas_start
-
-        if not candidates:
-            dm.ops_failed += 1; continue
-
-        candidates.sort(key=lambda x: x[0])
-        assigned_ok = False
-        for t_candidate, mi in candidates:
-            assign_start=now_ns()
-            ok=worker_assign(oi, mi, t_candidate)
-            dm.assign_ns += now_ns() - assign_start
-            if ok:
-                best_t, best_mi = t_candidate, mi
-                assigned_ok = True
-                break
-        if not assigned_ok:
-            dm.ops_failed += 1; continue
-
-        tot=total_len[(oi, best_mi)]
-        M_busy[best_mi, best_t:best_t+tot]=True; chosen_m[oi]=best_mi; start[oi]=best_t; finish[oi]=best_t+tot
-
-    res={"feasible": bool(dm.ops_failed == 0) if hard_deadlines else True, "start":start, "finish":finish, "machine":chosen_m,
-         "M_busy":M_busy, "W_busy":W_busy, "S_used":S_used, "assigned":assigned_workers, "metrics":dm}
-    res["metrics"].total_ns = now_ns() - t0; return res
+    unscheduled = list(op_order)
+    for _ in range(int(max_rounds)):
+        if not unscheduled:
+            break
+        next_unscheduled = []
+        for oi in unscheduled:
+            dm.tries += 1
+            mi_req = machine_choice[oi]
+            elig = np.where(E[oi])[0]
+            if mi_req >= 0 and mi_req in elig:
+                cand_machines = [int(mi_req)] + [int(m) for m in elig if m != mi_req]
+            else:
+                cand_machines = [int(m) for m in elig]
+            if not cand_machines:
+                next_unscheduled.append(oi)
+                continue
+            est = earliest_pred_finish(oi)
+            if est is None:
+                next_unscheduled.append(oi)
+                continue
+            candidates: List[Tuple[int, int]] = []
+            feas_start = now_ns()
+            for mi in cand_machines:
+                tot = total_len.get((oi, mi), 0)
+                if tot <= 0:
+                    continue
+                free_m = np.logical_and(A_M[mi], np.logical_not(M_busy[mi]))
+                mach_ok = sliding_all_true(free_m, tot)
+                if mach_ok.size == 0:
+                    continue
+                Rem = C_S_base - S_used
+                feas_vec = mach_ok.copy()
+                for (si, off, Ls, demand) in NeedK.get((oi, mi), []):
+                    ok = sliding_all_true(Rem[si] >= demand, Ls)
+                    if ok.size == 0:
+                        feas_vec[:] = False
+                        break
+                    aligned = np.zeros_like(feas_vec, dtype=bool)
+                    max_t = min(feas_vec.size, ok.size - off)
+                    if max_t > 0:
+                        aligned[:max_t] = ok[off:off + max_t]
+                    feas_vec = np.logical_and(feas_vec, aligned)
+                    if not feas_vec.any():
+                        break
+                if est > 0 and est < feas_vec.size:
+                    feas_vec[:est] = False
+                if feas_vec.any():
+                    idxs = np.flatnonzero(feas_vec)
+                    for t_candidate in idxs:
+                        candidates.append((int(t_candidate), int(mi)))
+                        if len(candidates) >= max_candidates_per_op:
+                            break
+                if len(candidates) >= max_candidates_per_op:
+                    break
+            dm.feas_ns += now_ns() - feas_start
+            candidates.sort(key=lambda x: x[0])
+            scheduled = False
+            for t_candidate, mi in candidates:
+                assign_start = now_ns()
+                ok = worker_assign(oi, mi, t_candidate)
+                dm.assign_ns += now_ns() - assign_start
+                if ok:
+                    tot = total_len[(oi, mi)]
+                    M_busy[mi, t_candidate:t_candidate + tot] = True
+                    chosen_m[oi] = mi
+                    start[oi] = t_candidate
+                    finish[oi] = t_candidate + tot
+                    dm.ops_scheduled += 1
+                    scheduled = True
+                    break
+            if not scheduled:
+                next_unscheduled.append(oi)
+        unscheduled = next_unscheduled
+    dm.ops_failed = len(unscheduled)
+    res = {
+        "feasible": bool(dm.ops_failed == 0) if hard_deadlines else True,
+        "start": start,
+        "finish": finish,
+        "machine": chosen_m,
+        "M_busy": M_busy,
+        "W_busy": W_busy,
+        "S_used": S_used,
+        "assigned": assigned_workers,
+        "metrics": dm,
+    }
+    res["metrics"].total_ns = now_ns() - t0
+    return res
 
 # =============== genome helpers & GA ===============
 def default_genome(mats: Dict, strategy="min_total_len"):
@@ -383,7 +438,7 @@ def random_genome(mats: Dict, rng: np.random.Generator):
     return op_order, machine_choice
 
 def evaluate_objective(mats, schedule, alpha=0.03,
-                       lambda_unsched_op=5_000,
+                    #    lambda_unsched_op=5_000,
                        horizon_penalty_factor=2):
     Due = mats["Due"]
     JobOf = mats["JobOf"]
@@ -391,9 +446,9 @@ def evaluate_objective(mats, schedule, alpha=0.03,
     nJ = Due.shape[0]
     nT = mats["n"]["T"]
 
-    tardiness = 0
     job_finish = np.zeros(nJ, dtype=np.int32)
     unsched_ops = (finish < 0)
+    tardiness = 0
 
     for j in range(nJ):
         ops = np.where(JobOf == j)[0]
@@ -406,11 +461,27 @@ def evaluate_objective(mats, schedule, alpha=0.03,
             job_finish[j] = int(finish[ops].max())
         tardiness += max(0, job_finish[j] - Due[j])
 
-    tardiness += int(lambda_unsched_op) * int(unsched_ops.sum())
+    # tardiness += int(lambda_unsched_op) * int(unsched_ops.sum())
     makespan = int(np.maximum(0, finish).max()) if finish.size > 0 else 0
-    score = float(tardiness + alpha * makespan)
-    return {"tardiness": int(tardiness), "makespan": makespan, "score": score, "job_finish": job_finish,
-            "unscheduled_ops": int(unsched_ops.sum())}
+    # score = float(tardiness + alpha * makespan)
+    # return {"tardiness": int(tardiness), "makespan": makespan, "score": score, "job_finish": job_finish,
+    #         "unscheduled_ops": int(unsched_ops.sum())}
+
+    # lexicographic score: unscheduled ops >> tardiness >> makespan
+    unsched_count = int(unsched_ops.sum())
+    score = (
+        unsched_count * 1_000_000_000_000
+        + int(tardiness) * 1_000_000
+        + int(alpha * makespan)
+    )
+
+    return {
+        "unscheduled_ops": unsched_count,
+        "tardiness": int(tardiness),
+        "makespan": makespan,
+        "score": score,
+        "job_finish": job_finish,
+    }
 
 # precedence-aware repair (topological projection)
 def repair_order_topo(mats, order):
