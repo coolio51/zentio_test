@@ -382,18 +382,16 @@ def random_genome(mats: Dict, rng: np.random.Generator):
         if elig.size>0: machine_choice[oi]=int(rng.choice(elig))
     return op_order, machine_choice
 
-def evaluate_objective(mats, schedule, alpha=0.03,
-                       lambda_unsched_op=5_000,
-                       horizon_penalty_factor=2):
+def evaluate_objective(mats, schedule, alpha=0.03, horizon_penalty_factor=2):
     Due = mats["Due"]
     JobOf = mats["JobOf"]
     finish = schedule["finish"]
     nJ = Due.shape[0]
     nT = mats["n"]["T"]
 
-    tardiness = 0
     job_finish = np.zeros(nJ, dtype=np.int32)
     unsched_ops = (finish < 0)
+    tardiness = 0
 
     for j in range(nJ):
         ops = np.where(JobOf == j)[0]
@@ -406,11 +404,23 @@ def evaluate_objective(mats, schedule, alpha=0.03,
             job_finish[j] = int(finish[ops].max())
         tardiness += max(0, job_finish[j] - Due[j])
 
-    tardiness += int(lambda_unsched_op) * int(unsched_ops.sum())
     makespan = int(np.maximum(0, finish).max()) if finish.size > 0 else 0
-    score = float(tardiness + alpha * makespan)
-    return {"tardiness": int(tardiness), "makespan": makespan, "score": score, "job_finish": job_finish,
-            "unscheduled_ops": int(unsched_ops.sum())}
+
+    # lexicographic score: unscheduled ops >> tardiness >> makespan
+    unsched_count = int(unsched_ops.sum())
+    score = (
+        unsched_count * 1_000_000_000_000
+        + int(tardiness) * 1_000_000
+        + int(alpha * makespan)
+    )
+
+    return {
+        "unscheduled_ops": unsched_count,
+        "tardiness": int(tardiness),
+        "makespan": makespan,
+        "score": score,
+        "job_finish": job_finish,
+    }
 
 # precedence-aware repair (topological projection)
 def repair_order_topo(mats, order):
