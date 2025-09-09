@@ -373,40 +373,34 @@ def random_genome(mats: Dict, rng: np.random.Generator):
         if elig.size>0: machine_choice[oi]=int(rng.choice(elig))
     return op_order, machine_choice
 
-def evaluate_objective(mats, schedule, alpha=0.03,
-                       lambda_unsched_op=5_000,  # heavy penalty per unscheduled op
-                       horizon_penalty_factor=2):  # push job finish beyond horizon
-
+def evaluate_objective(mats, schedule, alpha=0.03):
+    """Lexicographic objective prioritizing scheduled operations."""
     Due = mats["Due"]
     JobOf = mats["JobOf"]
     finish = schedule["finish"]
     nJ = Due.shape[0]
-    nT = mats["n"]["T"]
-
-    tardiness = 0
     job_finish = np.zeros(nJ, dtype=np.int32)
-    unsched_ops = (finish < 0)
+    unsched_mask = finish < 0
 
     for j in range(nJ):
         ops = np.where(JobOf == j)[0]
         if ops.size == 0:
-            job_finish[j] = 0
             continue
-        if np.any(unsched_ops[ops]):
-            # force this job late by design
-            job_finish[j] = nT * horizon_penalty_factor
-        else:
-            job_finish[j] = int(finish[ops].max())
+        valid = finish[ops]
+        valid = valid[valid >= 0]
+        if valid.size > 0:
+            job_finish[j] = int(valid.max())
 
-        tardiness += max(0, job_finish[j] - Due[j])
-
-    # add explicit per-op penalty so GA can “see” individual misses
-    tardiness += int(lambda_unsched_op) * int(unsched_ops.sum())
-
-    makespan = int(np.maximum(0, finish).max()) if finish.size > 0 else 0
-    score = float(tardiness + alpha * makespan)
-    return {"tardiness": int(tardiness), "makespan": makespan, "score": score, "job_finish": job_finish,
-            "unscheduled_ops": int(unsched_ops.sum())}
+    tardiness = int(np.maximum(0, job_finish - Due).sum())
+    makespan = int(finish[finish >= 0].max()) if np.any(finish >= 0) else 0
+    score = float(int(unsched_mask.sum()) * 1_000_000_000 + tardiness + alpha * makespan)
+    return {
+        "unscheduled_ops": int(unsched_mask.sum()),
+        "tardiness": tardiness,
+        "makespan": makespan,
+        "score": score,
+        "job_finish": job_finish,
+    }
 
 # precedence-aware repair (topological projection)
 def repair_order_topo(mats, order):
