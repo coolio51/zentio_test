@@ -29,9 +29,9 @@ class SchedulerService:
         operations: list[OperationNode],
         resource_manager: ResourceManager,
     ) -> Schedule:
-        tasks = []
-        all_dropped_operations = []
-        all_idles = []
+        tasks: List[Task] = []
+        all_dropped_operations: List[DroppedOperation] = []
+        all_idles: List[Idle] = []
 
         # Schedule all operations
         operation_tasks, operation_idles, dropped_operations = (
@@ -43,15 +43,16 @@ class SchedulerService:
 
         makespan = None
         if tasks:
-            makespan = max(task.datetime_end for task in tasks) - min(
-                task.datetime_start for task in tasks
-            )
+            earliest_start = min(task.datetime_start for task in tasks)
+            latest_end = max(task.datetime_end for task in tasks)
+            makespan = latest_end - earliest_start
 
         # Calculate actual operations scheduled (operations that have at least one task)
-        scheduled_operation_ids = set()
-        for task in tasks:
-            if task.operation.operation_id:
-                scheduled_operation_ids.add(task.operation.operation_id)
+        scheduled_operation_ids = {
+            task.operation.operation_id
+            for task in tasks
+            if task.operation.operation_id
+        }
 
         actual_operations_scheduled = len(scheduled_operation_ids)
 
@@ -88,12 +89,12 @@ class SchedulerService:
         resource_manager: ResourceManager,
     ) -> tuple[List[Task], List[Idle], List[DroppedOperation]]:
         """Naive O(n^2) scheduling loop retained for backward compatibility."""
-        tasks = []
-        dropped_operations = []
-        all_idles = []
+        tasks: List[Task] = []
+        dropped_operations: List[DroppedOperation] = []
+        all_idles: List[Idle] = []
 
         # Track completion times for each operation instance (unique_key -> end_time)
-        operation_completion_times: Dict[str, datetime] = {}
+        operation_completion_times: Dict[tuple[str, int], datetime] = {}
 
         # Counter for generating unique operation instance IDs
         operation_instance_counter: Dict[str, int] = {}
@@ -104,6 +105,11 @@ class SchedulerService:
         # Use object identity to distinguish between different instances of the same operation_id
         scheduled_operations = set()
         dropped_operation_ids = set()
+
+        dependency_cache: Dict[int, tuple[OperationNode, ...]] = {
+            id(operation): tuple(operation.dependencies)
+            for operation in operations
+        }
 
         # Create operation scheduler instance
         operation_scheduler = OperationScheduler(resource_manager)
@@ -126,7 +132,9 @@ class SchedulerService:
                     max_dependency_end_time = None
                     dropped_due_to_dependency = False
 
-                    for dependency in operation.dependencies:
+                    for dependency in dependency_cache.get(
+                        operation_instance_key, ()
+                    ):
                         dependency_instance_key = id(dependency)
                         if dependency_instance_key in dropped_operation_ids:
                             # This operation must be dropped because its dependency was dropped
@@ -153,7 +161,10 @@ class SchedulerService:
 
                         # Find the maximum end time among dependencies
                         # Use a unique key that combines operation_id and instance for completion times
-                        dep_completion_key = f"{dependency.operation_id}_{id(dependency)}"
+                        dep_completion_key = (
+                            dependency.operation_id,
+                            dependency_instance_key,
+                        )
                         dep_end_time = operation_completion_times[dep_completion_key]
                         if (
                             max_dependency_end_time is None
@@ -190,7 +201,10 @@ class SchedulerService:
                             tasks.extend(operation_tasks)
                             all_idles.extend(operation_idles)
                             # Record the completion time of this operation instance
-                            completion_key = f"{operation.operation_id}_{id(operation)}"
+                            completion_key = (
+                                operation.operation_id,
+                                operation_instance_key,
+                            )
                             operation_completion_times[completion_key] = max(
                                 task.datetime_end for task in operation_tasks
                             )
