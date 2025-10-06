@@ -27,6 +27,16 @@ class OperationScheduler:
 
     def __init__(self, resource_manager: ResourceManager):
         self.resource_manager = resource_manager
+        self._phase_candidate_cache: dict[tuple[int, str], Tuple[Resource, ...]] = {}
+        self._operator_window_cache: dict[int, Dict[TaskPhase, Tuple[Resource, ...]]] = {}
+
+    def reset(self, resource_manager: ResourceManager) -> None:
+        """Reset cached state for reuse with a fresh ``ResourceManager`` instance."""
+
+        if self.resource_manager is not resource_manager:
+            self.resource_manager = resource_manager
+        self._phase_candidate_cache.clear()
+        self._operator_window_cache.clear()
 
     @staticmethod
     def _get_phase_cache(operation: OperationNode) -> tuple[Tuple[TaskPhase, timedelta], ...]:
@@ -99,55 +109,82 @@ class OperationScheduler:
             if merged_start is not None:
                 return merged_start
 
-        # Get all operator requirements for this operation
         all_operator_requirements = self._get_all_operator_requirements(operation)
 
         if not all_operator_requirements:
             return machine_window_start
 
-        # Find operators that can satisfy the requirements
-        capable_operators: List[Resource] = []
-        seen_operator_ids = set()
-        phase_candidates: Dict[TaskPhase, List[Resource]] = {}
-        for operator_req in all_operator_requirements:
-            candidates = phase_candidates.get(operator_req.phase)
-            if candidates is None:
-                candidates = self.resource_manager.find_capable_resources(
-                    ResourceType.OPERATOR,
-                    operator_req.phase,
-                    operation.operation_id,
-                )
-                phase_candidates[operator_req.phase] = candidates
-            for operator in candidates:
-                if operator.resource_id in seen_operator_ids:
-                    continue
-                seen_operator_ids.add(operator.resource_id)
-                capable_operators.append(operator)
-
-        if not capable_operators:
+        total_duration = self._get_total_duration(operation)
+        if machine_window_start + total_duration > machine_window_end:
             return None
 
-        # Check availability of capable operators within machine window
-        # We'll check in 30-minute increments for better granularity
-        current_time = machine_window_start
-        operation_duration = self._get_total_duration(operation)
-        increment = timedelta(minutes=30)  # More fine-grained search
+        phase_candidates = self._get_phase_candidates(operation)
 
-        with profile_section("op_scheduler.find_slot.step_scan"):
-            while current_time + operation_duration <= machine_window_end:
-                # Check if any capable operator is available at this time
-                for operator in capable_operators:
-                    if self.resource_manager.is_resource_available(
-                        operator.resource_id,
-                        current_time,
-                        current_time + operation_duration,
-                    ):
-                        return current_time
+        candidate_starts = {machine_window_start}
+        for requirement in all_operator_requirements:
+            candidates = phase_candidates.get(requirement.phase, ())
+            for operator in candidates:
+                for interval_start, _ in self.resource_manager.free_intervals(
+                    operator.resource_id,
+                    machine_window_start,
+                    machine_window_end,
+                ):
+                    candidate_starts.add(interval_start)
 
-                # Move to next 30-minute slot
-                current_time += increment
+        machine_boundaries = list(
+            self.resource_manager.free_intervals(
+                machine.resource_id, machine_window_start, machine_window_end
+            )
+        )
+        for start, _ in machine_boundaries:
+            candidate_starts.add(start)
+
+        with profile_section("op_scheduler.find_slot.interval_scan"):
+            for candidate in sorted(candidate_starts):
+                candidate_end = candidate + total_duration
+                if candidate_end > machine_window_end:
+                    continue
+                if not self.resource_manager.is_resource_available(
+                    machine.resource_id, candidate, candidate_end
+                ):
+                    continue
+
+                operators_available = self.resource_manager.find_available_operators_for_machine(
+                    machine,
+                    list(all_operator_requirements),
+                    candidate,
+                    candidate_end,
+                    operation.operation_id,
+                )
+                if operators_available:
+                    return candidate
 
         return None
+
+    def _get_phase_candidates(
+        self, operation: OperationNode
+    ) -> Dict[TaskPhase, Tuple[Resource, ...]]:
+        cache_key = (id(operation), operation.operation_id or "")
+        cached = self._operator_window_cache.get(cache_key[0])
+        if cached is not None:
+            return cached
+
+        candidates: Dict[TaskPhase, Tuple[Resource, ...]] = {}
+        for requirement in self._get_all_operator_requirements(operation):
+            flat_key = (cache_key[0], requirement.phase.value)
+            cached_list = self._phase_candidate_cache.get(flat_key)
+            if cached_list is None:
+                resources = self.resource_manager.find_capable_resources(
+                    ResourceType.OPERATOR,
+                    requirement.phase,
+                    operation.operation_id,
+                )
+                cached_list = tuple(resources)
+                self._phase_candidate_cache[flat_key] = cached_list
+            candidates.setdefault(requirement.phase, cached_list)
+
+        self._operator_window_cache[cache_key[0]] = candidates
+        return candidates
 
     def _find_operator_start_merge(
         self,
@@ -163,17 +200,9 @@ class OperationScheduler:
             return None
 
         candidate_times = {window_start}
-        phase_candidates: Dict[TaskPhase, List[Resource]] = {}
+        phase_candidates = self._get_phase_candidates(operation)
         for requirement in all_operator_requirements:
-            operators = phase_candidates.get(requirement.phase)
-            if operators is None:
-                operators = self.resource_manager.find_capable_resources(
-                    ResourceType.OPERATOR,
-                    requirement.phase,
-                    operation.operation_id,
-                )
-                phase_candidates[requirement.phase] = operators
-            for operator in operators:
+            for operator in phase_candidates.get(requirement.phase, ()): 
                 for interval_start, _ in self.resource_manager.free_intervals(
                     operator.resource_id,
                     window_start,
@@ -224,17 +253,9 @@ class OperationScheduler:
         if operation.min_idle_between_phases > timedelta(0):
             candidate_times.add(preferred_start + operation.min_idle_between_phases)
 
-        phase_candidates: Dict[TaskPhase, List[Resource]] = {}
+        phase_candidates = self._get_phase_candidates(operation)
         for requirement in operator_reqs:
-            operators = phase_candidates.get(requirement.phase)
-            if operators is None:
-                operators = self.resource_manager.find_capable_resources(
-                    ResourceType.OPERATOR,
-                    requirement.phase,
-                    operation.operation_id,
-                )
-                phase_candidates[requirement.phase] = operators
-            for operator in operators:
+            for operator in phase_candidates.get(requirement.phase, ()): 
                 for interval_start, _ in self.resource_manager.free_intervals(
                     operator.resource_id,
                     preferred_start,
@@ -291,17 +312,9 @@ class OperationScheduler:
         max_search_time = start_time + timedelta(days=60)
 
         candidate_times = {start_time}
-        phase_candidates: Dict[TaskPhase, List[Resource]] = {}
+        phase_candidates = self._get_phase_candidates(operation)
         for requirement in operator_reqs:
-            operators = phase_candidates.get(requirement.phase)
-            if operators is None:
-                operators = self.resource_manager.find_capable_resources(
-                    ResourceType.OPERATOR,
-                    requirement.phase,
-                    operation.operation_id,
-                )
-                phase_candidates[requirement.phase] = operators
-            for operator in operators:
+            for operator in phase_candidates.get(requirement.phase, ()): 
                 for interval_start, _ in self.resource_manager.free_intervals(
                     operator.resource_id,
                     start_time,
