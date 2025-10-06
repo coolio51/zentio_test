@@ -2,6 +2,7 @@
 # Streamlit Matrix Scheduler — GA + CP-SAT Polishing (Stress Test Edition)
 # (See previous cell for the full description and features.)
 import json, math, time, random
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 from typing import Dict, List, Tuple, Optional
 import numpy as np
@@ -121,101 +122,211 @@ def generate_stress_dataset(seed: int, hcfg: HorizonCfg, scfg: ScaleCfg, mcfg: M
                "A_M": A_M_json, "A_W_frac": A_W_frac, "PredEdges": PredEdges, "CAP": ncfg.cap}
     return payload, ax
 
+def _extract_intervals(row: np.ndarray) -> List[Tuple[int, int]]:
+    intervals: List[Tuple[int, int]] = []
+    start_idx: Optional[int] = None
+    for t, flag in enumerate(row):
+        if flag and start_idx is None:
+            start_idx = t
+        elif (not flag) and start_idx is not None:
+            intervals.append((start_idx, t))
+            start_idx = None
+    if start_idx is not None:
+        intervals.append((start_idx, row.size))
+    return intervals
+
+
 def build_matrices(data: Dict):
     Ops=data["Ops"]; Machines=data["Machines"]; Workers=data["Workers"]; Skills=data["Skills"]; Phases=data["Phases"]; T=np.array(data["T"],dtype=np.int32); CAP=int(data["CAP"])
     nO,nM,nW,nS,nT=len(Ops),len(Machines),len(Workers),len(Skills),len(T)
     idx={"op":{op:i for i,op in enumerate(Ops)}, "m":{m:i for i,m in enumerate(Machines)}, "w":{w:i for i,w in enumerate(Workers)},
          "s":{s:i for i,s in enumerate(Skills)}, "ph":{p:i for i,p in enumerate(Phases)}, "job":{j:i for i,j in enumerate(data["Jobs"])}}
     A_M=np.array([data["A_M"][m] for m in Machines], dtype=bool); A_W_frac=np.array([data["A_W_frac"][w] for w in Workers], dtype=float)
-    C_W=np.rint(A_W_frac * CAP).astype(np.int16); Q=np.array([[data["Q"][w][s] for s in Skills] for w in Workers], dtype=bool); C_S=Q.T.astype(np.int16) @ C_W
+    C_W=np.rint(A_W_frac * CAP).astype(np.int16); Q=np.array([[data["Q"][w][s] for s in Skills] for w in Workers], dtype=bool);C_S=Q.T.astype(np.int16) @ C_W
     E=np.array([[data["E"][op][m] for m in Machines] for op in Ops], dtype=bool)
     D=np.zeros((nO, len(Phases), nM), dtype=np.int16); NeedKernels={}; total_len={}
+    total_len_arr=np.zeros((nO, nM), dtype=np.int16)
+    demand_profiles: Dict[Tuple[int, int], Tuple[np.ndarray, np.ndarray]] = {}
     for oi, op in enumerate(Ops):
         for mi, m in enumerate(Machines):
-            if not E[oi, mi]: continue
+            if not E[oi, mi]:
+                total_len[(oi,mi)]=0
+                continue
             offset=0; tot=0
+            phase_windows: List[Tuple[int, int, Dict[str, float]]] = []
             for pi, ph in enumerate(Phases):
                 L=int(data["D"][op][ph].get(m, 0)); D[oi, pi, mi]=L
                 if L>0:
-                    for s, need in data["Need"][op][ph].items():
-                        demand=int(math.ceil(float(need) * CAP)); si=idx["s"].get(s, None)
-                        if si is not None and demand>0: NeedKernels.setdefault((oi,mi), []).append((si, offset, L, demand))
+                    phase_windows.append((offset, L, data["Need"][op][ph]))
                     offset+=L; tot+=L
-            total_len[(oi,mi)]=tot
-    preds=[(idx["op"][a], idx["op"][b]) for a,b in data["PredEdges"]]; JobOf=np.array([idx["job"][data["JobOf"][op]] for op in Ops], dtype=np.int32)
+            if tot>0:
+                total_len[(oi,mi)]=tot
+                total_len_arr[oi, mi]=tot
+                skill_buffers: Dict[int, np.ndarray] = {}
+                for start_off, L, need_map in phase_windows:
+                    for s, need in need_map.items():
+                        demand=int(math.ceil(float(need) * CAP)); si=idx["s"].get(s, None)
+                        if si is None or demand<=0:
+                            continue
+                        NeedKernels.setdefault((oi,mi), []).append((si, start_off, L, demand))
+                        buf=skill_buffers.setdefault(si, np.zeros(tot, dtype=np.int16))
+                        buf[start_off:start_off+L] += demand
+                if skill_buffers:
+                    skill_ids=np.array(list(skill_buffers.keys()), dtype=np.int16)
+                    demand_matrix=np.vstack([skill_buffers[si] for si in skill_ids])
+                    demand_profiles[(oi, mi)] = (skill_ids, demand_matrix)
+            else:
+                total_len[(oi,mi)]=0
+    preds=[(idx["op"][a], idx["op"][b]) for a,b in data["PredEdges"]]
+    pred_list=[[] for _ in range(nO)]
+    for a,b in preds:
+        pred_list[b].append(a)
+    pred_list=[np.array(p, dtype=np.int32) for p in pred_list]
+    skill_workers=[np.flatnonzero(Q[:, si]) for si in range(nS)]
+    machine_windows=[_extract_intervals(A_M[mi]) for mi in range(nM)]
+    JobOf=np.array([idx["job"][data["JobOf"][op]] for op in Ops], dtype=np.int32)
     Due=np.array([data["Due"][j] for j in data["Jobs"]], dtype=np.int32)
-    return {"idx":idx,"A_M":A_M,"C_W":C_W,"Q":Q,"C_S":C_S,"E":E,"D":D,"NeedKernels":NeedKernels,"total_len":total_len,"preds":preds,"JobOf":JobOf,"Due":Due,
+    return {"idx":idx,"A_M":A_M,"C_W":C_W,"Q":Q,"C_S":C_S,"E":E,"D":D,"NeedKernels":NeedKernels,"NeedProfiles":demand_profiles,
+            "total_len":total_len,"total_len_arr":total_len_arr,"preds":preds,"pred_list":pred_list,"skill_workers":skill_workers,
+            "machine_windows":machine_windows,"JobOf":JobOf,"Due":Due,
             "n":{"O":nO,"M":nM,"W":nW,"S":nS,"T":nT,"CAP":CAP},"meta":{"Ops":Ops,"Machines":Machines,"Workers":Workers,"Skills":Skills,"Phases":Phases,"T":T}}
+
 
 @dataclass
 class DecodeMetrics: total_ns:int=0; feas_ns:int=0; assign_ns:int=0; ops_scheduled:int=0; ops_failed:int=0; tries:int=0
 def decode_schedule(mats: Dict, op_order: np.ndarray, machine_choice: np.ndarray, hard_deadlines: bool=False) -> Dict:
-    t0=now_ns(); A_M=mats["A_M"].copy(); C_S_base=mats["C_S"].copy(); E=mats["E"]; NeedK=mats["NeedKernels"]; total_len=mats["total_len"]; preds=mats["preds"]
+    t0=now_ns();
     nO, nT, CAP = mats["n"]["O"], mats["n"]["T"], mats["n"]["CAP"]
-    M_busy=np.zeros_like(A_M, dtype=bool); S_used=np.zeros_like(C_S_base, dtype=np.int16); W_busy=np.zeros((mats["n"]["W"], nT), dtype=bool)
-    Q=mats["Q"]; C_W=mats["C_W"]
-    pred_list=[[] for _ in range(nO)]
-    for a,b in preds: pred_list[b].append(a)
+    machine_windows=[[(int(s), int(e)) for s, e in mats["machine_windows"][mi]] for mi in range(mats["n"]["M"])]
+    skill_free=mats["C_S"].copy(); skill_used=np.zeros_like(skill_free, dtype=np.int16)
+    M_busy=np.zeros_like(mats["A_M"], dtype=bool); W_busy=np.zeros((mats["n"]["W"], nT), dtype=bool)
+    total_len_arr=mats["total_len_arr"]
+    demand_profiles=mats.get("NeedProfiles", {})
+    pred_list=mats["pred_list"]
+    skill_workers=mats["skill_workers"]
+    C_W=mats["C_W"]
     start=np.full(nO, -1, dtype=np.int32); finish=np.full(nO, -1, dtype=np.int32); chosen_m=np.full(nO, -1, dtype=np.int16)
     assigned_workers={}; dm=DecodeMetrics()
-    def worker_assign(oi, mi, t_start)->bool:
-        nonlocal S_used, W_busy, assigned_workers
-        segments=NeedK.get((oi,mi), []);
-        if not segments: return True
-        t_end=t_start + total_len[(oi,mi)]; req={}
-        for (si, off, Ls, demand) in segments:
-            for t in range(t_start+off, t_start+off+Ls):
-                req.setdefault(si, np.zeros((t_end - t_start,), dtype=np.int16)); req[si][t - t_start] += demand
+
+    def earliest_pred_finish(oi: int) -> int:
+        preds = pred_list[oi]
+        if preds.size == 0:
+            return 0
+        valid = finish[preds]
+        valid = valid[valid >= 0]
+        if valid.size == 0:
+            return 0
+        return int(valid.max())
+
+    def find_machine_start(mi: int, est: int, tot: int, demand_profile):
+        if not machine_windows[mi]:
+            return None
+        skills=None; demand=None
+        if demand_profile is not None:
+            skills, demand = demand_profile
+        for idx, (seg_start, seg_end) in enumerate(machine_windows[mi]):
+            candidate=max(est, seg_start)
+            if candidate + tot > seg_end:
+                continue
+            while candidate + tot <= seg_end:
+                feasible=True
+                if skills is not None:
+                    for row_idx, si in enumerate(skills):
+                        demand_vec=demand[row_idx]
+                        slice_view = skill_free[si, candidate:candidate+tot] < demand_vec
+                        if slice_view.any():
+                            candidate += int(slice_view.argmax()) + 1
+                            feasible=False
+                            break
+                if feasible:
+                    return candidate, idx
+        return None
+
+    def worker_assign(oi: int, mi: int, t_start: int) -> bool:
+        profile=demand_profiles.get((oi, mi))
+        if profile is None:
+            assigned_workers[oi]={}
+            return True
+        skill_ids, demand_matrix = profile
+        tot=demand_matrix.shape[1]
         op_assign={}
-        for local_t in range(t_end - t_start):
-            abs_t=t_start + local_t; skills_here=[si for si,arr in req.items() if arr[local_t] > 0]
-            if not skills_here: continue
+        for local_t in range(tot):
+            abs_t=t_start + local_t
+            if abs_t >= nT:
+                return False
+            active = demand_matrix[:, local_t] > 0
+            if not active.any():
+                continue
+            base_mask = np.logical_and(C_W[:, abs_t] > 0, np.logical_not(W_busy[:, abs_t]))
             counts=[]
-            for si in skills_here:
-                cand=np.where(np.logical_and(Q[:,si], np.logical_and(C_W[:,abs_t]>0, np.logical_not(W_busy[:,abs_t]))))[0]; counts.append((si, cand.size))
-            skills_sorted=[si for si,_ in sorted(counts, key=lambda x:x[1])]
-            for si in skills_sorted:
-                need_units=req[si][local_t];
-                if need_units<=0: continue
-                K=int(math.ceil(need_units / CAP)); cand=np.where(np.logical_and(Q[:,si], np.logical_and(C_W[:,abs_t]>0, np.logical_not(W_busy[:,abs_t]))))[0]
-                if cand.size < K: return False
-                chosen=cand[:K]; W_busy[chosen,abs_t]=True; S_used[si,abs_t]+=K*CAP; op_assign.setdefault(abs_t, [])
-                for w in chosen: op_assign[abs_t].append((int(w), int(si)))
-        assigned_workers[oi]=op_assign; return True
-    def earliest_pred_finish(oi):
-        if not pred_list[oi]: return 0
-        valid=[finish[p] for p in pred_list[oi] if finish[p] >= 0]
-        return int(max(valid)) if valid else 0
+            for row_idx, si in enumerate(skill_ids):
+                if not active[row_idx]:
+                    continue
+                available = skill_workers[si][base_mask[skill_workers[si]]]
+                counts.append((row_idx, available))
+            counts.sort(key=lambda x: x[1].size)
+            for row_idx, available in counts:
+                need_units=demand_matrix[row_idx, local_t]
+                if need_units <= 0:
+                    continue
+                required=int(math.ceil(need_units / CAP))
+                if available.size < required:
+                    return False
+                chosen=available[:required]
+                W_busy[chosen, abs_t]=True
+                base_mask[chosen]=False
+                op_assign.setdefault(abs_t, [])
+                for w in chosen:
+                    op_assign[abs_t].append((int(w), int(skill_ids[row_idx])))
+        assigned_workers[oi]=op_assign
+        return True
+
     for oi in op_order:
         dm.ops_scheduled += 1; dm.tries += 1
-        mi_req=machine_choice[oi]; elig=np.where(E[oi])[0]
+        mi_req=machine_choice[oi]; elig=np.where(mats["E"][oi])[0]
         cand_machines=list(elig) if mi_req<0 or mi_req not in elig else [mi_req]
-        if not cand_machines: dm.ops_failed += 1; continue
-        est=earliest_pred_finish(oi); best_t=None; best_mi=None
+        if not cand_machines:
+            dm.ops_failed += 1
+            continue
+        est=earliest_pred_finish(oi); best=None
         feas_start=now_ns()
         for mi in cand_machines:
-            tot=total_len.get((oi,mi), 0);
-            if tot<=0: continue
-            free_m=np.logical_and(A_M[mi], np.logical_not(M_busy[mi])); mach_ok=sliding_all_true(free_m, tot)
-            if mach_ok.size==0: continue
-            Rem=C_S_base - S_used; feas_vec=mach_ok.copy()
-            for (si, off, Ls, demand) in NeedK.get((oi,mi), []):
-                ok=sliding_all_true(Rem[si] >= demand, Ls);
-                if ok.size==0: feas_vec[:]=False; break
-                aligned=np.zeros_like(feas_vec, dtype=bool); max_t=min(feas_vec.size, ok.size - off)
-                if max_t>0: aligned[:max_t]=ok[off:off+max_t]; feas_vec=np.logical_and(feas_vec, aligned)
-                if not feas_vec.any(): break
-            if est>0 and est<feas_vec.size: feas_vec[:est]=False
-            if feas_vec.any():
-                t_candidate=int(np.argmax(feas_vec))
-                if (best_t is None) or (t_candidate < best_t): best_t=t_candidate; best_mi=mi
+            tot=int(total_len_arr[oi, mi])
+            if tot <= 0:
+                continue
+            demand_profile=demand_profiles.get((oi, mi))
+            slot=find_machine_start(mi, est, tot, demand_profile)
+            if slot is None:
+                continue
+            t_candidate, interval_idx = slot
+            if best is None or t_candidate < best[0]:
+                best=(t_candidate, mi, interval_idx, tot, demand_profile)
         dm.feas_ns += now_ns() - feas_start
-        if best_t is None: dm.ops_failed += 1; continue
-        assign_start=now_ns(); ok=worker_assign(oi, best_mi, best_t); dm.assign_ns += now_ns() - assign_start
-        if not ok: dm.ops_failed += 1; continue
-        tot=total_len[(oi, best_mi)]; M_busy[best_mi, best_t:best_t+tot]=True; chosen_m[oi]=best_mi; start[oi]=best_t; finish[oi]=best_t+tot
+        if best is None:
+            dm.ops_failed += 1
+            continue
+        best_t, best_mi, interval_idx, tot, demand_profile = best
+        assign_start=now_ns()
+        if not worker_assign(oi, best_mi, best_t):
+            dm.assign_ns += now_ns() - assign_start
+            dm.ops_failed += 1
+            continue
+        dm.assign_ns += now_ns() - assign_start
+        seg_start, seg_end = machine_windows[best_mi].pop(interval_idx)
+        if seg_start < best_t:
+            machine_windows[best_mi].insert(interval_idx, (seg_start, best_t))
+            interval_idx += 1
+        if best_t + tot < seg_end:
+            machine_windows[best_mi].insert(interval_idx, (best_t + tot, seg_end))
+        M_busy[best_mi, best_t:best_t+tot] = True
+        if demand_profile is not None:
+            skills, demand = demand_profile
+            for row_idx, si in enumerate(skills):
+                skill_free[si, best_t:best_t+tot] -= demand[row_idx]
+                skill_used[si, best_t:best_t+tot] += demand[row_idx]
+        start[oi]=best_t; finish[oi]=best_t+tot; chosen_m[oi]=best_mi
     res={"feasible": bool(dm.ops_failed == 0) if hard_deadlines else True, "start":start, "finish":finish, "machine":chosen_m,
-         "M_busy":M_busy, "W_busy":W_busy, "S_used":S_used, "assigned":assigned_workers, "metrics":dm}
+         "M_busy":M_busy, "W_busy":W_busy, "S_used":skill_used, "assigned":assigned_workers, "metrics":dm}
     res["metrics"].total_ns = now_ns() - t0; return res
 
 def default_genome(mats: Dict, strategy="min_total_len"):
@@ -248,7 +359,7 @@ def evaluate_objective(mats: Dict, schedule: Dict, alpha: float = 0.03):
     score=float(tardiness + alpha * makespan); return {"tardiness":tardiness,"makespan":makespan,"score":score,"job_finish":job_finish}
 
 @dataclass
-class GASettings: pop:int=150; gens:int=40; elite:int=10; tour_k:int=4; swap_rate:float=0.30; flip_rate:float=0.20; alpha:float=0.03; seed:int=123; patience:int=8
+class GASettings: pop:int=150; gens:int=40; elite:int=10; tour_k:int=4; swap_rate:float=0.30; flip_rate:float=0.20; alpha:float=0.03; seed:int=123; patience:int=8; parallel_workers:int=1
 
 def tournament_select(scores, k, rng):
     n = len(scores)
@@ -287,32 +398,81 @@ def build_initial_population(mats, pop, rng):
     while len(pop_genomes)<pop: pop_genomes.append(random_genome(mats, rng)); return pop_genomes
 def run_ga(mats, settings: GASettings, hard_deadlines=False, progress_cb=None):
     rng=np.random.default_rng(settings.seed); pop_list=build_initial_population(mats, settings.pop, rng)
-    t0=time.perf_counter_ns(); scores=[]; dec_scheds=[]; evs=[]
-    for (oo,mc) in pop_list:
-        sc=decode_schedule(mats, oo.copy(), mc.copy(), hard_deadlines=hard_deadlines); ev=evaluate_objective(mats, sc, alpha=settings.alpha)
-        scores.append(ev["score"]); dec_scheds.append(sc); evs.append(ev)
-    t1=time.perf_counter_ns(); history={"best":[], "avg":[], "time_ns":[t1-t0]}
-    best_i=int(np.argmin(scores)); best={"score":float(scores[best_i]), "genome":pop_list[best_i], "sched":dec_scheds[best_i], "eval":evs[best_i]}; no_improve=0
+    decode_cache: Dict[Tuple[bytes, bytes], Tuple[float, Dict, Dict]] = {}
+
+    def genome_key(order: np.ndarray, machine_choice: np.ndarray) -> Tuple[bytes, bytes]:
+        return (order.tobytes(), machine_choice.tobytes())
+
+    def decode_and_score(order: np.ndarray, machine_choice: np.ndarray) -> Tuple[float, Dict, Dict]:
+        sched=decode_schedule(mats, order, machine_choice, hard_deadlines=hard_deadlines)
+        ev=evaluate_objective(mats, sched, alpha=settings.alpha)
+        return float(ev["score"]), sched, ev
+
+    def evaluate_population(pop_genomes: List[Tuple[np.ndarray, np.ndarray]]):
+        results: List[Tuple[float, Dict, Dict]] = [None] * len(pop_genomes)  # type: ignore
+        to_compute: List[Tuple[int, Tuple[bytes, bytes], np.ndarray, np.ndarray]] = []
+        for idx, (oo, mc) in enumerate(pop_genomes):
+            key=genome_key(oo, mc)
+            cached=decode_cache.get(key)
+            if cached is not None:
+                results[idx]=cached
+            else:
+                to_compute.append((idx, key, oo.copy(), mc.copy()))
+        worker_count=max(1, int(settings.parallel_workers))
+        if to_compute:
+            if worker_count > 1 and len(to_compute) > 1:
+                with ThreadPoolExecutor(max_workers=worker_count) as executor:
+                    future_map={executor.submit(decode_and_score, order, mc): (idx, key) for idx, key, order, mc in to_compute}
+                    for future in as_completed(future_map):
+                        idx, key = future_map[future]
+                        res=future.result()
+                        decode_cache[key]=res
+                        results[idx]=res
+            else:
+                for idx, key, order, mc in to_compute:
+                    res=decode_and_score(order, mc)
+                    decode_cache[key]=res
+                    results[idx]=res
+        return results
+
+    t0=time.perf_counter_ns()
+    initial_results=evaluate_population(pop_list)
+    first_pass_ns=time.perf_counter_ns()-t0
+    scores=[res[0] for res in initial_results]
+    dec_scheds=[res[1] for res in initial_results]
+    evs=[res[2] for res in initial_results]
+    history={"best":[], "avg":[], "time_ns":[first_pass_ns]}
+    best_i=int(np.argmin(scores)); best={"score":float(scores[best_i]), "genome":pop_list[best_i], "sched":dec_scheds[best_i], "eval":evs[best_i]}
+    no_improve=0
     for g in range(settings.gens):
         gen_start=time.perf_counter_ns(); eff_elite = max(0, min(int(settings.elite), len(scores)-1))
         elite_idx=np.argsort(scores)[:eff_elite]
         new_pop=[(pop_list[i][0].copy(), pop_list[i][1].copy()) for i in elite_idx]
         while len(new_pop)<settings.pop:
-            pa=pop_list[tournament_select(scores, settings.tour_k, rng)]; pb=pop_list[tournament_select(scores, settings.tour_k, rng)]
+            pa=pop_list[tournament_select(scores, settings.tour_k, rng)]
+            pb=pop_list[tournament_select(scores, settings.tour_k, rng)]
             child_order=ox_crossover(pa[0], pb[0], rng); child_mc=one_point_crossover(pa[1], pb[1], rng)
-            child_order, child_mc=mutate_genome(mats, child_order, child_mc, rng, settings.swap_rate, settings.flip_rate); new_pop.append((child_order, child_mc))
-        pop_list=new_pop; scores=[]; dec_scheds=[]; evs=[]
-        for (oo,mc) in pop_list:
-            sc=decode_schedule(mats, oo.copy(), mc.copy(), hard_deadlines=hard_deadlines); ev=evaluate_objective(mats, sc, alpha=settings.alpha)
-            scores.append(ev["score"]); dec_scheds.append(sc); evs.append(ev)
+            child_order, child_mc=mutate_genome(mats, child_order, child_mc, rng, settings.swap_rate, settings.flip_rate)
+            new_pop.append((child_order, child_mc))
+        pop_list=new_pop
+        population_results=evaluate_population(pop_list)
+        scores=[res[0] for res in population_results]
+        dec_scheds=[res[1] for res in population_results]
+        evs=[res[2] for res in population_results]
         gen_end=time.perf_counter_ns(); history["time_ns"].append(gen_end - gen_start)
         avg=float(np.mean(scores)); best_idx=int(np.argmin(scores)); best_score=float(scores[best_idx])
         history["avg"].append(avg); history["best"].append(best_score)
-        if best_score + 1e-9 < best["score"]: best={"score":best_score, "genome":pop_list[best_idx], "sched":dec_scheds[best_idx], "eval":evs[best_idx]}; no_improve=0
-        else: no_improve += 1
-        if progress_cb: progress_cb(g, best_score, avg)
-        if settings.patience and no_improve>=settings.patience: break
-    total_ns=sum(history["time_ns"]) + history["time_ns"][0]; stats={"total_ns": total_ns, "gens_done": len(history["best"])}
+        if best_score + 1e-9 < best["score"]:
+            best={"score":best_score, "genome":pop_list[best_idx], "sched":dec_scheds[best_idx], "eval":evs[best_idx]}
+            no_improve=0
+        else:
+            no_improve += 1
+        if progress_cb:
+            progress_cb(g, best_score, avg)
+        if settings.patience and no_improve>=settings.patience:
+            break
+    total_ns=sum(history["time_ns"]) + history["time_ns"][0]
+    stats={"total_ns": total_ns, "gens_done": len(history["best"])}
     return best, history, stats
 
 def cpsat_polish_machine_window(mats, base_sched, machine_index: int, window_start: int, window_len: int, time_limit_s: float = 3.0):
