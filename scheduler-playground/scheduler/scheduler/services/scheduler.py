@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 from datetime import datetime
+
 from typing import Dict, List, Optional
 import heapq
 
@@ -75,13 +78,25 @@ class SchedulerService:
         resource_manager: ResourceManager,
     ) -> tuple[List[Task], List[Idle], List[DroppedOperation]]:
         mode = get_scheduler_mode()
-        if mode == "topo":
-            return SchedulerService._schedule_operations_topological(
+        if mode == "naive":
+            return SchedulerService._schedule_operations_naive(
                 operations, resource_manager
             )
-        return SchedulerService._schedule_operations_naive(
+        return SchedulerService._schedule_operations_topological(
             operations, resource_manager
         )
+
+    @staticmethod
+    def _get_cached_operation_scheduler(
+        resource_manager: ResourceManager,
+    ) -> OperationScheduler:
+        cached = getattr(resource_manager, "_operation_scheduler_cache", None)
+        if cached is None or getattr(cached, "resource_manager", None) is not resource_manager:
+            cached = OperationScheduler(resource_manager)
+            setattr(resource_manager, "_operation_scheduler_cache", cached)
+        else:
+            cached.reset(resource_manager)
+        return cached
 
     @staticmethod
     def _schedule_operations_naive(
@@ -251,59 +266,77 @@ class SchedulerService:
         dropped_operations: List[DroppedOperation] = []
         all_idles: List[Idle] = []
 
-        operation_scheduler = OperationScheduler(resource_manager)
+        if not operations:
+            return tasks, all_idles, dropped_operations
+
+        operation_scheduler = SchedulerService._get_cached_operation_scheduler(
+            resource_manager
+        )
         operation_instance_counter: Dict[str, int] = {}
-        completion_times: Dict[OperationNode, Optional[datetime]] = {}
 
-        indegree: Dict[OperationNode, int] = {}
-        successors: Dict[OperationNode, List[OperationNode]] = {}
-        ready_times: Dict[OperationNode, Optional[datetime]] = {}
-        dropped_due_to_dependency: Dict[OperationNode, OperationNode] = {}
+        num_operations = len(operations)
+        index_by_identity = {id(op): idx for idx, op in enumerate(operations)}
 
-        # Build graph structures
-        for op in operations:
-            indegree[op] = len(op.dependencies)
-            successors.setdefault(op, [])
-        for op in operations:
-            for dep in op.dependencies:
-                successors.setdefault(dep, []).append(op)
+        indegree: List[int] = [0] * num_operations
+        successors: List[List[int]] = [[] for _ in range(num_operations)]
+        ready_times: List[Optional[datetime]] = [None] * num_operations
+        completion_times: List[Optional[datetime]] = [None] * num_operations
+        dependency_drop_cause: List[Optional[int]] = [None] * num_operations
 
-        heap: List[tuple[datetime, int, OperationNode]] = []
+        # Build graph metadata once
+        for idx, op in enumerate(operations):
+            deps = getattr(op, "dependencies", ())
+            indegree_value = 0
+            for dep in deps:
+                dep_idx = index_by_identity.get(id(dep))
+                if dep_idx is None:
+                    # Dependency is unknown – treat as an immediate drop trigger
+                    dependency_drop_cause[idx] = -1
+                    continue
+                successors[dep_idx].append(idx)
+                indegree_value += 1
+            indegree[idx] = indegree_value
+
+        heap: List[tuple[datetime, int, int]] = []
         counter = 0
-        for op in operations:
-            if indegree.get(op, 0) == 0:
-                ready_times[op] = None
-                key = (datetime.min, counter, op)
-                heapq.heappush(heap, key)
+        for idx, op in enumerate(operations):
+            if indegree[idx] == 0:
+                key_time = datetime.min
+                heapq.heappush(heap, (key_time, counter, idx))
                 counter += 1
 
-        processed = set()
+        processed = [False] * num_operations
 
         while heap:
-            ready_dt, _, op = heapq.heappop(heap)
-            if op in processed:
+            _, _, op_idx = heapq.heappop(heap)
+            if processed[op_idx]:
                 continue
-            processed.add(op)
+            processed[op_idx] = True
+
+            operation = operations[op_idx]
+            dependency_index = dependency_drop_cause[op_idx]
 
             with profile_section("scheduler.dependency_scan"):
-                # If any dependency was dropped, propagate the drop
-                if op in dropped_due_to_dependency:
-                    dependency = dropped_due_to_dependency[op]
+                if dependency_index is not None:
+                    dependent_operation_id = None
+                    if dependency_index >= 0:
+                        dependent_operation = operations[dependency_index]
+                        dependent_operation_id = dependent_operation.operation_id
                     dropped_operations.append(
                         DroppedOperation(
-                            manufacturing_order_id=op.manufacturing_order_id,
-                            operation_id=op.operation_id,
-                            operation_name=op.operation_name,
+                            manufacturing_order_id=operation.manufacturing_order_id,
+                            operation_id=operation.operation_id,
+                            operation_name=operation.operation_name,
                             reason=DropReason.DEPENDENCY_DROPPED,
-                            dependent_operation_id=dependency.operation_id,
+                            dependent_operation_id=dependent_operation_id,
                         )
                     )
-                    completion_times[op] = None  # type: ignore
+                    completion_times[op_idx] = None
                 else:
-                    earliest_start = ready_times.get(op)
+                    earliest_start = ready_times[op_idx]
                     operation_tasks, operation_idles, operation_dropped = (
                         operation_scheduler.schedule_operation(
-                            op,
+                            operation,
                             earliest_start=earliest_start,
                             operation_instance_counter=operation_instance_counter,
                         )
@@ -311,35 +344,39 @@ class SchedulerService:
 
                     if operation_dropped:
                         dropped_operations.append(operation_dropped)
-                        completion_times[op] = None  # type: ignore
+                        completion_times[op_idx] = None
+                        dependency_index = op_idx
                     elif operation_tasks:
                         tasks.extend(operation_tasks)
                         all_idles.extend(operation_idles)
-                        completion_times[op] = max(
+                        completion_times[op_idx] = max(
                             task.datetime_end for task in operation_tasks
                         )
                     else:
-                        completion_times[op] = None  # type: ignore
+                        completion_times[op_idx] = None
 
-                # Update successors
-                for successor in successors.get(op, []):
-                    indegree[successor] -= 1
-                    if completion_times.get(op) is None:
-                        dropped_due_to_dependency.setdefault(successor, op)
+                # Propagate completion/drop information to successors
+                completion_time = completion_times[op_idx]
+                for successor_idx in successors[op_idx]:
+                    indegree[successor_idx] -= 1
+                    if completion_time is None and dependency_index is not None:
+                        if dependency_drop_cause[successor_idx] is None:
+                            dependency_drop_cause[successor_idx] = dependency_index
                     else:
-                        successor_ready = ready_times.get(successor)
-                        new_ready = completion_times[op]
-                        if new_ready is not None:
-                            if successor_ready is None or new_ready > successor_ready:
-                                ready_times[successor] = new_ready
-                    if indegree[successor] == 0 and successor not in processed:
-                        ready_value = ready_times.get(successor)
-                        heap_key_dt = ready_value or datetime.min
-                        heapq.heappush(heap, (heap_key_dt, counter, successor))
+                        successor_ready = ready_times[successor_idx]
+                        if completion_time and (
+                            successor_ready is None or completion_time > successor_ready
+                        ):
+                            ready_times[successor_idx] = completion_time
+
+                    if indegree[successor_idx] == 0 and not processed[successor_idx]:
+                        ready_value = ready_times[successor_idx] or datetime.min
+                        heapq.heappush(heap, (ready_value, counter, successor_idx))
                         counter += 1
 
-        # Any operations not processed are part of a cycle or were never enqueued
-        remaining = [op for op in operations if op not in processed]
+        remaining = [
+            op for idx, op in enumerate(operations) if not processed[idx]
+        ]
         if remaining:
             for op in remaining:
                 dropped_operations.append(
