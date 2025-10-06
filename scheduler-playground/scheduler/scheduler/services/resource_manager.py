@@ -1,4 +1,4 @@
-from bisect import bisect_left, insort
+from bisect import bisect_left
 from collections import defaultdict
 from datetime import datetime, timedelta
 from typing import Optional, List, Tuple, Dict, Iterable
@@ -14,6 +14,8 @@ from scheduler.models import (
     Idle,
 )
 
+from scheduler.utils.interval_tree import IntervalTree
+
 
 class ResourceManager:
     def __init__(self, resources: list[Resource]):
@@ -23,8 +25,12 @@ class ResourceManager:
         self.resources = self._create_managed_resources(resources)
         self.resources_by_id = {resource.resource_id: resource for resource in self.resources}
 
-        # Track resource bookings (resource_id -> list of (start, end) tuples)
-        self._resource_bookings: Dict[str, List[Tuple[datetime, datetime]]] = {
+        # Track resource bookings using interval trees for O(log n) operations
+        self._resource_booking_trees: Dict[str, IntervalTree] = {
+            resource_id: IntervalTree() for resource_id in self.resources_by_id
+        }
+        # Maintain lightweight ordered views for diagnostics only (built lazily)
+        self._resource_booking_cache: Dict[str, List[Tuple[datetime, datetime]]] = {
             resource_id: [] for resource_id in self.resources_by_id
         }
         self._capable_resource_cache: Dict[
@@ -124,21 +130,27 @@ class ResourceManager:
     def _book_interval(
         self, resource_id: str, start_time: datetime, end_time: datetime
     ) -> None:
-        bookings = self._resource_bookings.setdefault(resource_id, [])
-        insort(bookings, (start_time, end_time))
+        tree = self._resource_booking_trees[resource_id]
+        tree.insert(start_time, end_time)
+        cache = self._resource_booking_cache[resource_id]
+        idx = bisect_left(cache, (start_time, end_time))
+        cache.insert(idx, (start_time, end_time))
 
     def _remove_interval(
         self, resource_id: str, start_time: datetime, end_time: datetime
     ) -> None:
-        bookings = self._resource_bookings.get(resource_id)
-        if not bookings:
+        tree = self._resource_booking_trees.get(resource_id)
+        if tree is None:
             return
-
-        idx = bisect_left(bookings, (start_time, end_time))
-        while idx < len(bookings) and bookings[idx][0] == start_time:
-            if bookings[idx][1] == end_time:
-                bookings.pop(idx)
-                return
+        tree.remove(start_time, end_time)
+        cache = self._resource_booking_cache.get(resource_id)
+        if not cache:
+            return
+        idx = bisect_left(cache, (start_time, end_time))
+        while idx < len(cache) and cache[idx][0] == start_time:
+            if cache[idx][1] == end_time:
+                cache.pop(idx)
+                break
             idx += 1
 
     @profile_function()
@@ -212,7 +224,7 @@ class ResourceManager:
 
     @profile_function()
     def find_overlapping_intervals(
-        self, intervals: List[Tuple[datetime, datetime]], start: datetime, end: datetime
+        self, resource_id: str, start: datetime, end: datetime
     ) -> bool:
         """
         Check if a time window (start, end) overlaps with any existing intervals using overlapping interval algorithm
@@ -225,15 +237,18 @@ class ResourceManager:
         Returns:
             True if there's an overlap, False if no overlap
         """
-        with profile_section("resource_manager.unsorted_bookings_scan"):
-            if not intervals:
-                return False
+        with profile_section("resource_manager.interval_tree_lookup"):
+            tree = self._resource_booking_trees.get(resource_id)
+            if tree is not None:
+                return tree.overlaps(start, end)
 
-            idx = bisect_left(intervals, (start, start))
-
-            if idx > 0 and intervals[idx - 1][1] > start:
+        # Backwards compatibility path (should not happen)
+        bookings = self._resource_booking_cache.get(resource_id)
+        if isinstance(bookings, list):
+            idx = bisect_left(bookings, (start, start))
+            if idx > 0 and bookings[idx - 1][1] > start:
                 return True
-            if idx < len(intervals) and intervals[idx][0] < end:
+            if idx < len(bookings) and bookings[idx][0] < end:
                 return True
         return False
 
@@ -296,8 +311,6 @@ class ResourceManager:
             return []
 
         available_slots = []
-        existing_bookings = self._resource_bookings.get(resource_id, [])
-
         # Check each availability window
         for availability in resource_availabilities:
             avail_start = availability["start_datetime"]
@@ -313,7 +326,11 @@ class ResourceManager:
 
             # Try to fit the duration in this window
             self._find_slots_in_availability_window(
-                slot_start, slot_end, duration, existing_bookings, available_slots
+                resource_id,
+                slot_start,
+                slot_end,
+                duration,
+                available_slots,
             )
 
         return available_slots
@@ -321,10 +338,10 @@ class ResourceManager:
     @profile_function()
     def _find_slots_in_availability_window(
         self,
+        resource_id: str,
         window_start: datetime,
         window_end: datetime,
         duration: timedelta,
-        existing_bookings: List[Tuple[datetime, datetime]],
         available_slots: List[Tuple[datetime, datetime]],
     ):
         """Find available slots within a single availability window"""
@@ -338,14 +355,16 @@ class ResourceManager:
 
             # Check if this slot overlaps with any existing booking
             if not self.find_overlapping_intervals(
-                existing_bookings, current_time, proposed_end
+                resource_id, current_time, proposed_end
             ):
                 available_slots.append((current_time, proposed_end))
                 current_time = proposed_end
             else:
                 # Find the next potential start time after the conflicting booking
                 next_start = current_time + timedelta(minutes=1)
-                for booking_start, booking_end in existing_bookings:
+                for booking_start, booking_end in self._resource_booking_cache.get(
+                    resource_id, []
+                ):
                     if booking_start <= current_time < booking_end:
                         next_start = booking_end
                         break
@@ -422,9 +441,8 @@ class ResourceManager:
             return False
 
         # Check if there are any conflicting bookings
-        existing_bookings = self._resource_bookings.get(resource_id, [])
         has_conflict = self.find_overlapping_intervals(
-            existing_bookings, start_time, end_time
+            resource_id, start_time, end_time
         )
 
         return not has_conflict
@@ -525,6 +543,7 @@ class ResourceManager:
         total_available_seconds = 0
         total_booked_seconds = 0
 
+        bookings = self._resource_booking_cache.get(resource_id, [])
         for availability in resource_availabilities:
             window_duration = (
                 availability["end_datetime"] - availability["start_datetime"]
@@ -532,7 +551,6 @@ class ResourceManager:
             total_available_seconds += window_duration
 
             # Calculate overlapping bookings with this availability window
-            bookings = self._resource_bookings.get(resource_id, [])
             for booking_start, booking_end in bookings:
                 overlap_start = max(availability["start_datetime"], booking_start)
                 overlap_end = min(availability["end_datetime"], booking_end)
@@ -644,7 +662,7 @@ class ResourceManager:
         Returns:
             List of (start_time, end_time) tuples representing bookings
         """
-        return self._resource_bookings.get(resource_id, []).copy()
+        return list(self._resource_booking_cache.get(resource_id, ()))
 
     @profile_function()
     def get_all_bookings(self) -> Dict[str, List[Tuple[datetime, datetime]]]:
@@ -655,8 +673,8 @@ class ResourceManager:
             Dictionary mapping resource_id to list of (start_time, end_time) tuples
         """
         return {
-            resource_id: bookings.copy()
-            for resource_id, bookings in self._resource_bookings.items()
+            resource_id: list(bookings)
+            for resource_id, bookings in self._resource_booking_cache.items()
         }
 
     @profile_function()
@@ -707,7 +725,7 @@ class ResourceManager:
 
             # Check if this time slot is free for the machine (no existing bookings)
             if not self.find_overlapping_intervals(
-                self._resource_bookings.get(machine_id, []),
+                machine_id,
                 machine_window_start,
                 machine_window_start + total_duration,  # Check if operation can fit
             ):
@@ -765,7 +783,7 @@ class ResourceManager:
             # We only need to check that the operation can start somewhere in this window
             # Return the full machine availability window for operator scheduling flexibility
             if not self.find_overlapping_intervals(
-                self._resource_bookings.get(machine_id, []),
+                machine_id,
                 machine_window_start,
                 machine_window_start + total_duration,  # Check if operation can fit
             ):
@@ -967,5 +985,6 @@ class ResourceManager:
                 )
                 for start, end, effort in template
             ]
-            self._resource_bookings[resource.resource_id].clear()
+            self._resource_booking_trees[resource.resource_id] = IntervalTree()
+            self._resource_booking_cache[resource.resource_id].clear()
             self._rebuild_resource_availability(resource)
