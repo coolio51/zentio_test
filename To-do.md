@@ -100,6 +100,11 @@ Suggested task
 3. Do the same for skill capacity (`C_S`), only copying the portions that actually mutate.
 4. Adjust decoder outputs (`M_busy`, `S_used`) to reflect the new storage without duplicating data.
 
+### Explore JIT acceleration for inner loops
+* Profile the decoder first to confirm hotspots, focusing on `worker_assign`’s nested loops and the candidate-machine feasibility scans.
+* Prototype Numba `@njit` versions of the tight loops using typed NumPy arrays to validate achievable speedups before committing to larger refactors or Cython equivalents.
+* Prioritise JITing the worker selection and machine feasibility paths, which are prime candidates for acceleration due to their repetitive numerical operations.
+
 Parallelise GA decoding
 decode_schedule calls inside the GA fitness loop are independent per individual. We could dispatch those evaluations across worker processes or threads, but we must check and, if needed, limit NumPy’s internal threading to avoid oversubscribing cores.
 
