@@ -100,6 +100,13 @@ Suggested task
 3. Do the same for skill capacity (`C_S`), only copying the portions that actually mutate.
 4. Adjust decoder outputs (`M_busy`, `S_used`) to reflect the new storage without duplicating data.
 
+Parallelise GA decoding
+decode_schedule calls inside the GA fitness loop are independent per individual. We could dispatch those evaluations across worker processes or threads, but we must check and, if needed, limit NumPy’s internal threading to avoid oversubscribing cores.
+
+Next steps
+* Prototype parallel decoding via `concurrent.futures` (ThreadPoolExecutor vs ProcessPoolExecutor), `joblib`, or `multiprocessing` to compare overheads.
+* Ensure deterministic behaviour by seeding the GA and NumPy RNG per worker/task and avoiding shared global RNG state.
+
 ## Skip redundant GA decodes
 Repeatedly decoding elites every generation wastes time once the genomes stabilise.
 * Issue: During GA evolution, the top-ranked individuals are copied forward unchanged, but the decoder still recomputes their schedules/evaluations on each generation, duplicating work.
