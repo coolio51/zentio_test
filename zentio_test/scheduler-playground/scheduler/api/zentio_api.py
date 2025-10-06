@@ -36,6 +36,8 @@ from scheduler.services.genetic_optimizer import (
     optimize_schedule,
 )
 from scheduler.services.resource_manager import ResourceManager
+from scheduler.common.profiling import profile_enabled
+from scheduler.common.profiling_middleware import ProfilingMiddleware
 from scheduler.services.scheduler import SchedulerService
 from utils.data_converters import convert_manufacturing_orders, convert_resources
 
@@ -77,6 +79,9 @@ class OptimizationResponse(BaseModel):
 # MARK: - FastAPI App
 
 app = FastAPI(title="Zentio Scheduler v3", version="3.0.0")
+
+if profile_enabled():
+    app.add_middleware(ProfilingMiddleware)
 
 from scheduler.services.run_processor import start_run_processor, stop_run_processor
 

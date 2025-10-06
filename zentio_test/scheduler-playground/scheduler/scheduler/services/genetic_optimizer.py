@@ -9,16 +9,18 @@ from typing import (
     TYPE_CHECKING,
     Callable,
     Awaitable,
+    cast,
 )
 from dataclasses import dataclass, field
 from copy import deepcopy
+import logging
 import random
 import math
 from enum import Enum
 from concurrent.futures import ProcessPoolExecutor, as_completed
 import multiprocessing as mp
-import os
 
+from scheduler.common.profiling import profile_function, profile_section
 from scheduler.models import (
     OperationNode,
     Schedule,
@@ -30,9 +32,34 @@ from scheduler.models import (
 from scheduler.services.resource_manager import ResourceManager
 from scheduler.services.scheduler import SchedulerService
 from scheduler.utils.resource_logger import ResourceLogger
+from scheduler.common.settings import (
+    use_resource_manager_clone,
+    debug_print_enabled,
+)
 
 if TYPE_CHECKING:
     from scheduler.utils.genetic_algorithm_logger import GeneticAlgorithmLogger
+
+
+_WORKER_TEMPLATE: Optional[ResourceManager] = None
+_WORKER_REUSABLE: Optional[ResourceManager] = None
+
+
+class ParallelEvaluationError(RuntimeError):
+    """Raised when parallel population evaluation fails and requires fallback."""
+
+    def __init__(self, message: str, errors: Optional[List[Tuple[int, Exception]]] = None):
+        super().__init__(message)
+        self.errors = errors or []
+
+
+def _init_worker(resource_manager: ResourceManager, reuse_clone: bool) -> None:
+    global _WORKER_TEMPLATE, _WORKER_REUSABLE
+    _WORKER_TEMPLATE = resource_manager
+    if reuse_clone:
+        _WORKER_REUSABLE = resource_manager.clone()
+    else:
+        _WORKER_REUSABLE = None
 
 
 class OptimizationObjective(Enum):
@@ -123,7 +150,23 @@ def _evaluate_chromosome_parallel(args: Tuple) -> Tuple[Schedule, float, int]:
     # Create a temporary optimizer instance for evaluation
     optimizer = GeneticSchedulerOptimizer(config)
     optimizer.operations = operations
-    optimizer.original_resource_manager = resource_manager
+    optimizer._reuse_resource_manager = use_resource_manager_clone()
+
+    base_resource_manager = resource_manager or _WORKER_TEMPLATE
+    if base_resource_manager is None:
+        raise RuntimeError("Resource manager template not initialized for worker")
+
+    if optimizer._reuse_resource_manager:
+        optimizer.original_resource_manager = base_resource_manager
+        if _WORKER_REUSABLE is not None:
+            _WORKER_REUSABLE.reset_bookings()
+            optimizer._local_resource_manager = _WORKER_REUSABLE
+        else:
+            optimizer._local_resource_manager = base_resource_manager.clone()
+    else:
+        optimizer.original_resource_manager = base_resource_manager
+        optimizer._local_resource_manager = None
+
     optimizer.manufacturing_orders = {
         mo.manufacturing_order_id: mo for mo in manufacturing_orders
     }
@@ -158,7 +201,11 @@ class GeneticSchedulerOptimizer:
             {}
         )  # operation_id -> machine_ids
         self.generation_history: List[Dict] = []  # Track evolution across generations
+        self._reuse_resource_manager = use_resource_manager_clone()
+        self._local_resource_manager: Optional[ResourceManager] = None
+        self._force_sequential: bool = False
 
+    @profile_function()
     def optimize(
         self,
         operations: List[OperationNode],
@@ -180,26 +227,33 @@ class GeneticSchedulerOptimizer:
         Returns:
             Tuple of (best_schedule, best_chromosome)
         """
-        self.operations = operations
-        self.original_resource_manager = resource_manager
-        # Convert manufacturing orders list to dictionary for fast lookup
-        self.manufacturing_orders = {
-            mo.manufacturing_order_id: mo for mo in manufacturing_orders
-        }
+        with profile_section("genetic.rm_init"):
+            self._reuse_resource_manager = use_resource_manager_clone()
+            self.operations = operations
+            if self._reuse_resource_manager:
+                self.original_resource_manager = resource_manager.clone()
+            else:
+                self.original_resource_manager = resource_manager
+            self._local_resource_manager = None
+            # Convert manufacturing orders list to dictionary for fast lookup
+            self.manufacturing_orders = {
+                mo.manufacturing_order_id: mo for mo in manufacturing_orders
+            }
         # No machine assignment decisions in DNA; scheduler will choose machines
 
         # Debug: Print initial resource availability table before optimization
-        try:
-            from rich.console import Console
+        if debug_print_enabled():
+            try:
+                from rich.console import Console
 
-            console = Console()
-            console.print("\n[bold cyan]Initial Resource Availability (GA)[/bold cyan]")
-            availability_table = ResourceLogger.initial_availability_table(
-                self.original_resource_manager.resources
-            )
-            console.print(availability_table)
-        except Exception as e:
-            print(f"Warning: failed to print initial resource availability: {e}")
+                console = Console()
+                console.print("\n[bold cyan]Initial Resource Availability (GA)[/bold cyan]")
+                availability_table = ResourceLogger.initial_availability_table(
+                    self.original_resource_manager.resources
+                )
+                console.print(availability_table)
+            except Exception as e:
+                print(f"Warning: failed to print initial resource availability: {e}")
 
         # Initialize population
         population = self._initialize_population()
@@ -229,111 +283,65 @@ class GeneticSchedulerOptimizer:
                     print(f"Warning: Progress callback failed: {e}")
 
             # Evaluate fitness for each chromosome in parallel
-            fitness_scores = []
-            schedules = []
-
             # Determine number of operators
             max_workers = self.config.parallel_operators or mp.cpu_count()
             max_workers = min(
                 max_workers, len(population)
             )  # Don't use more operators than chromosomes
+            if self._force_sequential:
+                max_workers = 1
+
+            evaluation_error: Optional[Exception] = None
 
             if max_workers > 1:
-
-                # Prepare arguments for parallel processing
-                eval_args = [
-                    (
-                        chromosome,
-                        self.operations,
-                        self.original_resource_manager,
-                        list(self.manufacturing_orders.values()),
-                        self.config,
-                        i,
+                try:
+                    schedules, fitness_scores = self._evaluate_population_parallel(
+                        population, max_workers
                     )
-                    for i, chromosome in enumerate(population)
-                ]
-
-                # Use ProcessPoolExecutor for CPU-bound tasks
-                with ProcessPoolExecutor(max_workers=max_workers) as executor:
-                    # Submit all chromosome evaluations
-                    future_to_index = {
-                        executor.submit(_evaluate_chromosome_parallel, args): args[
-                            5
-                        ]  # args[5] is the index
-                        for args in eval_args
-                    }
-
-                    # Create placeholders for results
-                    fitness_scores = [0.0] * len(population)
-                    schedules: List[Optional[Schedule]] = [None] * len(population)
-
-                    # Collect results as they complete
-                    for future in as_completed(future_to_index):
-                        try:
-                            schedule, fitness, idx = future.result()
-                            # Propagate computed fitness into the schedule for downstream display/logging
-                            try:
-                                schedule.fitness_score = fitness
-                            except Exception:
-                                pass
-                            fitness_scores[idx] = fitness
-                            schedules[idx] = schedule
-
-                            # Track best solution (lower is better)
-                            if fitness < best_fitness:
-                                old_fitness = best_fitness
-                                best_fitness = fitness
-                                best_chromosome = deepcopy(population[idx])
-                                best_schedule = schedule
-                                stagnation_counter = 0
-                                # Log new best found
-                                if logger:
-                                    logger.log_new_best_found(
-                                        generation + 1, fitness, old_fitness
-                                    )
-
-                        except Exception as e:
-
-                            # Set default poor values for failed evaluations
-                            idx = future_to_index[future]
-                            fitness_scores[idx] = (
-                                10000.0  # High penalty for failed evaluations
-                            )
-                            schedules[idx] = Schedule(
-                                fitness_score=0.0,
-                                tasks=[],
-                                number_of_operations_scheduled=0,
-                                number_of_resources_scheduled=0,
-                                makespan=timedelta(0),
-                            )
+                except ParallelEvaluationError as exc:
+                    evaluation_error = exc
+                    schedules, fitness_scores = self._evaluate_population_sequential(
+                        population
+                    )
+                    self._force_sequential = True
             else:
-                # Fallback to sequential evaluation
-                for i, chromosome in enumerate(population):
-                    schedule = self._evaluate_chromosome(chromosome)
-                    fitness = self._calculate_fitness(schedule, chromosome)
-                    # Propagate computed fitness into the schedule for downstream display/logging
-                    try:
-                        schedule.fitness_score = fitness
-                    except Exception:
-                        pass
-                    fitness_scores.append(fitness)
-                    schedules.append(schedule)
+                schedules, fitness_scores = self._evaluate_population_sequential(
+                    population
+                )
 
-                    # Track best solution (lower is better)
-                    if fitness < best_fitness:
-                        old_fitness = best_fitness
-                        best_fitness = fitness
-                        best_chromosome = deepcopy(chromosome)
-                        best_schedule = schedule
-                        stagnation_counter = 0
-                        # Log new best found
-                        if logger:
-                            logger.log_new_best_found(
-                                generation + 1, fitness, old_fitness
-                            )
+            if evaluation_error is not None:
+                warning_logger = logging.getLogger(
+                    "scheduler.services.genetic_optimizer"
+                )
+                warning_logger.warning(
+                    "Parallel evaluation failed (%s); switching to sequential execution",
+                    evaluation_error,
+                )
+                if logger and hasattr(logger, "logger"):
+                    logger.logger.warning(
+                        "Parallel evaluation failed (%s); running sequentially",
+                        evaluation_error,
+                    )
 
-                    else:
-                        stagnation_counter += 1
+            # Track best solution (lower is better)
+            improved_this_generation = False
+            for idx, fitness in enumerate(fitness_scores):
+                schedule = schedules[idx]
+
+                if fitness < best_fitness:
+                    old_fitness = best_fitness
+                    best_fitness = fitness
+                    best_chromosome = deepcopy(population[idx])
+                    best_schedule = schedule
+                    stagnation_counter = 0
+                    improved_this_generation = True
+                    if logger:
+                        logger.log_new_best_found(
+                            generation + 1, fitness, old_fitness
+                        )
+
+            if not improved_this_generation:
+                stagnation_counter += 1
 
             # Check stopping criteria (lower is better)
             if (
@@ -609,14 +617,25 @@ class GeneticSchedulerOptimizer:
 
         return splits
 
+    @profile_function()
     def _evaluate_chromosome(self, chromosome: SchedulingChromosome) -> Schedule:
         """Evaluate a chromosome by running the scheduler with its decisions."""
         # Create a fresh copy of the resource manager
         if self.original_resource_manager is None:
             raise RuntimeError("Original resource manager not initialized")
-        self.resource_manager = ResourceManager(
-            self.original_resource_manager.original_resources
-        )
+        with profile_section("genetic.rm_reset_bookings"):
+            if self._reuse_resource_manager:
+                if self._local_resource_manager is None:
+                    self._local_resource_manager = (
+                        self.original_resource_manager.clone()
+                    )
+                else:
+                    self._local_resource_manager.reset_bookings()
+                self.resource_manager = self._local_resource_manager
+            else:
+                self.resource_manager = ResourceManager(
+                    self.original_resource_manager.original_resources
+                )
 
         # Apply chromosome decisions to create modified operations
         modified_operations = self._apply_chromosome_to_operations(chromosome)
@@ -642,6 +661,94 @@ class GeneticSchedulerOptimizer:
 
         return corrected_schedule
 
+    def _evaluate_population_parallel(
+        self, population: List[SchedulingChromosome], max_workers: int
+    ) -> Tuple[List[Schedule], List[float]]:
+        """Evaluate a population using multiple workers."""
+        rm_arg = (
+            None if self._reuse_resource_manager else self.original_resource_manager
+        )
+
+        eval_args = [
+            (
+                chromosome,
+                self.operations,
+                rm_arg,
+                list(self.manufacturing_orders.values()),
+                self.config,
+                i,
+            )
+            for i, chromosome in enumerate(population)
+        ]
+
+        executor_kwargs = {"max_workers": max_workers}
+        if self._reuse_resource_manager:
+            executor_kwargs["initializer"] = _init_worker
+            executor_kwargs["initargs"] = (
+                self.original_resource_manager.clone(),
+                True,
+            )
+
+        schedules: List[Optional[Schedule]] = [None] * len(population)
+        fitness_scores: List[float] = [0.0] * len(population)
+        errors: List[Tuple[int, Exception]] = []
+
+        try:
+            with ProcessPoolExecutor(**executor_kwargs) as executor:
+                future_to_index = {
+                    executor.submit(_evaluate_chromosome_parallel, args): args[5]
+                    for args in eval_args
+                }
+
+                for future in as_completed(future_to_index):
+                    idx = future_to_index[future]
+                    try:
+                        schedule, fitness, _ = future.result()
+                        try:
+                            schedule.fitness_score = fitness
+                        except Exception:
+                            pass
+                        schedules[idx] = schedule
+                        fitness_scores[idx] = fitness
+                    except Exception as exc:
+                        errors.append((idx, exc))
+        except Exception as exc:
+            raise ParallelEvaluationError(str(exc)) from exc
+
+        if errors or any(schedule is None for schedule in schedules):
+            message: str
+            if errors:
+                parts = [f"idx {idx}: {exc}" for idx, exc in errors[:3]]
+                if len(errors) > 3:
+                    parts.append("...")
+                message = "; ".join(parts)
+            else:
+                message = "Parallel evaluation returned empty results"
+            raise ParallelEvaluationError(message, errors)
+
+        concrete_schedules = [cast(Schedule, schedule) for schedule in schedules]
+        return concrete_schedules, fitness_scores
+
+    def _evaluate_population_sequential(
+        self, population: List[SchedulingChromosome]
+    ) -> Tuple[List[Schedule], List[float]]:
+        """Evaluate a population sequentially in the current process."""
+        schedules: List[Schedule] = []
+        fitness_scores: List[float] = []
+
+        for chromosome in population:
+            schedule = self._evaluate_chromosome(chromosome)
+            fitness = self._calculate_fitness(schedule, chromosome)
+            try:
+                schedule.fitness_score = fitness
+            except Exception:
+                pass
+            schedules.append(schedule)
+            fitness_scores.append(fitness)
+
+        return schedules, fitness_scores
+
+    @profile_function()
     def _apply_chromosome_to_operations(
         self, chromosome: SchedulingChromosome
     ) -> List[OperationNode]:
@@ -684,6 +791,7 @@ class GeneticSchedulerOptimizer:
 
         return modified_operations
 
+    @profile_function()
     def _count_original_operations_scheduled(
         self, schedule: Schedule, chromosome: SchedulingChromosome
     ) -> int:
@@ -782,6 +890,7 @@ class GeneticSchedulerOptimizer:
 
         return mapped_dependencies
 
+    @profile_function()
     def _calculate_fitness(
         self, schedule: Schedule, chromosome: SchedulingChromosome
     ) -> float:

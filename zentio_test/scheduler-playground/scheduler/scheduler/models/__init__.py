@@ -71,7 +71,7 @@ class OperatorRequirement:
     skills_required: Optional[list[str]] = None  # Optional skills/capabilities required
 
 
-@dataclass
+@dataclass(eq=False)
 class OperationNode:
     operation_id: str
     operation_name: str

@@ -1,6 +1,9 @@
+from bisect import bisect_left, insort
+from collections import defaultdict
 from datetime import datetime, timedelta
-from typing import Optional, List, Tuple, Dict
+from typing import Optional, List, Tuple, Dict, Iterable
 
+from scheduler.common.profiling import profile_function, profile_section
 from scheduler.models import (
     Resource,
     TaskPhase,
@@ -18,10 +21,23 @@ class ResourceManager:
 
         # Create our own managed resources with dynamic availabilities
         self.resources = self._create_managed_resources(resources)
+        self.resources_by_id = {resource.resource_id: resource for resource in self.resources}
 
         # Track resource bookings (resource_id -> list of (start, end) tuples)
         self._resource_bookings: Dict[str, List[Tuple[datetime, datetime]]] = {
-            resource.resource_id: [] for resource in self.resources
+            resource_id: [] for resource_id in self.resources_by_id
+        }
+        self._availabilities_data: Dict[str, List[Dict[str, object]]] = {}
+        self._base_availability_templates: Dict[str, List[Tuple[datetime, datetime, float]]] = {
+            resource.resource_id: [
+                (
+                    availability.start_datetime,
+                    availability.end_datetime,
+                    availability.effort,
+                )
+                for availability in resource.availabilities
+            ]
+            for resource in self.resources
         }
         # Build data structures for all operations
         self._build_data_structures()
@@ -45,40 +61,48 @@ class ResourceManager:
 
         return managed_resources
 
+    @profile_function()
     def _build_data_structures(self):
         """Build data structures for complex availability operations"""
-        # Resources data
-        self._resources_data = {
-            resource.resource_id: {
-                "resource_id": resource.resource_id,
-                "resource_type": resource.resource_type.value,
-                "resource_name": resource.resource_name,
-            }
-            for resource in self.resources
+        by_type: Dict[str, List[str]] = defaultdict(list)
+        by_type_phase: Dict[Tuple[str, str], List[str]] = defaultdict(list)
+        by_type_phase_operation: Dict[Tuple[str, str, str], List[str]] = defaultdict(list)
+
+        for resource in self.resources:
+            by_type[resource.resource_type.value].append(resource.resource_id)
+            for capability in resource.resource_capabilities:
+                key_phase = (
+                    capability.resource_type.value,
+                    capability.phase.value,
+                )
+                by_type_phase[key_phase].append(resource.resource_id)
+                key_full = (
+                    capability.resource_type.value,
+                    capability.phase.value,
+                    capability.operation_id,
+                )
+                by_type_phase_operation[key_full].append(resource.resource_id)
+
+        self._capabilities_by_type = {
+            key: tuple(sorted(values)) for key, values in by_type.items()
+        }
+        self._capabilities_by_type_phase = {
+            key: tuple(sorted(values)) for key, values in by_type_phase.items()
+        }
+        self._capabilities_by_type_phase_operation = {
+            key: tuple(sorted(values)) for key, values in by_type_phase_operation.items()
         }
 
-        # Capabilities data
-        self._capabilities_data = []
         for resource in self.resources:
-            for capability in resource.resource_capabilities:
-                self._capabilities_data.append(
-                    {
-                        "resource_id": resource.resource_id,
-                        "resource_type": capability.resource_type.value,
-                        "phase": capability.phase.value,
-                        "operation_id": capability.operation_id,
-                    }
-                )
+            self._rebuild_resource_availability(resource)
 
-        # Availabilities data - this will be rebuilt when availabilities change
-        self._rebuild_availabilities_data()
-
-    def _rebuild_availabilities_data(self):
-        """Rebuild availabilities data from current resource states"""
-        self._availabilities_data = []
-        for resource in self.resources:
+    @profile_function()
+    def _rebuild_resource_availability(self, resource: Resource):
+        """Rebuild availability data for a single resource."""
+        with profile_section("resource_manager.rebuild_availabilities"):
+            entries = []
             for availability in resource.availabilities:
-                self._availabilities_data.append(
+                entries.append(
                     {
                         "resource_id": resource.resource_id,
                         "start_datetime": availability.start_datetime,
@@ -90,14 +114,34 @@ class ResourceManager:
                         / 3600,
                     }
                 )
+            self._availabilities_data[resource.resource_id] = entries
 
+    def _book_interval(
+        self, resource_id: str, start_time: datetime, end_time: datetime
+    ) -> None:
+        bookings = self._resource_bookings.setdefault(resource_id, [])
+        insort(bookings, (start_time, end_time))
+
+    def _remove_interval(
+        self, resource_id: str, start_time: datetime, end_time: datetime
+    ) -> None:
+        bookings = self._resource_bookings.get(resource_id)
+        if not bookings:
+            return
+
+        idx = bisect_left(bookings, (start_time, end_time))
+        while idx < len(bookings) and bookings[idx][0] == start_time:
+            if bookings[idx][1] == end_time:
+                bookings.pop(idx)
+                return
+            idx += 1
+
+    @profile_function()
     def _update_resource_availabilities(
         self, resource_id: str, start_time: datetime, end_time: datetime
     ):
         """Update the actual availability windows by removing/splitting booked time"""
-        resource = next(
-            (r for r in self.resources if r.resource_id == resource_id), None
-        )
+        resource = self.resources_by_id.get(resource_id)
         if not resource:
             return
 
@@ -154,13 +198,14 @@ class ResourceManager:
         # Update the resource's availabilities
         resource.availabilities = new_availabilities
 
-        # Rebuild the availability data structures
-        self._rebuild_availabilities_data()
+        # Rebuild the availability data structures for this resource
+        self._rebuild_resource_availability(resource)
 
     def get_current_availabilities(self) -> list[Resource]:
         """Get the current state of all resources with their dynamic availabilities"""
         return self.resources
 
+    @profile_function()
     def find_overlapping_intervals(
         self, intervals: List[Tuple[datetime, datetime]], start: datetime, end: datetime
     ) -> bool:
@@ -175,12 +220,19 @@ class ResourceManager:
         Returns:
             True if there's an overlap, False if no overlap
         """
-        for interval_start, interval_end in intervals:
-            # Overlapping condition: new_start < existing_end AND new_end > existing_start
-            if start < interval_end and end > interval_start:
+        with profile_section("resource_manager.unsorted_bookings_scan"):
+            if not intervals:
+                return False
+
+            idx = bisect_left(intervals, (start, start))
+
+            if idx > 0 and intervals[idx - 1][1] > start:
+                return True
+            if idx < len(intervals) and intervals[idx][0] < end:
                 return True
         return False
 
+    @profile_function()
     def find_capable_resources(
         self, resource_type: ResourceType, phase: TaskPhase, operation_id: str
     ) -> List[Resource]:
@@ -201,22 +253,19 @@ class ResourceManager:
             if "_split_" in operation_id
             else operation_id
         )
+        with profile_section("resource_manager.lookup_capabilities"):
+            candidates = self._capabilities_by_type_phase_operation.get(
+                (resource_type.value, phase.value, base_operation_id)
+            )
+            if not candidates:
+                candidates = self._capabilities_by_type_phase.get(
+                    (resource_type.value, phase.value),
+                    (),
+                )
 
-        capable_resource_ids = set()
-        for capability in self._capabilities_data:
-            if (
-                capability["resource_type"] == resource_type.value
-                and capability["phase"] == phase.value
-                and capability["operation_id"] == base_operation_id
-            ):
-                capable_resource_ids.add(capability["resource_id"])
+        return [self.resources_by_id[rid] for rid in candidates]
 
-        if len(capable_resource_ids) == 0:
-            return []
-
-        # Return actual Resource objects
-        return [r for r in self.resources if r.resource_id in capable_resource_ids]
-
+    @profile_function()
     def get_all_available_slots_in_window(
         self,
         resource_id: str,
@@ -229,11 +278,9 @@ class ResourceManager:
         potentially spanning multiple availability periods.
         """
         # Get resource availability windows within the search window
-        resource_availabilities = [
-            avail
-            for avail in self._availabilities_data
-            if avail["resource_id"] == resource_id
-        ]
+        resource_availabilities = list(
+            self._availabilities_data.get(resource_id, [])
+        )
 
         if not resource_availabilities:
             return []
@@ -264,6 +311,7 @@ class ResourceManager:
 
         return available_slots
 
+    @profile_function()
     def _find_slots_in_availability_window(
         self,
         window_start: datetime,
@@ -296,6 +344,7 @@ class ResourceManager:
                         break
                 current_time = next_start
 
+    @profile_function()
     def book_resources(
         self, resources: List[Resource], start_time: datetime, end_time: datetime
     ) -> None:
@@ -308,11 +357,12 @@ class ResourceManager:
             end_time: End time of the booking
         """
         for resource in resources:
-            self._resource_bookings[resource.resource_id].append((start_time, end_time))
+            self._book_interval(resource.resource_id, start_time, end_time)
             self._update_resource_availabilities(
                 resource.resource_id, start_time, end_time
             )
 
+    @profile_function()
     def unbook_resources(
         self, resources: List[Resource], start_time: datetime, end_time: datetime
     ) -> None:
@@ -325,13 +375,12 @@ class ResourceManager:
             end_time: End time of the booking to remove
         """
         for resource in resources:
-            booking_to_remove = (start_time, end_time)
-            if booking_to_remove in self._resource_bookings[resource.resource_id]:
-                self._resource_bookings[resource.resource_id].remove(booking_to_remove)
-                self._update_resource_availabilities(
-                    resource.resource_id, start_time, end_time
-                )
+            self._remove_interval(resource.resource_id, start_time, end_time)
+            self._update_resource_availabilities(
+                resource.resource_id, start_time, end_time
+            )
 
+    @profile_function()
     def is_resource_available(
         self, resource_id: str, start_time: datetime, end_time: datetime
     ) -> bool:
@@ -347,11 +396,7 @@ class ResourceManager:
             True if the resource is available, False otherwise
         """
         # Check if resource has availability windows covering the time period
-        resource_availabilities = [
-            avail
-            for avail in self._availabilities_data
-            if avail["resource_id"] == resource_id
-        ]
+        resource_availabilities = self._availabilities_data.get(resource_id, [])
 
         if not resource_availabilities:
             return False
@@ -377,6 +422,7 @@ class ResourceManager:
 
         return not has_conflict
 
+    @profile_function()
     def get_earliest_availability(self, resource_id: str) -> Optional[datetime]:
         """
         Get the earliest availability time for a resource.
@@ -387,17 +433,14 @@ class ResourceManager:
         Returns:
             Earliest availability datetime or None if no availability found
         """
-        resource_availabilities = [
-            avail
-            for avail in self._availabilities_data
-            if avail["resource_id"] == resource_id
-        ]
+        resource_availabilities = self._availabilities_data.get(resource_id, [])
 
         if not resource_availabilities:
             return None
 
         return min(avail["start_datetime"] for avail in resource_availabilities)
 
+    @profile_function()
     def find_available_resources(
         self,
         resource_type: ResourceType,
@@ -422,25 +465,23 @@ class ResourceManager:
             List of available resources sorted by utilization (least busy first)
         """
         # Step 1: Filter by capability
-        capable_resources = set()
-        for capability in self._capabilities_data:
-            if (
-                capability["resource_type"] == resource_type.value
-                and capability["phase"] == phase.value
-            ):
-                if operation_id is None or capability["operation_id"] == operation_id:
-                    capable_resources.add(capability["resource_id"])
+        if operation_id is None:
+            candidates = self._capabilities_by_type_phase.get(
+                (resource_type.value, phase.value),
+                (),
+            )
+        else:
+            candidates = self._capabilities_by_type_phase_operation.get(
+                (resource_type.value, phase.value, operation_id),
+                (),
+            )
 
-        if len(capable_resources) == 0:
+        if not candidates:
             return []
-
-        if not self._availabilities_data:
-            # No availability data, return all capable resources
-            return [r for r in self.resources if r.resource_id in capable_resources]
 
         # Step 2: Check availability
         available_resource_ids = []
-        for resource_id in capable_resources:
+        for resource_id in candidates:
             if self.is_resource_available(resource_id, required_start, required_end):
                 available_resource_ids.append(resource_id)
 
@@ -465,13 +506,10 @@ class ResourceManager:
 
         return available_resources
 
+    @profile_function()
     def _calculate_resource_utilization(self, resource_id: str) -> float:
         """Calculate current utilization rate of a resource (0.0 to 1.0)"""
-        resource_availabilities = [
-            avail
-            for avail in self._availabilities_data
-            if avail["resource_id"] == resource_id
-        ]
+        resource_availabilities = self._availabilities_data.get(resource_id, [])
 
         if not resource_availabilities:
             return 0.0
@@ -502,6 +540,7 @@ class ResourceManager:
 
         return total_booked_seconds / total_available_seconds
 
+    @profile_function()
     def get_best_available_resource(
         self,
         phase: TaskPhase,
@@ -529,27 +568,26 @@ class ResourceManager:
 
         return available_resources[0]  # Already sorted by utilization
 
+    @profile_function()
     def get_resource_with_requirement(
         self, phase: TaskPhase, resource_requirement: OperationRequirement
     ) -> Resource:
         """Get resource using capability matching"""
-        # Use capability matching
-        capable_resource_ids = set()
-        for capability in self._capabilities_data:
-            if (
-                capability["resource_type"] == resource_requirement.resource_type.value
-                and capability["phase"] == phase.value
-            ):
-                capable_resource_ids.add(capability["resource_id"])
+        candidates = self._capabilities_by_type_phase.get(
+            (resource_requirement.resource_type.value, phase.value),
+            (),
+        )
 
-        if len(capable_resource_ids) == 0:
+        if not candidates:
             raise ValueError(
                 f"No resource found for requirement: {resource_requirement}"
             )
 
         # Return the first capable resource
-        return next(r for r in self.resources if r.resource_id in capable_resource_ids)
+        first_id = candidates[0]
+        return self.resources_by_id[first_id]
 
+    @profile_function()
     def analyze_resource_conflicts(
         self,
         resource_requirements: List[Tuple[TaskPhase, OperationRequirement]],
@@ -586,6 +624,7 @@ class ResourceManager:
 
         return conflict_data
 
+    @profile_function()
     def get_resource_bookings(
         self, resource_id: str
     ) -> List[Tuple[datetime, datetime]]:
@@ -600,6 +639,7 @@ class ResourceManager:
         """
         return self._resource_bookings.get(resource_id, []).copy()
 
+    @profile_function()
     def get_all_bookings(self) -> Dict[str, List[Tuple[datetime, datetime]]]:
         """
         Get all resource bookings.
@@ -612,6 +652,7 @@ class ResourceManager:
             for resource_id, bookings in self._resource_bookings.items()
         }
 
+    @profile_function()
     def find_all_machine_availability_windows(
         self,
         machine_id: str,
@@ -638,11 +679,7 @@ class ResourceManager:
         effective_earliest_start = earliest_feasible_start or earliest_start
 
         # Get machine availability windows
-        machine_availabilities = [
-            avail
-            for avail in self._availabilities_data
-            if avail["resource_id"] == machine_id
-        ]
+        machine_availabilities = self._availabilities_data.get(machine_id, [])
 
         if not machine_availabilities:
             return []
@@ -671,6 +708,7 @@ class ResourceManager:
 
         return suitable_windows
 
+    @profile_function()
     def find_machine_availability_window(
         self,
         machine_id: str,
@@ -697,11 +735,7 @@ class ResourceManager:
         effective_earliest_start = earliest_feasible_start or earliest_start
 
         # Get machine availability windows
-        machine_availabilities = [
-            avail
-            for avail in self._availabilities_data
-            if avail["resource_id"] == machine_id
-        ]
+        machine_availabilities = self._availabilities_data.get(machine_id, [])
 
         if not machine_availabilities:
 
@@ -735,6 +769,7 @@ class ResourceManager:
 
         return None
 
+    @profile_function()
     def find_available_operators_for_machine(
         self,
         machine: Resource,
@@ -760,23 +795,14 @@ class ResourceManager:
 
         for operator_req in operator_requirements:
             # Step 1: Find operators capable of this PHASE and OPERATION (strict)
-            strict_capable_operators = []
-            for capability in self._capabilities_data:
-                if (
-                    capability["resource_type"] == ResourceType.OPERATOR.value
-                    and capability["phase"] == operator_req.phase.value
-                    and capability["operation_id"] == operation_id
-                ):
-                    operator = next(
-                        (
-                            r
-                            for r in self.resources
-                            if r.resource_id == capability["resource_id"]
-                        ),
-                        None,
-                    )
-                    if operator:
-                        strict_capable_operators.append(operator)
+            strict_ids = self._capabilities_by_type_phase_operation.get(
+                (ResourceType.OPERATOR.value, operator_req.phase.value, operation_id),
+                (),
+            )
+            strict_id_set = set(strict_ids)
+            strict_capable_operators = [
+                self.resources_by_id[rid] for rid in strict_ids
+            ]
 
             # Step 2: Check availability among strict capable operators
             available_operators = []
@@ -788,27 +814,16 @@ class ResourceManager:
 
             # Step 3: If not enough, FALLBACK to phase-only capability (operators with this phase for any operation)
             if len(available_operators) < operator_req.operator_count:
-                phase_only_capable_operators = []
-                strict_ids = {w.resource_id for w in strict_capable_operators}
-                for capability in self._capabilities_data:
-                    if (
-                        capability["resource_type"] == ResourceType.OPERATOR.value
-                        and capability["phase"] == operator_req.phase.value
-                    ):
-                        operator = next(
-                            (
-                                r
-                                for r in self.resources
-                                if r.resource_id == capability["resource_id"]
-                            ),
-                            None,
-                        )
-                        if operator and operator.resource_id not in strict_ids:
-                            phase_only_capable_operators.append(operator)
+                phase_ids = self._capabilities_by_type_phase.get(
+                    (ResourceType.OPERATOR.value, operator_req.phase.value),
+                    (),
+                )
 
-                # Add available phase-only operators until we meet the requirement
-                for operator in phase_only_capable_operators:
-                    if self.is_resource_available(
+                for rid in phase_ids:
+                    if rid in strict_id_set:
+                        continue
+                    operator = self.resources_by_id.get(rid)
+                    if operator and self.is_resource_available(
                         operator.resource_id, start_time, end_time
                     ):
                         available_operators.append(operator)
@@ -833,6 +848,7 @@ class ResourceManager:
 
         return assigned_operators
 
+    @profile_function()
     def book_machine_and_operators(
         self,
         machine: Resource,
@@ -850,20 +866,17 @@ class ResourceManager:
             end_time: End time of the booking
         """
         # Book the machine
-        if machine.resource_id not in self._resource_bookings:
-            self._resource_bookings[machine.resource_id] = []
-        self._resource_bookings[machine.resource_id].append((start_time, end_time))
+        self._book_interval(machine.resource_id, start_time, end_time)
         self._update_resource_availabilities(machine.resource_id, start_time, end_time)
 
         # Book all operators
         for operator in operators:
-            if operator.resource_id not in self._resource_bookings:
-                self._resource_bookings[operator.resource_id] = []
-            self._resource_bookings[operator.resource_id].append((start_time, end_time))
+            self._book_interval(operator.resource_id, start_time, end_time)
             self._update_resource_availabilities(
                 operator.resource_id, start_time, end_time
             )
 
+    @profile_function()
     def book_machine_idle(
         self,
         machine: Resource,
@@ -878,7 +891,74 @@ class ResourceManager:
             start_time: Start time of the idle period
             end_time: End time of the idle period
         """
-        if machine.resource_id not in self._resource_bookings:
-            self._resource_bookings[machine.resource_id] = []
-        self._resource_bookings[machine.resource_id].append((start_time, end_time))
+        self._book_interval(machine.resource_id, start_time, end_time)
         self._update_resource_availabilities(machine.resource_id, start_time, end_time)
+
+    def free_intervals(
+        self,
+        resource_id: str,
+        window_start: datetime,
+        window_end: datetime,
+    ) -> Iterable[Tuple[datetime, datetime]]:
+        """Yield free intervals for a resource within the specified window."""
+        availabilities = self._availabilities_data.get(resource_id, [])
+        for availability in availabilities:
+            start = max(availability["start_datetime"], window_start)
+            end = min(availability["end_datetime"], window_end)
+            if end > start:
+                yield (start, end)
+
+    def earliest_common_slot(
+        self,
+        resource_ids: List[str],
+        start_time: datetime,
+        duration: timedelta,
+        horizon: datetime,
+    ) -> Optional[Tuple[datetime, datetime]]:
+        """Find the earliest slot shared by all resources within the horizon."""
+        interval_iters: Dict[str, Iterable[Tuple[datetime, datetime]]] = {}
+        current_intervals: Dict[str, Tuple[datetime, datetime]] = {}
+
+        for resource_id in resource_ids:
+            iterator = self.free_intervals(resource_id, start_time, horizon)
+            interval_iters[resource_id] = iterator
+            try:
+                current_intervals[resource_id] = next(iterator)
+            except StopIteration:
+                return None
+
+        while True:
+            latest_start = max(interval[0] for interval in current_intervals.values())
+            earliest_end = min(interval[1] for interval in current_intervals.values())
+
+            if earliest_end - latest_start >= duration:
+                return latest_start, latest_start + duration
+
+            resource_to_advance = min(
+                current_intervals,
+                key=lambda rid: current_intervals[rid][1],
+            )
+            iterator = interval_iters[resource_to_advance]
+            try:
+                current_intervals[resource_to_advance] = next(iterator)
+            except StopIteration:
+                return None
+
+    def clone(self) -> "ResourceManager":
+        """Create a fresh ResourceManager copy for reuse."""
+        return ResourceManager(self.original_resources)
+
+    def reset_bookings(self) -> None:
+        """Reset bookings and restore base availability state."""
+        for resource in self.resources:
+            template = self._base_availability_templates.get(resource.resource_id, [])
+            resource.availabilities = [
+                ResourceAvailability(
+                    start_datetime=start,
+                    end_datetime=end,
+                    effort=effort,
+                )
+                for start, end, effort in template
+            ]
+            self._resource_bookings[resource.resource_id].clear()
+            self._rebuild_resource_availability(resource)

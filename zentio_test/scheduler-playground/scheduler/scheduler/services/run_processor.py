@@ -17,9 +17,11 @@ import httpx
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 
+from scheduler.common.profiling import profile_function, profile_section
 from scheduler.services.genetic_optimizer import GeneticSchedulerOptimizer
 from scheduler.services.resource_manager import ResourceManager
 from scheduler.models import ManufacturingOrder, Resource
+from scheduler.common.settings import debug_print_enabled
 from utils.data_converters import convert_manufacturing_orders, convert_resources
 
 logger = logging.getLogger(__name__)
@@ -34,6 +36,7 @@ class RunProcessor:
         self.poll_interval = 30  # Poll every 30 seconds
         self.running = False
 
+    @profile_function()
     async def start(self):
         """Start the background run processor."""
         self.running = True
@@ -52,15 +55,17 @@ class RunProcessor:
         self.running = False
         logger.info("🛑 Stopping background run processor...")
 
+    @profile_function()
     async def process_pending_runs(self):
         """Poll for and process pending runs."""
         try:
             async with httpx.AsyncClient() as client:
                 # Get pending runs from all organizations
-                response = await client.get(
-                    f"{self.scheduler_api_url}/pending-runs",
-                    timeout=30.0,
-                )
+                with profile_section("run_processor.fetch_pending_runs"):
+                    response = await client.get(
+                        f"{self.scheduler_api_url}/pending-runs",
+                        timeout=30.0,
+                    )
 
                 if response.status_code == 200:
                     runs = response.json()
@@ -70,14 +75,16 @@ class RunProcessor:
                             f"📋 Found {len(runs)} pending runs across all organizations"
                         )
 
-                        for run in runs:
-                            await self.process_run(run)
+                        with profile_section("run_processor.process_runs"):
+                            for run in runs:
+                                await self.process_run(run)
 
         except httpx.HTTPError as e:
             logger.warning(f"Failed to fetch pending runs: {e}")
         except Exception as e:
             logger.error(f"Error processing pending runs: {e}")
 
+    @profile_function()
     async def process_run(self, run: Dict):
         """Process a single genetic optimization run."""
         run_id = run.get("id")
@@ -174,6 +181,8 @@ class RunProcessor:
         self, resources: List, start_date: str, end_date: str
     ):
         """Print detailed resource availability tables for debugging."""
+        if not debug_print_enabled():
+            return
         try:
             from datetime import datetime, timedelta
             from rich.console import Console

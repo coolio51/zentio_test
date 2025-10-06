@@ -431,9 +431,31 @@ with tab3:
         Ops=mats["meta"]["Ops"]; Machines=mats["meta"]["Machines"]; best_sched=best["sched"]
         df_best=pd.DataFrame({"Op":Ops,"Machine":[Machines[m] if m>=0 else "" for m in best_sched["machine"]],"Start":best_sched["start"],"Finish":best_sched["finish"]}).sort_values(by=["Start"])
         st.dataframe(df_best.head(50))
-        best_oo,best_mc=best["genome"]; genome_json={"op_order":best_oo.astype(int).tolist(),"machine_choice":best_mc.astype(int).tolist(),"alpha":settings.alpha}
-        st.download_button("Download best genome (JSON)", data=json.dumps(genome_json).encode("utf-8"), file_name="best_genome.json", mime="application/json")
-        st.download_button("Download best schedule (CSV)", data=df_best.to_csv(index=False).encode("utf-8"), file_name="best_schedule.csv", mime="text/csv")
+        best_oo, best_mc = best["genome"]
+        genome_json = {
+            "op_order": best_oo.astype(int).tolist(),
+            "machine_choice": best_mc.astype(int).tolist(),
+            "alpha": settings.alpha,
+        }
+        genome_bytes = json.dumps(genome_json).encode("utf-8")
+        csv_bytes = df_best.to_csv(index=False).encode("utf-8")
+        st.session_state["ga_best_genome_json"] = genome_bytes
+        st.session_state["ga_best_sched_csv"] = csv_bytes
+
+    if st.session_state.get("ga_best_genome_json"):
+        st.download_button(
+            "Download best genome (JSON)",
+            data=st.session_state.get("ga_best_genome_json"),
+            file_name="best_genome.json",
+            mime="application/json",
+        )
+    if st.session_state.get("ga_best_sched_csv"):
+        st.download_button(
+            "Download best schedule (CSV)",
+            data=st.session_state.get("ga_best_sched_csv"),
+            file_name="best_schedule.csv",
+            mime="text/csv",
+        )
 
 with tab4:
     st.caption("CP-SAT polishing on a single machine inside a time window (workers remain greedy).")

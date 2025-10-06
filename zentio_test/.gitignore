@@ -1,0 +1,53 @@
+# Profiling output directories
+.profile/
+scheduler/.profile/
+**/.profile/
+# Profiling artifacts
+.profile/
+**/.profile/
+*.prof
+scheduler-playground/scheduler/.profile/
+*.csv
+*.json
+*.jsonl
+
+# artifacts
+scheduler-playground/scheduler/.profile/
+
+
+# ---- Python ----
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+dist/
+build/
+
+# ---- Virtual env / tools ----
+.venv/
+.env
+.uv-cache/
+uv.lock
+
+# ---- Project artifacts ----
+scheduler-playground/scheduler/.profile/
+scheduler-playground/scheduler/.uv-cache/
+*.csv
+*.json
+*.jsonl
+*.parquet
+*.pkl
+*.npy
+
+# ---- Editors / OS ----
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# ---- Logs ----
+*.log
+*.out
+*.err

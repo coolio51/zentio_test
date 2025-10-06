@@ -1,5 +1,6 @@
 from datetime import datetime
 from typing import Dict, List, Optional
+import heapq
 
 from scheduler.models import (
     Schedule,
@@ -13,6 +14,8 @@ from scheduler.models import (
 
 from .resource_manager import ResourceManager
 from .operation_scheduler import OperationScheduler
+from scheduler.common.profiling import profile_function, profile_section
+from scheduler.common.settings import get_scheduler_mode
 from rich.console import Console
 from scheduler.utils.resource_logger import ResourceLogger
 
@@ -21,6 +24,7 @@ class SchedulerService:
     console = Console()
 
     @staticmethod
+    @profile_function()
     def schedule(
         operations: list[OperationNode],
         resource_manager: ResourceManager,
@@ -64,13 +68,26 @@ class SchedulerService:
         )
 
     @staticmethod
+    @profile_function()
     def _schedule_operations(
         operations: list[OperationNode],
         resource_manager: ResourceManager,
     ) -> tuple[List[Task], List[Idle], List[DroppedOperation]]:
-        """
-        Schedule all operations, respecting dependencies.
-        """
+        mode = get_scheduler_mode()
+        if mode == "topo":
+            return SchedulerService._schedule_operations_topological(
+                operations, resource_manager
+            )
+        return SchedulerService._schedule_operations_naive(
+            operations, resource_manager
+        )
+
+    @staticmethod
+    def _schedule_operations_naive(
+        operations: list[OperationNode],
+        resource_manager: ResourceManager,
+    ) -> tuple[List[Task], List[Idle], List[DroppedOperation]]:
+        """Naive O(n^2) scheduling loop retained for backward compatibility."""
         tasks = []
         dropped_operations = []
         all_idles = []
@@ -95,89 +112,90 @@ class SchedulerService:
         while len(scheduled_operations) + len(dropped_operation_ids) < len(operations):
             progress_made = False
 
-            for operation in operations:
-                operation_instance_key = id(operation)
-                if (
-                    operation_instance_key in scheduled_operations
-                    or operation_instance_key in dropped_operation_ids
-                ):
-                    continue
-
-                # Check if all dependencies are scheduled (not dropped)
-                dependencies_satisfied = True
-                max_dependency_end_time = None
-                dropped_due_to_dependency = False
-
-                for dependency in operation.dependencies:
-                    dependency_instance_key = id(dependency)
-                    if dependency_instance_key in dropped_operation_ids:
-                        # This operation must be dropped because its dependency was dropped
-                        if (
-                            operation_instance_key not in dropped_operation_ids
-                        ):  # Prevent duplicate drops
-                            # Removed verbose logging - use summary at the end instead
-                            dropped_operations.append(
-                                DroppedOperation(
-                                    manufacturing_order_id=operation.manufacturing_order_id,
-                                    operation_id=operation.operation_id,
-                                    operation_name=operation.operation_name,
-                                    reason=DropReason.DEPENDENCY_DROPPED,
-                                    dependent_operation_id=dependency.operation_id,
-                                )
-                            )
-                            dropped_operation_ids.add(operation_instance_key)
-                        dropped_due_to_dependency = True
-                        progress_made = True
-                        break
-                    elif dependency_instance_key not in scheduled_operations:
-                        dependencies_satisfied = False
-                        break
-
-                    # Find the maximum end time among dependencies
-                    # Use a unique key that combines operation_id and instance for completion times
-                    dep_completion_key = f"{dependency.operation_id}_{id(dependency)}"
-                    dep_end_time = operation_completion_times[dep_completion_key]
+            with profile_section("scheduler.dependency_scan"):
+                for operation in operations:
+                    operation_instance_key = id(operation)
                     if (
-                        max_dependency_end_time is None
-                        or dep_end_time > max_dependency_end_time
+                        operation_instance_key in scheduled_operations
+                        or operation_instance_key in dropped_operation_ids
                     ):
-                        max_dependency_end_time = dep_end_time
+                        continue
 
-                if dropped_due_to_dependency:
-                    continue
+                    # Check if all dependencies are scheduled (not dropped)
+                    dependencies_satisfied = True
+                    max_dependency_end_time = None
+                    dropped_due_to_dependency = False
 
-                if dependencies_satisfied:
+                    for dependency in operation.dependencies:
+                        dependency_instance_key = id(dependency)
+                        if dependency_instance_key in dropped_operation_ids:
+                            # This operation must be dropped because its dependency was dropped
+                            if (
+                                operation_instance_key not in dropped_operation_ids
+                            ):  # Prevent duplicate drops
+                                # Removed verbose logging - use summary at the end instead
+                                dropped_operations.append(
+                                    DroppedOperation(
+                                        manufacturing_order_id=operation.manufacturing_order_id,
+                                        operation_id=operation.operation_id,
+                                        operation_name=operation.operation_name,
+                                        reason=DropReason.DEPENDENCY_DROPPED,
+                                        dependent_operation_id=dependency.operation_id,
+                                    )
+                                )
+                                dropped_operation_ids.add(operation_instance_key)
+                            dropped_due_to_dependency = True
+                            progress_made = True
+                            break
+                        elif dependency_instance_key not in scheduled_operations:
+                            dependencies_satisfied = False
+                            break
 
-                    # Try to schedule this operation
-                    operation_tasks, operation_idles, operation_dropped = (
-                        operation_scheduler.schedule_operation(
-                            operation,
-                            earliest_start=max_dependency_end_time,
-                            operation_instance_counter=operation_instance_counter,
-                        )
-                    )
-
-                    if operation_dropped:
-                        # Operation was dropped, add to dropped list
+                        # Find the maximum end time among dependencies
+                        # Use a unique key that combines operation_id and instance for completion times
+                        dep_completion_key = f"{dependency.operation_id}_{id(dependency)}"
+                        dep_end_time = operation_completion_times[dep_completion_key]
                         if (
-                            operation_instance_key not in dropped_operation_ids
-                        ):  # Prevent duplicate drops
-                            # Removed verbose logging - use summary at the end instead
-                            dropped_operations.append(operation_dropped)
-                            dropped_operation_ids.add(operation_instance_key)
-                        progress_made = True
-                    elif operation_tasks:
-                        # Operation was successfully scheduled
+                            max_dependency_end_time is None
+                            or dep_end_time > max_dependency_end_time
+                        ):
+                            max_dependency_end_time = dep_end_time
 
-                        tasks.extend(operation_tasks)
-                        all_idles.extend(operation_idles)
-                        # Record the completion time of this operation instance
-                        completion_key = f"{operation.operation_id}_{id(operation)}"
-                        operation_completion_times[completion_key] = max(
-                            task.datetime_end for task in operation_tasks
+                    if dropped_due_to_dependency:
+                        continue
+
+                    if dependencies_satisfied:
+
+                        # Try to schedule this operation
+                        operation_tasks, operation_idles, operation_dropped = (
+                            operation_scheduler.schedule_operation(
+                                operation,
+                                earliest_start=max_dependency_end_time,
+                                operation_instance_counter=operation_instance_counter,
+                            )
                         )
-                        scheduled_operations.add(operation_instance_key)
-                        progress_made = True
+
+                        if operation_dropped:
+                            # Operation was dropped, add to dropped list
+                            if (
+                                operation_instance_key not in dropped_operation_ids
+                            ):  # Prevent duplicate drops
+                                # Removed verbose logging - use summary at the end instead
+                                dropped_operations.append(operation_dropped)
+                                dropped_operation_ids.add(operation_instance_key)
+                            progress_made = True
+                        elif operation_tasks:
+                            # Operation was successfully scheduled
+
+                            tasks.extend(operation_tasks)
+                            all_idles.extend(operation_idles)
+                            # Record the completion time of this operation instance
+                            completion_key = f"{operation.operation_id}_{id(operation)}"
+                            operation_completion_times[completion_key] = max(
+                                task.datetime_end for task in operation_tasks
+                            )
+                            scheduled_operations.add(operation_instance_key)
+                            progress_made = True
 
             if not progress_made:
                 # This should not happen if the dependency graph is valid
@@ -206,5 +224,117 @@ class SchedulerService:
                         )
                         dropped_operation_ids.add(id(op))
                 break
+
+        return tasks, all_idles, dropped_operations
+
+    @staticmethod
+    def _schedule_operations_topological(
+        operations: list[OperationNode],
+        resource_manager: ResourceManager,
+    ) -> tuple[List[Task], List[Idle], List[DroppedOperation]]:
+        """Topological scheduling using a ready queue (Kahn algorithm)."""
+        tasks: List[Task] = []
+        dropped_operations: List[DroppedOperation] = []
+        all_idles: List[Idle] = []
+
+        operation_scheduler = OperationScheduler(resource_manager)
+        operation_instance_counter: Dict[str, int] = {}
+        completion_times: Dict[OperationNode, Optional[datetime]] = {}
+
+        indegree: Dict[OperationNode, int] = {}
+        successors: Dict[OperationNode, List[OperationNode]] = {}
+        ready_times: Dict[OperationNode, Optional[datetime]] = {}
+        dropped_due_to_dependency: Dict[OperationNode, OperationNode] = {}
+
+        # Build graph structures
+        for op in operations:
+            indegree[op] = len(op.dependencies)
+            successors.setdefault(op, [])
+        for op in operations:
+            for dep in op.dependencies:
+                successors.setdefault(dep, []).append(op)
+
+        heap: List[tuple[datetime, int, OperationNode]] = []
+        counter = 0
+        for op in operations:
+            if indegree.get(op, 0) == 0:
+                ready_times[op] = None
+                key = (datetime.min, counter, op)
+                heapq.heappush(heap, key)
+                counter += 1
+
+        processed = set()
+
+        while heap:
+            ready_dt, _, op = heapq.heappop(heap)
+            if op in processed:
+                continue
+            processed.add(op)
+
+            with profile_section("scheduler.dependency_scan"):
+                # If any dependency was dropped, propagate the drop
+                if op in dropped_due_to_dependency:
+                    dependency = dropped_due_to_dependency[op]
+                    dropped_operations.append(
+                        DroppedOperation(
+                            manufacturing_order_id=op.manufacturing_order_id,
+                            operation_id=op.operation_id,
+                            operation_name=op.operation_name,
+                            reason=DropReason.DEPENDENCY_DROPPED,
+                            dependent_operation_id=dependency.operation_id,
+                        )
+                    )
+                    completion_times[op] = None  # type: ignore
+                else:
+                    earliest_start = ready_times.get(op)
+                    operation_tasks, operation_idles, operation_dropped = (
+                        operation_scheduler.schedule_operation(
+                            op,
+                            earliest_start=earliest_start,
+                            operation_instance_counter=operation_instance_counter,
+                        )
+                    )
+
+                    if operation_dropped:
+                        dropped_operations.append(operation_dropped)
+                        completion_times[op] = None  # type: ignore
+                    elif operation_tasks:
+                        tasks.extend(operation_tasks)
+                        all_idles.extend(operation_idles)
+                        completion_times[op] = max(
+                            task.datetime_end for task in operation_tasks
+                        )
+                    else:
+                        completion_times[op] = None  # type: ignore
+
+                # Update successors
+                for successor in successors.get(op, []):
+                    indegree[successor] -= 1
+                    if completion_times.get(op) is None:
+                        dropped_due_to_dependency.setdefault(successor, op)
+                    else:
+                        successor_ready = ready_times.get(successor)
+                        new_ready = completion_times[op]
+                        if new_ready is not None:
+                            if successor_ready is None or new_ready > successor_ready:
+                                ready_times[successor] = new_ready
+                    if indegree[successor] == 0 and successor not in processed:
+                        ready_value = ready_times.get(successor)
+                        heap_key_dt = ready_value or datetime.min
+                        heapq.heappush(heap, (heap_key_dt, counter, successor))
+                        counter += 1
+
+        # Any operations not processed are part of a cycle or were never enqueued
+        remaining = [op for op in operations if op not in processed]
+        if remaining:
+            for op in remaining:
+                dropped_operations.append(
+                    DroppedOperation(
+                        manufacturing_order_id=op.manufacturing_order_id,
+                        operation_id=op.operation_id,
+                        operation_name=op.operation_name,
+                        reason=DropReason.CIRCULAR_DEPENDENCY,
+                    )
+                )
 
         return tasks, all_idles, dropped_operations

@@ -13,6 +13,8 @@ from scheduler.models import (
     Idle,
     OperatorRequirement,
 )
+from scheduler.common.profiling import profile_function, profile_section
+from scheduler.common.settings import get_slot_search_mode
 from scheduler.services.resource_manager import ResourceManager
 
 
@@ -20,6 +22,7 @@ class OperationScheduler:
     def __init__(self, resource_manager: ResourceManager):
         self.resource_manager = resource_manager
 
+    @profile_function()
     def _find_earliest_operator_availability_in_machine_window(
         self,
         machine: Resource,
@@ -39,6 +42,17 @@ class OperationScheduler:
         Returns:
             Earliest datetime when operators are available within machine window, or None if no availability
         """
+        if get_slot_search_mode() == "merge":
+            with profile_section("op_scheduler.interval_merge"):
+                merged_start = self._find_operator_start_merge(
+                    machine,
+                    machine_window_start,
+                    machine_window_end,
+                    operation,
+                )
+            if merged_start is not None:
+                return merged_start
+
         # Get all operator requirements for this operation
         all_operator_requirements = []
         for phase, requirements in operation.operator_requirements.items():
@@ -68,21 +82,205 @@ class OperationScheduler:
         operation_duration = sum(operation.durations.values(), timedelta())
         increment = timedelta(minutes=30)  # More fine-grained search
 
-        while current_time + operation_duration <= machine_window_end:
-            # Check if any capable operator is available at this time
-            for operator in capable_operators:
-                if self.resource_manager.is_resource_available(
-                    operator.resource_id,
-                    current_time,
-                    current_time + operation_duration,
-                ):
-                    return current_time
+        with profile_section("op_scheduler.find_slot.step_scan"):
+            while current_time + operation_duration <= machine_window_end:
+                # Check if any capable operator is available at this time
+                for operator in capable_operators:
+                    if self.resource_manager.is_resource_available(
+                        operator.resource_id,
+                        current_time,
+                        current_time + operation_duration,
+                    ):
+                        return current_time
 
-            # Move to next 30-minute slot
-            current_time += increment
+                # Move to next 30-minute slot
+                current_time += increment
 
         return None
 
+    def _find_operator_start_merge(
+        self,
+        machine: Resource,
+        window_start: datetime,
+        window_end: datetime,
+        operation: OperationNode,
+    ) -> Optional[datetime]:
+        total_duration = timedelta()
+        all_operator_requirements = []
+        for phase, requirements in operation.operator_requirements.items():
+            if phase in operation.durations:
+                duration = (
+                    operation.durations[phase] * operation.quantity
+                    if phase == TaskPhase.CORE_OPERATION
+                    else operation.durations[phase]
+                )
+                total_duration += duration
+            all_operator_requirements.extend(requirements)
+
+        if window_start + total_duration > window_end:
+            return None
+
+        candidate_times = {window_start}
+        for requirement in all_operator_requirements:
+            operators = self.resource_manager.find_capable_resources(
+                ResourceType.OPERATOR,
+                requirement.phase,
+                operation.operation_id,
+            )
+            for operator in operators:
+                for interval_start, _ in self.resource_manager.free_intervals(
+                    operator.resource_id,
+                    window_start,
+                    window_end,
+                ):
+                    candidate_times.add(interval_start)
+
+        for candidate in sorted(candidate_times):
+            candidate_end = candidate + total_duration
+            if candidate_end > window_end:
+                continue
+
+            if not self.resource_manager.is_resource_available(
+                machine.resource_id, candidate, candidate_end
+            ):
+                continue
+
+            if not all_operator_requirements:
+                return candidate
+
+            operators_available = self.resource_manager.find_available_operators_for_machine(
+                machine,
+                all_operator_requirements,
+                candidate,
+                candidate_end,
+                operation.operation_id,
+            )
+            if operators_available:
+                return candidate
+
+        return None
+
+    def _assign_operators_merge(
+        self,
+        machine: Resource,
+        operator_reqs: List[OperatorRequirement],
+        preferred_start: datetime,
+        phase_duration: timedelta,
+        operation: OperationNode,
+        scheduled_idles: List[Idle],
+    ) -> List[Resource]:
+        if not operator_reqs:
+            return []
+
+        total_operators_needed = sum(req.operator_count for req in operator_reqs)
+        search_end_time = preferred_start + operation.max_idle_between_phases
+        candidate_times = {preferred_start}
+        if operation.min_idle_between_phases > timedelta(0):
+            candidate_times.add(preferred_start + operation.min_idle_between_phases)
+
+        for requirement in operator_reqs:
+            operators = self.resource_manager.find_capable_resources(
+                ResourceType.OPERATOR,
+                requirement.phase,
+                operation.operation_id,
+            )
+            for operator in operators:
+                for interval_start, _ in self.resource_manager.free_intervals(
+                    operator.resource_id,
+                    preferred_start,
+                    search_end_time,
+                ):
+                    candidate_times.add(interval_start)
+
+        for candidate in sorted(candidate_times):
+            if candidate < preferred_start:
+                continue
+            if candidate > search_end_time:
+                continue
+
+            candidate_end = candidate + phase_duration
+            if candidate_end > search_end_time + phase_duration:
+                continue
+
+            if machine and not self.resource_manager.is_resource_available(
+                machine.resource_id, candidate, candidate_end
+            ):
+                continue
+
+            operators = self.resource_manager.find_available_operators_for_machine(
+                machine,
+                operator_reqs,
+                candidate,
+                candidate_end,
+                operation.operation_id,
+            )
+
+            if operators is not None and len(operators) >= total_operators_needed:
+                if candidate > preferred_start:
+                    idle_period = Idle(
+                        operation=operation,
+                        machine=machine,
+                        datetime_start=preferred_start,
+                        datetime_end=candidate,
+                        reason="waiting_for_operator",
+                    )
+                    scheduled_idles.append(idle_period)
+                return operators
+
+        return []
+
+    def _find_operator_windows_merge(
+        self,
+        machine: Resource,
+        operator_reqs: List[OperatorRequirement],
+        start_time: datetime,
+        operation: OperationNode,
+    ) -> List[tuple[datetime, datetime, List[Resource]]]:
+        windows: List[tuple[datetime, datetime, List[Resource]]] = []
+        total_required = sum(req.operator_count for req in operator_reqs)
+        max_search_time = start_time + timedelta(days=60)
+
+        candidate_times = {start_time}
+        for requirement in operator_reqs:
+            operators = self.resource_manager.find_capable_resources(
+                ResourceType.OPERATOR,
+                requirement.phase,
+                operation.operation_id,
+            )
+            for operator in operators:
+                for interval_start, _ in self.resource_manager.free_intervals(
+                    operator.resource_id,
+                    start_time,
+                    max_search_time,
+                ):
+                    candidate_times.add(interval_start)
+
+        for candidate in sorted(candidate_times):
+            if candidate >= max_search_time:
+                break
+
+            candidate_end = candidate + timedelta(hours=1)
+            operators = self.resource_manager.find_available_operators_for_machine(
+                machine,
+                operator_reqs,
+                candidate,
+                candidate_end,
+                operation.operation_id,
+            )
+
+            if not operators or len(operators) < total_required:
+                continue
+
+            window_end = self._find_operator_availability_end(
+                operators, candidate, operation.operation_id
+            )
+
+            if window_end - candidate >= timedelta(hours=1):
+                windows.append((candidate, window_end, operators))
+
+        return windows
+
+    @profile_function()
     def schedule_operation(
         self,
         operation: OperationNode,
@@ -251,38 +449,39 @@ class OperationScheduler:
             best_window = None
             best_operator_start = None
 
-            for candidate_machine in capable_machines:
-                # Try to find all available windows for this machine, not just the first one
-                all_machine_windows = (
-                    self.resource_manager.find_all_machine_availability_windows(
-                        candidate_machine.resource_id,
-                        total_duration,
-                        earliest_start,
-                        operation_id_for_search,
-                    )
-                )
-
-                # Try each available window until we find one where operators are available
-                for machine_window_start, machine_window_end in all_machine_windows:
-                    # Find operator availability within this machine window
-                    operator_start_time = (
-                        self._find_earliest_operator_availability_in_machine_window(
-                            candidate_machine,
-                            machine_window_start,
-                            machine_window_end,
-                            operation,
+            with profile_section("op_scheduler.interval_merge"):
+                for candidate_machine in capable_machines:
+                    # Try to find all available windows for this machine, not just the first one
+                    all_machine_windows = (
+                        self.resource_manager.find_all_machine_availability_windows(
+                            candidate_machine.resource_id,
+                            total_duration,
+                            earliest_start,
+                            operation_id_for_search,
                         )
                     )
 
-                    if operator_start_time is not None:
-                        best_machine = candidate_machine
-                        best_window = (machine_window_start, machine_window_end)
-                        best_operator_start = operator_start_time
-                        break  # Found a working window for this machine
+                    # Try each available window until we find one where operators are available
+                    for machine_window_start, machine_window_end in all_machine_windows:
+                        # Find operator availability within this machine window
+                        operator_start_time = (
+                            self._find_earliest_operator_availability_in_machine_window(
+                                candidate_machine,
+                                machine_window_start,
+                                machine_window_end,
+                                operation,
+                            )
+                        )
 
-                # If we found a working combination, use it
-                if best_machine and best_window and best_operator_start:
-                    break
+                        if operator_start_time is not None:
+                            best_machine = candidate_machine
+                            best_window = (machine_window_start, machine_window_end)
+                            best_operator_start = operator_start_time
+                            break  # Found a working window for this machine
+
+                    # If we found a working combination, use it
+                    if best_machine and best_window and best_operator_start:
+                        break
 
             if best_machine and best_window and best_operator_start:
                 machine = best_machine
@@ -546,6 +745,7 @@ class OperationScheduler:
 
         return scheduled_tasks, scheduled_idles, None
 
+    @profile_function()
     def _find_operators_with_idle_support(
         self,
         machine: Resource,
@@ -558,6 +758,19 @@ class OperationScheduler:
         """
         Find operators for a phase, allowing for idle time when operators aren't available.
         """
+
+        if get_slot_search_mode() == "merge":
+            with profile_section("op_scheduler.interval_merge"):
+                merged_operators = self._assign_operators_merge(
+                    machine,
+                    operator_reqs,
+                    preferred_start,
+                    phase_duration,
+                    operation,
+                    scheduled_idles,
+                )
+            if merged_operators:
+                return merged_operators
 
         # If no operators required for this phase, return immediately
         if not operator_reqs:
@@ -581,35 +794,37 @@ class OperationScheduler:
         search_end_time = preferred_start + operation.max_idle_between_phases
         current_search_time = preferred_start + operation.min_idle_between_phases
 
-        # Search in 1-hour increments for the next available operator time
-        while current_search_time <= search_end_time:
-            operators = self.resource_manager.find_available_operators_for_machine(
-                machine,
-                operator_reqs,
-                current_search_time,
-                current_search_time + phase_duration,
-                operation.operation_id,
-            )
+        with profile_section("op_scheduler.find_slot.step_scan"):
+            # Search in 1-hour increments for the next available operator time
+            while current_search_time <= search_end_time:
+                operators = self.resource_manager.find_available_operators_for_machine(
+                    machine,
+                    operator_reqs,
+                    current_search_time,
+                    current_search_time + phase_duration,
+                    operation.operation_id,
+                )
 
-            if operators is not None and len(operators) >= total_operators_needed:
-                # Found operators! Create an idle period if there's a gap
-                if current_search_time > preferred_start:
-                    idle_period = Idle(
-                        operation=operation,
-                        machine=machine,
-                        datetime_start=preferred_start,
-                        datetime_end=current_search_time,
-                        reason="waiting_for_operator",
-                    )
-                    scheduled_idles.append(idle_period)
+                if operators is not None and len(operators) >= total_operators_needed:
+                    # Found operators! Create an idle period if there's a gap
+                    if current_search_time > preferred_start:
+                        idle_period = Idle(
+                            operation=operation,
+                            machine=machine,
+                            datetime_start=preferred_start,
+                            datetime_end=current_search_time,
+                            reason="waiting_for_operator",
+                        )
+                        scheduled_idles.append(idle_period)
 
-                return operators
+                    return operators
 
-            # Move search time forward by 1 hour
-            current_search_time += timedelta(hours=1)
+                # Move search time forward by 1 hour
+                current_search_time += timedelta(hours=1)
 
         return []
 
+    @profile_function()
     def _find_operator_availability_end(
         self, operators: List[Resource], start_time: datetime, operation_id: str
     ) -> datetime:
@@ -634,6 +849,7 @@ class OperationScheduler:
             hours=8
         )  # Default to 8 hours if not found
 
+    @profile_function()
     def _find_available_operator_windows(
         self,
         machine: Resource,
@@ -645,39 +861,51 @@ class OperationScheduler:
         Find all available operator windows starting from start_time.
         Returns list of (window_start, window_end, operators) tuples.
         """
+        if get_slot_search_mode() == "merge":
+            with profile_section("op_scheduler.interval_merge"):
+                merged_windows = self._find_operator_windows_merge(
+                    machine,
+                    operator_reqs,
+                    start_time,
+                    operation,
+                )
+            if merged_windows:
+                return merged_windows
+
         windows = []
         search_time = start_time
         max_search_time = start_time + timedelta(days=60)  # Limit search to 2 months
 
-        while search_time < max_search_time:
-            # Try to find operators at this time
-            operators = self.resource_manager.find_available_operators_for_machine(
-                machine,
-                operator_reqs,
-                search_time,
-                search_time + timedelta(hours=1),  # Check 1-hour window
-                operation.operation_id,
-            )
-
-            if operators and len(operators) >= sum(
-                req.operator_count for req in operator_reqs
-            ):
-                # Found operators, now determine how long they're available
-                window_end = self._find_operator_availability_end(
-                    operators, search_time, operation.operation_id
+        with profile_section("op_scheduler.find_slot.step_scan"):
+            while search_time < max_search_time:
+                # Try to find operators at this time
+                operators = self.resource_manager.find_available_operators_for_machine(
+                    machine,
+                    operator_reqs,
+                    search_time,
+                    search_time + timedelta(hours=1),  # Check 1-hour window
+                    operation.operation_id,
                 )
 
-                # Ensure minimum window size (at least 1 hour)
-                if window_end - search_time >= timedelta(hours=1):
-                    windows.append((search_time, window_end, operators))
+                if operators and len(operators) >= sum(
+                    req.operator_count for req in operator_reqs
+                ):
+                    # Found operators, now determine how long they're available
+                    window_end = self._find_operator_availability_end(
+                        operators, search_time, operation.operation_id
+                    )
 
-                    # Jump to end of this window for next search
-                    search_time = window_end
+                    # Ensure minimum window size (at least 1 hour)
+                    if window_end - search_time >= timedelta(hours=1):
+                        windows.append((search_time, window_end, operators))
+
+                        # Jump to end of this window for next search
+                        search_time = window_end
+                    else:
+                        # Window too small, advance by 1 hour
+                        search_time += timedelta(hours=1)
                 else:
-                    # Window too small, advance by 1 hour
+                    # No operators found, advance by 1 hour
                     search_time += timedelta(hours=1)
-            else:
-                # No operators found, advance by 1 hour
-                search_time += timedelta(hours=1)
 
         return windows
