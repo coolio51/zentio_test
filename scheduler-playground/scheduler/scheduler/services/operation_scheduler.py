@@ -19,8 +19,54 @@ from scheduler.services.resource_manager import ResourceManager
 
 
 class OperationScheduler:
+    PHASE_ORDER: Tuple[TaskPhase, ...] = (
+        TaskPhase.SETUP,
+        TaskPhase.CORE_OPERATION,
+        TaskPhase.CLEANUP,
+    )
+
     def __init__(self, resource_manager: ResourceManager):
         self.resource_manager = resource_manager
+
+    @staticmethod
+    def _get_phase_cache(operation: OperationNode) -> tuple[Tuple[TaskPhase, timedelta], ...]:
+        cached = getattr(operation, "_cached_phase_sequence", None)
+        if cached is None:
+            sequence: list[Tuple[TaskPhase, timedelta]] = []
+            for phase in OperationScheduler.PHASE_ORDER:
+                if phase not in operation.durations:
+                    continue
+                phase_duration = operation.durations[phase]
+                if phase == TaskPhase.CORE_OPERATION:
+                    phase_duration = phase_duration * operation.quantity
+                sequence.append((phase, phase_duration))
+            cached = tuple(sequence)
+            setattr(operation, "_cached_phase_sequence", cached)
+        return cached
+
+    @staticmethod
+    def _get_total_duration(operation: OperationNode) -> timedelta:
+        cached = getattr(operation, "_cached_total_duration", None)
+        if cached is None:
+            total = timedelta()
+            for _, duration in OperationScheduler._get_phase_cache(operation):
+                total += duration
+            setattr(operation, "_cached_total_duration", total)
+            return total
+        return cached
+
+    @staticmethod
+    def _get_all_operator_requirements(
+        operation: OperationNode,
+    ) -> Tuple[OperatorRequirement, ...]:
+        cached = getattr(operation, "_cached_all_operator_requirements", None)
+        if cached is None:
+            requirements: list[OperatorRequirement] = []
+            for phase_requirements in operation.operator_requirements.values():
+                requirements.extend(phase_requirements)
+            cached = tuple(requirements)
+            setattr(operation, "_cached_all_operator_requirements", cached)
+        return cached
 
     @profile_function()
     def _find_earliest_operator_availability_in_machine_window(
@@ -54,24 +100,29 @@ class OperationScheduler:
                 return merged_start
 
         # Get all operator requirements for this operation
-        all_operator_requirements = []
-        for phase, requirements in operation.operator_requirements.items():
-            all_operator_requirements.extend(requirements)
+        all_operator_requirements = self._get_all_operator_requirements(operation)
 
         if not all_operator_requirements:
             return machine_window_start
 
         # Find operators that can satisfy the requirements
-        capable_operators = []
+        capable_operators: List[Resource] = []
         seen_operator_ids = set()
+        phase_candidates: Dict[TaskPhase, List[Resource]] = {}
         for operator_req in all_operator_requirements:
-            operators = self.resource_manager.find_capable_resources(
-                ResourceType.OPERATOR, operator_req.phase, operation.operation_id
-            )
-            for operator in operators:
-                if operator.resource_id not in seen_operator_ids:
-                    capable_operators.append(operator)
-                    seen_operator_ids.add(operator.resource_id)
+            candidates = phase_candidates.get(operator_req.phase)
+            if candidates is None:
+                candidates = self.resource_manager.find_capable_resources(
+                    ResourceType.OPERATOR,
+                    operator_req.phase,
+                    operation.operation_id,
+                )
+                phase_candidates[operator_req.phase] = candidates
+            for operator in candidates:
+                if operator.resource_id in seen_operator_ids:
+                    continue
+                seen_operator_ids.add(operator.resource_id)
+                capable_operators.append(operator)
 
         if not capable_operators:
             return None
@@ -79,7 +130,7 @@ class OperationScheduler:
         # Check availability of capable operators within machine window
         # We'll check in 30-minute increments for better granularity
         current_time = machine_window_start
-        operation_duration = sum(operation.durations.values(), timedelta())
+        operation_duration = self._get_total_duration(operation)
         increment = timedelta(minutes=30)  # More fine-grained search
 
         with profile_section("op_scheduler.find_slot.step_scan"):
@@ -105,28 +156,23 @@ class OperationScheduler:
         window_end: datetime,
         operation: OperationNode,
     ) -> Optional[datetime]:
-        total_duration = timedelta()
-        all_operator_requirements = []
-        for phase, requirements in operation.operator_requirements.items():
-            if phase in operation.durations:
-                duration = (
-                    operation.durations[phase] * operation.quantity
-                    if phase == TaskPhase.CORE_OPERATION
-                    else operation.durations[phase]
-                )
-                total_duration += duration
-            all_operator_requirements.extend(requirements)
+        total_duration = self._get_total_duration(operation)
+        all_operator_requirements = self._get_all_operator_requirements(operation)
 
         if window_start + total_duration > window_end:
             return None
 
         candidate_times = {window_start}
+        phase_candidates: Dict[TaskPhase, List[Resource]] = {}
         for requirement in all_operator_requirements:
-            operators = self.resource_manager.find_capable_resources(
-                ResourceType.OPERATOR,
-                requirement.phase,
-                operation.operation_id,
-            )
+            operators = phase_candidates.get(requirement.phase)
+            if operators is None:
+                operators = self.resource_manager.find_capable_resources(
+                    ResourceType.OPERATOR,
+                    requirement.phase,
+                    operation.operation_id,
+                )
+                phase_candidates[requirement.phase] = operators
             for operator in operators:
                 for interval_start, _ in self.resource_manager.free_intervals(
                     operator.resource_id,
@@ -178,12 +224,16 @@ class OperationScheduler:
         if operation.min_idle_between_phases > timedelta(0):
             candidate_times.add(preferred_start + operation.min_idle_between_phases)
 
+        phase_candidates: Dict[TaskPhase, List[Resource]] = {}
         for requirement in operator_reqs:
-            operators = self.resource_manager.find_capable_resources(
-                ResourceType.OPERATOR,
-                requirement.phase,
-                operation.operation_id,
-            )
+            operators = phase_candidates.get(requirement.phase)
+            if operators is None:
+                operators = self.resource_manager.find_capable_resources(
+                    ResourceType.OPERATOR,
+                    requirement.phase,
+                    operation.operation_id,
+                )
+                phase_candidates[requirement.phase] = operators
             for operator in operators:
                 for interval_start, _ in self.resource_manager.free_intervals(
                     operator.resource_id,
@@ -241,12 +291,16 @@ class OperationScheduler:
         max_search_time = start_time + timedelta(days=60)
 
         candidate_times = {start_time}
+        phase_candidates: Dict[TaskPhase, List[Resource]] = {}
         for requirement in operator_reqs:
-            operators = self.resource_manager.find_capable_resources(
-                ResourceType.OPERATOR,
-                requirement.phase,
-                operation.operation_id,
-            )
+            operators = phase_candidates.get(requirement.phase)
+            if operators is None:
+                operators = self.resource_manager.find_capable_resources(
+                    ResourceType.OPERATOR,
+                    requirement.phase,
+                    operation.operation_id,
+                )
+                phase_candidates[requirement.phase] = operators
             for operator in operators:
                 for interval_start, _ in self.resource_manager.free_intervals(
                     operator.resource_id,
@@ -299,7 +353,7 @@ class OperationScheduler:
         if operation_instance_counter is None:
             operation_instance_counter = {}
 
-        tasks = []
+        tasks: List[Task] = []
 
         # Generate unique operation instance ID using embedded manufacturing order info
         # Use existing operation_instance_id if provided, otherwise generate one
@@ -308,36 +362,17 @@ class OperationScheduler:
         else:
             mo_id = operation.manufacturing_order_id or "unknown"
             operation_key = f"{mo_id}_{operation.operation_id}"
-            if operation_key not in operation_instance_counter:
-                operation_instance_counter[operation_key] = 0
-            operation_instance_counter[operation_key] += 1
-            operation_instance_id = (
-                f"{operation_key}_{operation_instance_counter[operation_key]:03d}"
-            )
+            counter_value = operation_instance_counter.get(operation_key, 0) + 1
+            operation_instance_counter[operation_key] = counter_value
+            operation_instance_id = f"{operation_key}_{counter_value:03d}"
 
-        # Calculate total duration needed for the operation
-        total_duration = timedelta()
-        phase_order = [TaskPhase.SETUP, TaskPhase.CORE_OPERATION, TaskPhase.CLEANUP]
+        total_duration = self._get_total_duration(operation)
+        phase_sequence = self._get_phase_cache(operation)
 
-        for phase in phase_order:
-            if phase in operation.durations:
-                phase_duration = (
-                    operation.durations[phase] * operation.quantity
-                    if phase == TaskPhase.CORE_OPERATION
-                    else operation.durations[phase]
-                )
-                total_duration += phase_duration
-
-        # Check if any operators are actually needed for this operation
-        total_operators_needed = 0
-        for phase in phase_order:
-            if phase in operation.operator_requirements:
-                operator_reqs = operation.operator_requirements[phase]
-                total_operators_needed += (
-                    sum(req.operator_count for req in operator_reqs)
-                    if operator_reqs
-                    else 0
-                )
+        all_operator_requirements = self._get_all_operator_requirements(operation)
+        total_operators_needed = sum(
+            req.operator_count for req in all_operator_requirements
+        )
 
         # Only pass operation_id for operator compatibility if operators are actually needed
         operation_id_for_search = (
@@ -509,168 +544,38 @@ class OperationScheduler:
         scheduled_tasks = []
         scheduled_idles = []
 
-        for phase in phase_order:
-            if phase in operation.durations:
-                phase_duration = (
-                    operation.durations[phase] * operation.quantity
-                    if phase == TaskPhase.CORE_OPERATION
-                    else operation.durations[phase]
+        for phase, phase_duration in phase_sequence:
+            operator_reqs = operation.operator_requirements.get(phase, [])
+            total_operators_needed = (
+                sum(req.operator_count for req in operator_reqs)
+                if operator_reqs
+                else 0
+            )
+
+            if total_operators_needed > 0:
+                operators = self._find_operators_with_idle_support(
+                    machine,
+                    operator_reqs,
+                    current_phase_start,
+                    phase_duration,
+                    operation,
+                    scheduled_idles,
                 )
 
-                # Get operator requirements for this phase
-                operator_reqs = operation.operator_requirements.get(phase, [])
-
-                # Check if any operators are actually required for this phase
-                total_operators_needed = (
-                    sum(req.operator_count for req in operator_reqs)
-                    if operator_reqs
-                    else 0
-                )
-
-                # Try to find operators for a contiguous slot first
-                if total_operators_needed > 0:
-                    operators = self._find_operators_with_idle_support(
-                        machine,
-                        operator_reqs,
-                        current_phase_start,
-                        phase_duration,
-                        operation,
-                        scheduled_idles,
+                if not operators and phase == TaskPhase.CORE_OPERATION:
+                    total_items = operation.quantity
+                    total_core_duration = phase_duration
+                    items_per_hour = (
+                        total_items / (total_core_duration.total_seconds() / 3600)
+                        if total_core_duration.total_seconds() > 0
+                        else total_items
                     )
 
-                    # If contiguous assignment failed and this is core_operation, fall back to splitting
-                    if not operators and phase == TaskPhase.CORE_OPERATION:
-                        # Calculate work per hour for this operation
-                        total_items = operation.quantity
-                        total_core_duration = phase_duration
-                        items_per_hour = (
-                            total_items / (total_core_duration.total_seconds() / 3600)
-                            if total_core_duration.total_seconds() > 0
-                            else total_items
-                        )
+                    operator_windows = self._find_available_operator_windows(
+                        machine, operator_reqs, current_phase_start, operation
+                    )
 
-                        # Find available operator windows starting from current_phase_start
-                        operator_windows = self._find_available_operator_windows(
-                            machine, operator_reqs, current_phase_start, operation
-                        )
-
-                        if not operator_windows:
-                            return (
-                                [],
-                                [],
-                                DroppedOperation(
-                                    manufacturing_order_id=operation.manufacturing_order_id,
-                                    operation_id=operation.operation_id,
-                                    operation_name=operation.operation_name,
-                                    reason=DropReason.PHASE_SCHEDULING_FAILED,
-                                    failed_phase=phase,
-                                    error_message=f"Required operators not available for phase {phase.value}",
-                                ),
-                            )
-
-                        core_tasks = []
-                        remaining_items = total_items
-                        last_window_end: datetime = current_phase_start
-
-                        for (
-                            window_start,
-                            window_end,
-                            window_operators,
-                        ) in operator_windows:
-                            if remaining_items <= 0:
-                                break
-
-                            # Ensure machine is available during this operator window
-                            if not self.resource_manager.is_resource_available(
-                                machine.resource_id, window_start, window_end
-                            ):
-                                return (
-                                    [],
-                                    [],
-                                    DroppedOperation(
-                                        manufacturing_order_id=operation.manufacturing_order_id,
-                                        operation_id=operation.operation_id,
-                                        operation_name=operation.operation_name,
-                                        reason=DropReason.PHASE_SCHEDULING_FAILED,
-                                        error_message=f"Machine {machine.resource_id} not available during required operator window",
-                                    ),
-                                )
-
-                            # Calculate how much work fits in this window
-                            window_duration = window_end - window_start
-                            window_hours = window_duration.total_seconds() / 3600
-                            items_in_window = min(
-                                remaining_items,
-                                max(1, int(items_per_hour * window_hours)),
-                            )
-
-                            if items_in_window > 0:
-                                # Create idle period if there's a gap
-                                if window_start > last_window_end:
-                                    idle_period = Idle(
-                                        operation=operation,
-                                        machine=machine,
-                                        datetime_start=last_window_end,
-                                        datetime_end=window_start,
-                                        reason="waiting_for_operator_availability",
-                                    )
-                                    scheduled_idles.append(idle_period)
-
-                                # Calculate actual time needed for these items
-                                actual_duration_hours = (
-                                    items_in_window / items_per_hour
-                                    if items_per_hour > 0
-                                    else 0
-                                )
-                                actual_duration = timedelta(hours=actual_duration_hours)
-                                actual_end_time = window_start + actual_duration
-
-                                # Ensure we don't exceed the operator window
-                                actual_end_time = min(actual_end_time, window_end)
-
-                                # Create task for this window
-                                task = Task(
-                                    operation=operation,
-                                    machine=machine,
-                                    operators=window_operators,
-                                    datetime_start=window_start,
-                                    datetime_end=actual_end_time,
-                                    phase=phase,
-                                    quantity=items_in_window,
-                                    operation_instance_id=operation_instance_id,
-                                )
-                                core_tasks.append(task)
-
-                                # Book resources for this chunk (only for actual time needed)
-                                self.resource_manager.book_machine_and_operators(
-                                    machine,
-                                    window_operators,
-                                    window_start,
-                                    actual_end_time,
-                                )
-
-                                remaining_items -= items_in_window
-                                last_window_end = actual_end_time
-
-                        if remaining_items > 0:
-                            return (
-                                [],
-                                [],
-                                DroppedOperation(
-                                    manufacturing_order_id=operation.manufacturing_order_id,
-                                    operation_id=operation.operation_id,
-                                    operation_name=operation.operation_name,
-                                    reason=DropReason.PHASE_SCHEDULING_FAILED,
-                                    failed_phase=phase,
-                                    error_message=f"Could not schedule all {total_items} items (missing {remaining_items})",
-                                ),
-                            )
-
-                        scheduled_tasks.extend(core_tasks)
-                        current_phase_start = last_window_end
-                        continue
-
-                    if not operators:
+                    if not operator_windows:
                         return (
                             [],
                             [],
@@ -683,47 +588,148 @@ class OperationScheduler:
                                 error_message=f"Required operators not available for phase {phase.value}",
                             ),
                         )
-                elif operation.required_machine_id and not machine:
-                    operators = []
-                else:
-                    operators = []
 
-                # Calculate actual start time based on operator availability
-                # If we had to wait for operators, check if any idle periods were created
-                actual_phase_start: datetime
-                if operators and scheduled_idles:
-                    # Check if the last idle period affects this phase's start time
-                    last_idle = scheduled_idles[-1]
-                    if (
-                        last_idle.datetime_end > current_phase_start
-                        and last_idle.datetime_start <= current_phase_start
-                    ):
-                        # This idle period was created for this phase, use its end time
-                        actual_phase_start = last_idle.datetime_end
-                    else:
-                        actual_phase_start = current_phase_start
+                    core_tasks = []
+                    remaining_items = total_items
+                    last_window_end: datetime = current_phase_start
+
+                    for (
+                        window_start,
+                        window_end,
+                        window_operators,
+                    ) in operator_windows:
+                        if remaining_items <= 0:
+                            break
+
+                        if not self.resource_manager.is_resource_available(
+                            machine.resource_id, window_start, window_end
+                        ):
+                            return (
+                                [],
+                                [],
+                                DroppedOperation(
+                                    manufacturing_order_id=operation.manufacturing_order_id,
+                                    operation_id=operation.operation_id,
+                                    operation_name=operation.operation_name,
+                                    reason=DropReason.PHASE_SCHEDULING_FAILED,
+                                    error_message=f"Machine {machine.resource_id} not available during required operator window",
+                                ),
+                            )
+
+                        window_duration = window_end - window_start
+                        window_hours = window_duration.total_seconds() / 3600
+                        items_in_window = min(
+                            remaining_items,
+                            max(1, int(items_per_hour * window_hours)),
+                        )
+
+                        if items_in_window <= 0:
+                            continue
+
+                        if window_start > last_window_end:
+                            idle_period = Idle(
+                                operation=operation,
+                                machine=machine,
+                                datetime_start=last_window_end,
+                                datetime_end=window_start,
+                                reason="waiting_for_operator_availability",
+                            )
+                            scheduled_idles.append(idle_period)
+
+                        actual_duration_hours = (
+                            items_in_window / items_per_hour if items_per_hour > 0 else 0
+                        )
+                        actual_duration = timedelta(hours=actual_duration_hours)
+                        actual_end_time = window_start + actual_duration
+                        actual_end_time = min(actual_end_time, window_end)
+
+                        task = Task(
+                            operation=operation,
+                            machine=machine,
+                            operators=window_operators,
+                            datetime_start=window_start,
+                            datetime_end=actual_end_time,
+                            phase=phase,
+                            quantity=items_in_window,
+                            operation_instance_id=operation_instance_id,
+                        )
+                        core_tasks.append(task)
+
+                        self.resource_manager.book_machine_and_operators(
+                            machine,
+                            window_operators,
+                            window_start,
+                            actual_end_time,
+                        )
+
+                        remaining_items -= items_in_window
+                        last_window_end = actual_end_time
+
+                    if remaining_items > 0:
+                        return (
+                            [],
+                            [],
+                            DroppedOperation(
+                                manufacturing_order_id=operation.manufacturing_order_id,
+                                operation_id=operation.operation_id,
+                                operation_name=operation.operation_name,
+                                reason=DropReason.PHASE_SCHEDULING_FAILED,
+                                failed_phase=phase,
+                                error_message=f"Could not schedule all {total_items} items (missing {remaining_items})",
+                            ),
+                        )
+
+                    scheduled_tasks.extend(core_tasks)
+                    current_phase_start = last_window_end
+                    continue
+
+                if not operators:
+                    return (
+                        [],
+                        [],
+                        DroppedOperation(
+                            manufacturing_order_id=operation.manufacturing_order_id,
+                            operation_id=operation.operation_id,
+                            operation_name=operation.operation_name,
+                            reason=DropReason.PHASE_SCHEDULING_FAILED,
+                            failed_phase=phase,
+                            error_message=f"Required operators not available for phase {phase.value}",
+                        ),
+                    )
+            elif operation.required_machine_id and not machine:
+                operators = []
+            else:
+                operators = []
+
+            actual_phase_start: datetime
+            if operators and scheduled_idles:
+                last_idle = scheduled_idles[-1]
+                if (
+                    last_idle.datetime_end > current_phase_start
+                    and last_idle.datetime_start <= current_phase_start
+                ):
+                    actual_phase_start = last_idle.datetime_end
                 else:
-                    # No operators needed or no idle periods created
                     actual_phase_start = current_phase_start
+            else:
+                actual_phase_start = current_phase_start
 
-                # Standard single task creation for non-core operations or short core operations
-                phase_end_time: datetime = actual_phase_start + phase_duration
+            phase_end_time: datetime = actual_phase_start + phase_duration
 
-                # Create the task
-                task = Task(
-                    operation=operation,
-                    phase=phase,
-                    quantity=operation.quantity,
-                    datetime_start=actual_phase_start,
-                    datetime_end=phase_end_time,
-                    machine=machine,
-                    operators=operators,
-                    operation_instance_id=operation_instance_id,
-                )
-                scheduled_tasks.append(task)
+            task = Task(
+                operation=operation,
+                phase=phase,
+                quantity=operation.quantity,
+                datetime_start=actual_phase_start,
+                datetime_end=phase_end_time,
+                machine=machine,
+                operators=operators,
+                operation_instance_id=operation_instance_id,
+            )
+            scheduled_tasks.append(task)
 
-                # Update current start time for next phase
-                current_phase_start = phase_end_time
+            # Update current start time for next phase
+            current_phase_start = phase_end_time
 
         # Book all resources for the scheduled tasks
         for task in scheduled_tasks:

@@ -27,7 +27,10 @@ class ResourceManager:
         self._resource_bookings: Dict[str, List[Tuple[datetime, datetime]]] = {
             resource_id: [] for resource_id in self.resources_by_id
         }
-        self._availabilities_data: Dict[str, List[Dict[str, object]]] = {}
+        self._capable_resource_cache: Dict[
+            tuple[str, str, Optional[str]], Tuple[Resource, ...]
+        ] = {}
+        self._availabilities_data: Dict[str, Tuple[Dict[str, object], ...]] = {}
         self._base_availability_templates: Dict[str, List[Tuple[datetime, datetime, float]]] = {
             resource.resource_id: [
                 (
@@ -64,6 +67,7 @@ class ResourceManager:
     @profile_function()
     def _build_data_structures(self):
         """Build data structures for complex availability operations"""
+        self._capable_resource_cache.clear()
         by_type: Dict[str, List[str]] = defaultdict(list)
         by_type_phase: Dict[Tuple[str, str], List[str]] = defaultdict(list)
         by_type_phase_operation: Dict[Tuple[str, str, str], List[str]] = defaultdict(list)
@@ -114,7 +118,8 @@ class ResourceManager:
                         / 3600,
                     }
                 )
-            self._availabilities_data[resource.resource_id] = entries
+            entries.sort(key=lambda entry: entry["start_datetime"])
+            self._availabilities_data[resource.resource_id] = tuple(entries)
 
     def _book_interval(
         self, resource_id: str, start_time: datetime, end_time: datetime
@@ -253,6 +258,11 @@ class ResourceManager:
             if "_split_" in operation_id
             else operation_id
         )
+        cache_key = (resource_type.value, phase.value, base_operation_id)
+        cached_resources = self._capable_resource_cache.get(cache_key)
+        if cached_resources is not None:
+            return list(cached_resources)
+
         with profile_section("resource_manager.lookup_capabilities"):
             candidates = self._capabilities_by_type_phase_operation.get(
                 (resource_type.value, phase.value, base_operation_id)
@@ -263,7 +273,9 @@ class ResourceManager:
                     (),
                 )
 
-        return [self.resources_by_id[rid] for rid in candidates]
+        resources = tuple(self.resources_by_id[rid] for rid in candidates)
+        self._capable_resource_cache[cache_key] = resources
+        return list(resources)
 
     @profile_function()
     def get_all_available_slots_in_window(
@@ -278,15 +290,10 @@ class ResourceManager:
         potentially spanning multiple availability periods.
         """
         # Get resource availability windows within the search window
-        resource_availabilities = list(
-            self._availabilities_data.get(resource_id, [])
-        )
+        resource_availabilities = self._availabilities_data.get(resource_id, ())
 
         if not resource_availabilities:
             return []
-
-        # Sort by start_datetime
-        resource_availabilities.sort(key=lambda x: x["start_datetime"])
 
         available_slots = []
         existing_bookings = self._resource_bookings.get(resource_id, [])
@@ -396,7 +403,7 @@ class ResourceManager:
             True if the resource is available, False otherwise
         """
         # Check if resource has availability windows covering the time period
-        resource_availabilities = self._availabilities_data.get(resource_id, [])
+        resource_availabilities = self._availabilities_data.get(resource_id, ())
 
         if not resource_availabilities:
             return False
@@ -433,7 +440,7 @@ class ResourceManager:
         Returns:
             Earliest availability datetime or None if no availability found
         """
-        resource_availabilities = self._availabilities_data.get(resource_id, [])
+        resource_availabilities = self._availabilities_data.get(resource_id, ())
 
         if not resource_availabilities:
             return None
@@ -679,7 +686,7 @@ class ResourceManager:
         effective_earliest_start = earliest_feasible_start or earliest_start
 
         # Get machine availability windows
-        machine_availabilities = self._availabilities_data.get(machine_id, [])
+        machine_availabilities = self._availabilities_data.get(machine_id, ())
 
         if not machine_availabilities:
             return []
@@ -735,7 +742,7 @@ class ResourceManager:
         effective_earliest_start = earliest_feasible_start or earliest_start
 
         # Get machine availability windows
-        machine_availabilities = self._availabilities_data.get(machine_id, [])
+        machine_availabilities = self._availabilities_data.get(machine_id, ())
 
         if not machine_availabilities:
 
@@ -901,7 +908,7 @@ class ResourceManager:
         window_end: datetime,
     ) -> Iterable[Tuple[datetime, datetime]]:
         """Yield free intervals for a resource within the specified window."""
-        availabilities = self._availabilities_data.get(resource_id, [])
+        availabilities = self._availabilities_data.get(resource_id, ())
         for availability in availabilities:
             start = max(availability["start_datetime"], window_start)
             end = min(availability["end_datetime"], window_end)
