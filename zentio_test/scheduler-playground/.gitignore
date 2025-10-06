@@ -1,6 +1,0 @@
-__pycache__/
-.venv/
-.env
-.env.*
-!.env.example
-.pytest_cache/scheduler/.profile/
