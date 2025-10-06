@@ -99,3 +99,12 @@ Suggested task
 2. Replace the `A_M.copy()`/`M_busy` tandem with a single mutable availability matrix cloned once per decode (or, when combined with the interval-tracking change, eliminate one of the matrices entirely).
 3. Do the same for skill capacity (`C_S`), only copying the portions that actually mutate.
 4. Adjust decoder outputs (`M_busy`, `S_used`) to reflect the new storage without duplicating data.
+
+## Skip redundant GA decodes
+Repeatedly decoding elites every generation wastes time once the genomes stabilise.
+* Issue: During GA evolution, the top-ranked individuals are copied forward unchanged, but the decoder still recomputes their schedules/evaluations on each generation, duplicating work.
+* Remedy: Cache decoder outputs per genome or detect unchanged individuals so we can reuse prior results.
+* Implementation ideas:
+  * Memoise `decode_schedule` using the genome (or a stable hash) as the key, storing the resulting `(sched, eval)` pair for reuse.
+  * When elites survive unchanged, bypass decoding and attach the cached schedule/evaluation directly.
+  * Invalidate cache entries only when mutation/crossover alters the genome or when decoder parameters change.
