@@ -129,6 +129,8 @@ class Profiler:
         self._jsonl_path = self._profile_dir / f"profile_{self.pid}.jsonl"
         self._summary_path = self._profile_dir / f"summary_{self.pid}.csv"
         self._meta_path = self._profile_dir / f"meta_{self.pid}.json"
+        self._run_summary_json_path = self._profile_dir / f"run_{self.pid}.json"
+        self._run_summary_csv_path = self._profile_dir / f"run_{self.pid}.csv"
         self._started_at = datetime.now(timezone.utc)
         self._banner_printed = False
         self._previous_sigint_handler = signal.getsignal(signal.SIGINT)
@@ -325,6 +327,7 @@ class Profiler:
             summary_copy = {k: v.copy() for k, v in self._summary.items()}
         self._write_records(records_copy)
         self._write_summary(summary_copy)
+        self._write_run_summary(records_copy, summary_copy)
 
     def _write_records(self, records: Iterable[Dict[str, Any]]) -> None:
         try:
@@ -376,6 +379,97 @@ class Profiler:
                     )
         except OSError:  # pragma: no cover - filesystem issues
             profile_logger.warning("Failed to write profiling summary CSV: %s", self._summary_path)
+
+
+    def _write_run_summary(
+        self,
+        records: Iterable[Dict[str, Any]],
+        summary: Dict[Tuple[str, str, str], Dict[str, Any]],
+    ) -> None:
+        records_list = list(records)
+        finished_at = datetime.now(timezone.utc)
+        wall_values = [record.get("wall_ms", 0.0) for record in records_list]
+        cpu_values = [record.get("cpu_ms", 0.0) for record in records_list]
+
+        total_wall = sum(wall_values)
+        total_cpu = sum(cpu_values)
+        sample_count = len(records_list)
+        unique_sections = len(summary)
+
+        run_summary: Dict[str, Any] = {
+            "pid": self.pid,
+            "started_at": self._started_at.isoformat(),
+            "finished_at": finished_at.isoformat(),
+            "duration_s": (finished_at - self._started_at).total_seconds(),
+            "records": sample_count,
+            "unique_sections": unique_sections,
+            "total_wall_ms": total_wall,
+            "total_cpu_ms": total_cpu,
+            "mean_wall_ms": (total_wall / sample_count) if sample_count else 0.0,
+            "p95_wall_ms": _percentile(wall_values, 95),
+            "max_wall_ms": max(wall_values) if wall_values else 0.0,
+        }
+
+        top_sections = sorted(
+            summary.values(), key=lambda item: item.get("wall_ms_total", 0.0), reverse=True
+        )[:10]
+        run_summary["top_sections"] = [
+            {
+                "module": section.get("module"),
+                "name": section.get("name"),
+                "type": section.get("type"),
+                "calls": section.get("calls", 0),
+                "wall_ms_total": section.get("wall_ms_total", 0.0),
+                "cpu_ms_total": section.get("cpu_ms_total", 0.0),
+            }
+            for section in top_sections
+        ]
+
+        try:
+            with self._run_summary_json_path.open("w", encoding="utf-8") as fh:
+                json.dump(run_summary, fh, indent=2)
+        except OSError:  # pragma: no cover - filesystem issues
+            profile_logger.warning(
+                "Failed to write profiling run summary JSON: %s", self._run_summary_json_path
+            )
+
+        try:
+            with self._run_summary_csv_path.open("w", encoding="utf-8", newline="") as fh:
+                writer = csv.writer(fh)
+                writer.writerow(
+                    [
+                        "pid",
+                        "started_at",
+                        "finished_at",
+                        "duration_s",
+                        "records",
+                        "unique_sections",
+                        "total_wall_ms",
+                        "total_cpu_ms",
+                        "mean_wall_ms",
+                        "p95_wall_ms",
+                        "max_wall_ms",
+                    ]
+                )
+                writer.writerow(
+                    [
+                        run_summary["pid"],
+                        run_summary["started_at"],
+                        run_summary["finished_at"],
+                        run_summary["duration_s"],
+                        run_summary["records"],
+                        run_summary["unique_sections"],
+                        run_summary["total_wall_ms"],
+                        run_summary["total_cpu_ms"],
+                        run_summary["mean_wall_ms"],
+                        run_summary["p95_wall_ms"],
+                        run_summary["max_wall_ms"],
+                    ]
+                )
+        except OSError:  # pragma: no cover - filesystem issues
+            profile_logger.warning(
+                "Failed to write profiling run summary CSV: %s", self._run_summary_csv_path
+            )
 
 
 def _json_default(value: Any) -> Any:  # pragma: no cover - JSON fallback

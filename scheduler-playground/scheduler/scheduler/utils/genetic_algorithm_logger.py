@@ -1,12 +1,24 @@
 from typing import List, Dict, Tuple, Optional, TYPE_CHECKING
 from rich import box, table
-from rich.console import Console
 from rich.panel import Panel
 import logging
 import multiprocessing as mp
 
 from scheduler.models import Schedule, OperationNode, ManufacturingOrder
 from scheduler.utils.schedule_logger import ScheduleLogger
+from scheduler.common.console import get_console
+
+try:  # Rich console is optional when running in benchmark mode
+    from rich.console import Console
+except Exception:  # pragma: no cover - optional dependency
+    class Console:  # type: ignore[override]
+        """Minimal stub used when Rich isn't available."""
+
+        def print(self, *_args, **_kwargs) -> None:
+            return None
+
+        def log(self, *_args, **_kwargs) -> None:
+            return None
 
 if TYPE_CHECKING:
     from scheduler.services.genetic_optimizer import (
@@ -303,7 +315,7 @@ class GeneticAlgorithmLogger:
     ) -> None:
         """Print a detailed table showing the evolution across generations."""
         if console is None:
-            console = Console()
+            console = get_console()
 
         try:
             from rich.table import Table

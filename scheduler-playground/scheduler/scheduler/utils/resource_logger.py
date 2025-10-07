@@ -1,9 +1,38 @@
-from typing import List
-from rich import box, table
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, List
+
+try:
+    from rich import box, table
+except Exception:  # pragma: no cover - optional dependency fallback
+    class _NullTable:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def add_column(self, *args, **kwargs):
+            return None
+
+        def add_row(self, *args, **kwargs):
+            return None
+
+        def add_section(self, *args, **kwargs):
+            return None
+
+    class _Box:
+        ROUNDED = None
+        SIMPLE = None
+
+    class _TableModule:
+        Table = _NullTable
+
+    box = _Box()  # type: ignore
+    table = _TableModule()  # type: ignore
 
 from scheduler.models import Resource, ResourceType
-from scheduler.services.resource_manager import ResourceManager
 from scheduler.utils.utils import style_datetime, style_duration
+
+if TYPE_CHECKING:  # pragma: no cover - typing only
+    from scheduler.services.resource_manager import ResourceManager
 
 RESOURCE_COLORS = {
     ResourceType.MACHINE: "cyan",

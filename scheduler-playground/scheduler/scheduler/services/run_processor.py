@@ -23,6 +23,7 @@ from scheduler.services.resource_manager import ResourceManager
 from scheduler.models import ManufacturingOrder, Resource
 from scheduler.common.settings import debug_print_enabled
 from utils.data_converters import convert_manufacturing_orders, convert_resources
+from scheduler.common.console import get_console
 
 logger = logging.getLogger(__name__)
 
@@ -185,10 +186,9 @@ class RunProcessor:
             return
         try:
             from datetime import datetime, timedelta
-            from rich.console import Console
             from scheduler.utils.resource_logger import ResourceLogger
 
-            console = Console()
+            console = get_console()
 
             logger.info("=" * 80)
             logger.info("🔍 RESOURCE AVAILABILITY ANALYSIS")

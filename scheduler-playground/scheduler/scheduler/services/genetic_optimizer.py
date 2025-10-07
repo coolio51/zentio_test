@@ -32,6 +32,7 @@ from scheduler.models import (
 from scheduler.services.resource_manager import ResourceManager
 from scheduler.services.scheduler import SchedulerService
 from scheduler.utils.resource_logger import ResourceLogger
+from scheduler.common.console import get_console
 from scheduler.common.settings import (
     use_resource_manager_clone,
     debug_print_enabled,
@@ -244,9 +245,7 @@ class GeneticSchedulerOptimizer:
         # Debug: Print initial resource availability table before optimization
         if debug_print_enabled():
             try:
-                from rich.console import Console
-
-                console = Console()
+                console = get_console()
                 console.print("\n[bold cyan]Initial Resource Availability (GA)[/bold cyan]")
                 availability_table = ResourceLogger.initial_availability_table(
                     self.original_resource_manager.resources

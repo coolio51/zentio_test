@@ -1,5 +1,29 @@
 from typing import Optional
-from rich import box, console as rich_console, table
+try:
+    from rich import box, table
+except Exception:  # pragma: no cover - optional dependency fallback
+    class _NullTable:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def add_column(self, *args, **kwargs):
+            return None
+
+        def add_row(self, *args, **kwargs):
+            return None
+
+        def add_section(self, *args, **kwargs):
+            return None
+
+    class _Box:
+        ROUNDED = None
+        SIMPLE = None
+
+    class _TableModule:
+        Table = _NullTable
+
+    box = _Box()  # type: ignore
+    table = _TableModule()  # type: ignore
 
 from scheduler.models import (
     Resource,
@@ -9,6 +33,7 @@ from scheduler.models import (
     DropReason,
 )
 from scheduler.utils.utils import style_datetime
+from scheduler.common.console import get_console
 
 PHASE_COLORS = {
     TaskPhase.SETUP: "yellow",
@@ -238,7 +263,7 @@ class ScheduleLogger:
 
     @staticmethod
     def print(schedule: Schedule, title: Optional[str] = None) -> None:
-        console = rich_console.Console()
+        console = get_console()
         # console.print(ScheduleLogger.schedule_table(schedule, title=title))
         # console.print(ScheduleLogger.schedule_summary_table(schedule))
 
