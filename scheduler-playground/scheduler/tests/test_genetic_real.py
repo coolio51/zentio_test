@@ -14,6 +14,7 @@ from datetime import datetime
 import argparse
 
 from rich.console import Console
+from scheduler.common.console import get_console
 
 # Add the project root to Python path
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -263,7 +264,7 @@ if __name__ == "__main__":
         for k, v in vars(args).items()
         if v is not None and k not in {"show_schedule", "no_evolution_logging"}
     }
-    console = Console()
+    console = get_console()
     test_genetic_real(
         console,
         config_overrides=overrides,

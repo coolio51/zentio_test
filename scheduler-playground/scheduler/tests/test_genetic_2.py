@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 from copy import deepcopy
 from rich.console import Console
+from scheduler.common.console import get_console
 
 from scheduler.models import ManufacturingOrder, Priority
 from scheduler.services.resource_manager import ResourceManager
@@ -369,5 +370,5 @@ def test_genetic_2(console: Console):
 
 
 if __name__ == "__main__":
-    console = Console()
+    console = get_console()
     test_genetic_2(console)

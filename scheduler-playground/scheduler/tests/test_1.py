@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 from copy import deepcopy
 
 from rich.console import Console
+from scheduler.common.console import get_console
 
 from scheduler.models import (
     TaskPhase,

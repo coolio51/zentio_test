@@ -16,12 +16,12 @@ from .resource_manager import ResourceManager
 from .operation_scheduler import OperationScheduler
 from scheduler.common.profiling import profile_function, profile_section
 from scheduler.common.settings import get_scheduler_mode
-from rich.console import Console
+from scheduler.common.console import get_console
 from scheduler.utils.resource_logger import ResourceLogger
 
 
 class SchedulerService:
-    console = Console()
+    console = get_console()
 
     @staticmethod
     @profile_function()
@@ -273,12 +273,12 @@ class SchedulerService:
                 dep_index = index_by_op[dependency]
                 successors[dep_index].append(idx)
 
-        heap: List[tuple[datetime, int, int]] = []
+        heap: List[tuple[float, int, int]] = []
         counter = 0
         for idx, op in enumerate(operations):
             if indegree[idx] == 0:
                 ready_times[idx] = None
-                key = (datetime.min, counter, idx)
+                key = (float("-inf"), counter, idx)
                 heapq.heappush(heap, key)
                 counter += 1
 
@@ -344,7 +344,13 @@ class SchedulerService:
                         and successor_index not in processed
                     ):
                         ready_value = ready_times[successor_index]
-                        heap_key_dt = ready_value or datetime.min
+                        if ready_value is None:
+                            heap_key_dt = float("-inf")
+                        else:
+                            try:
+                                heap_key_dt = ready_value.timestamp()
+                            except Exception:  # pragma: no cover - defensive
+                                heap_key_dt = float("-inf")
                         heapq.heappush(heap, (heap_key_dt, counter, successor_index))
                         counter += 1
 
