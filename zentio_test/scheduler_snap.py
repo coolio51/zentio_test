@@ -222,25 +222,52 @@ def build_matrices(data: Dict):
     Q=np.array([[data["Q"][w][s] for s in Skills] for w in Workers], dtype=bool)  # (W,S)
     C_S=Q.T.astype(np.int16) @ C_W  # (S,T)
     E=np.array([[data["E"][op][m] for m in Machines] for op in Ops], dtype=bool)  # (O,M)
-    D=np.zeros((nO, len(Phases), nM), dtype=np.int16); NeedKernels={}; total_len={}
+    D=np.zeros((nO, len(Phases), nM), dtype=np.int16)
+    NeedKernelLists: Dict[Tuple[int, int], List[Tuple[int, int, int, int]]] = {}
+    total_len={}
+    demand_profiles: Dict[Tuple[int, int], Tuple[np.ndarray, np.ndarray]] = {}
     for oi, op in enumerate(Ops):
         for mi, m in enumerate(Machines):
-            if not E[oi, mi]: continue
+            if not E[oi, mi]:
+                continue
             offset=0; tot=0
+            phase_windows: List[Tuple[int, int, Dict[str, float]]] = []
             for pi, ph in enumerate(Phases):
                 L=int(data["D"][op][ph].get(m, 0)); D[oi, pi, mi]=L
                 if L>0:
-                    for s, need in data["Need"][op][ph].items():
-                        demand=int(math.ceil(float(need) * CAP))
-                        si=idx["s"].get(s, None)
-                        if si is not None and demand>0:
-                            NeedKernels.setdefault((oi,mi), []).append((si, offset, L, demand))
+                    phase_windows.append((offset, L, data["Need"][op][ph]))
                     offset+=L; tot+=L
             total_len[(oi,mi)]=tot
+            if tot>0 and phase_windows:
+                skill_buffers: Dict[int, np.ndarray] = {}
+                segments: List[Tuple[int, int, int, int]] = []
+                for start_off, L, need_map in phase_windows:
+                    for s, need in need_map.items():
+                        demand=int(math.ceil(float(need) * CAP))
+                        si=idx["s"].get(s, None)
+                        if si is None or demand<=0:
+                            continue
+                        segments.append((si, start_off, L, demand))
+                        buf=skill_buffers.setdefault(si, np.zeros(tot, dtype=np.int16))
+                        buf[start_off:start_off+L] += demand
+                if segments:
+                    NeedKernelLists[(oi,mi)] = segments
+                    skill_ids=np.array(list(skill_buffers.keys()), dtype=np.int16)
+                    demand_matrix=np.vstack([skill_buffers[si] for si in skill_ids])
+                    demand_profiles[(oi, mi)] = (skill_ids, demand_matrix)
     preds=[(idx["op"][a], idx["op"][b]) for a,b in data["PredEdges"]]
     JobOf=np.array([idx["job"][data["JobOf"][op]] for op in Ops], dtype=np.int32)
     Due=np.array([data["Due"][j] for j in data["Jobs"]], dtype=np.int32)
-    return {"idx":idx,"A_M":A_M,"C_W":C_W,"Q":Q,"C_S":C_S,"E":E,"D":D,"NeedKernels":NeedKernels,"total_len":total_len,
+    NeedKernels: Dict[Tuple[int, int], Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]] = {}
+    for key, segments in NeedKernelLists.items():
+        seg_arr=np.array(segments, dtype=np.int32)
+        NeedKernels[key] = (
+            seg_arr[:,0].astype(np.int16, copy=False),
+            seg_arr[:,1].astype(np.int32, copy=False),
+            seg_arr[:,2].astype(np.int16, copy=False),
+            seg_arr[:,3].astype(np.int16, copy=False),
+        )
+    return {"idx":idx,"A_M":A_M,"C_W":C_W,"Q":Q,"C_S":C_S,"E":E,"D":D,"NeedKernels":NeedKernels,"NeedProfiles":demand_profiles,"total_len":total_len,
             "preds":preds,"JobOf":JobOf,"Due":Due,
             "n":{"O":nO,"M":nM,"W":nW,"S":nS,"T":nT,"CAP":CAP},
             "meta":{"Ops":Ops,"Machines":Machines,"Workers":Workers,"Skills":Skills,"Phases":Phases,"T":T}}
@@ -255,11 +282,15 @@ def decode_schedule(mats: Dict, op_order: np.ndarray, machine_choice: np.ndarray
     t0 = now_ns()
     A_M = mats["A_M"].copy(); C_S_base = mats["C_S"].copy(); E = mats["E"]
     NeedK = mats["NeedKernels"]; total_len = mats["total_len"]; preds = mats["preds"]
+    demand_profiles = mats.get("NeedProfiles", {})
     nO, nT, CAP = mats["n"]["O"], mats["n"]["T"], mats["n"]["CAP"]
     M_busy = np.zeros_like(A_M, dtype=bool)
     S_used = np.zeros_like(C_S_base, dtype=np.int16)
     W_busy = np.zeros((mats["n"]["W"], nT), dtype=bool)
     Q = mats["Q"]; C_W = mats["C_W"]
+    skill_workers = [np.flatnonzero(Q[:, si]).astype(np.int32, copy=False) for si in range(mats["n"]["S"])]
+    worker_mask = np.empty(mats["n"]["W"], dtype=bool)
+    cap_mask = np.empty_like(worker_mask)
     pred_list = [[] for _ in range(nO)]
     for a, b in preds:
         pred_list[b].append(a)
@@ -269,49 +300,70 @@ def decode_schedule(mats: Dict, op_order: np.ndarray, machine_choice: np.ndarray
     assigned_workers = {}
     dm = DecodeMetrics()
 
-    def worker_assign(oi, mi, t_start) -> bool:
+    def worker_assign(oi, mi, t_start, commit=True) -> bool:
         nonlocal S_used, W_busy, assigned_workers
-        segments = NeedK.get((oi, mi), [])
-        if not segments:
+        profile = demand_profiles.get((oi, mi))
+        if profile is None:
+            if commit:
+                assigned_workers[oi] = {}
             return True
-        t_end = t_start + total_len[(oi, mi)]
-        req = {}
-        for (si, off, Ls, demand) in segments:
-            for t in range(t_start + off, t_start + off + Ls):
-                req.setdefault(si, np.zeros((t_end - t_start,), dtype=np.int16))
-                req[si][t - t_start] += demand
-        op_assign = {}
-        w_mod = []
-        s_mod = []
-        for local_t in range(t_end - t_start):
+        skill_ids, demand_matrix = profile
+        tot = demand_matrix.shape[1]
+        if t_start + tot > nT:
+            return False
+        op_assign: Dict[int, List[Tuple[int, int]]] = {}
+        assigned_log: List[Tuple[int, np.ndarray, int, int]] = []
+        for local_t in range(tot):
             abs_t = t_start + local_t
-            skills_here = [si for si, arr in req.items() if arr[local_t] > 0]
-            if not skills_here:
+            np.greater(C_W[:, abs_t], 0, out=cap_mask)
+            np.logical_not(W_busy[:, abs_t], out=worker_mask)
+            np.logical_and(worker_mask, cap_mask, out=worker_mask)
+            demand_slice = demand_matrix[:, local_t]
+            active_rows = np.nonzero(demand_slice > 0)[0]
+            if active_rows.size == 0:
                 continue
-            counts = []
-            for si in skills_here:
-                cand = np.where(np.logical_and(Q[:, si], np.logical_and(C_W[:, abs_t] > 0, np.logical_not(W_busy[:, abs_t]))))[0]
-                counts.append((si, cand.size))
-            skills_sorted = [si for si, _ in sorted(counts, key=lambda x: x[1])]
-            for si in skills_sorted:
-                need_units = req[si][local_t]
+            if not worker_mask.any():
+                for t_abs, chosen, si_idx, used_cap in assigned_log:
+                    W_busy[chosen, t_abs] = False
+                    S_used[si_idx, t_abs] -= used_cap
+                return False
+            pools: List[Tuple[int, np.ndarray]] = []
+            for row_idx in active_rows:
+                si = int(skill_ids[row_idx])
+                pool = skill_workers[si]
+                if pool.size == 0:
+                    for t_abs, chosen, si_idx, used_cap in assigned_log:
+                        W_busy[chosen, t_abs] = False
+                        S_used[si_idx, t_abs] -= used_cap
+                    return False
+                available = pool[worker_mask[pool]]
+                pools.append((row_idx, available))
+            pools.sort(key=lambda x: x[1].size)
+            for row_idx, available in pools:
+                need_units = int(demand_slice[row_idx])
                 if need_units <= 0:
                     continue
-                K = int(math.ceil(need_units / CAP))
-                cand = np.where(np.logical_and(Q[:, si], np.logical_and(C_W[:, abs_t] > 0, np.logical_not(W_busy[:, abs_t]))))[0]
-                if cand.size < K:
-                    for w, t in w_mod:
-                        W_busy[w, t] = False
-                    for si2, t, units in s_mod:
-                        S_used[si2, t] -= units
+                required = int(math.ceil(need_units / CAP))
+                if available.size < required:
+                    for t_abs, chosen, si_idx, used_cap in assigned_log:
+                        W_busy[chosen, t_abs] = False
+                        S_used[si_idx, t_abs] -= used_cap
                     return False
-                chosen = cand[:K]
+                chosen = available[:required]
+                si = int(skill_ids[row_idx])
+                used_cap = required * CAP
+                W_busy[chosen, abs_t] = True
+                worker_mask[chosen] = False
+                S_used[si, abs_t] += used_cap
+                assigned_log.append((abs_t, chosen, si, used_cap))
+                slot_assign = op_assign.setdefault(abs_t, [])
                 for w in chosen:
-                    W_busy[w, abs_t] = True
-                    w_mod.append((int(w), abs_t))
-                    op_assign.setdefault(abs_t, []).append((int(w), int(si)))
-                S_used[si, abs_t] += K * CAP
-                s_mod.append((int(si), abs_t, K * CAP))
+                    slot_assign.append((int(w), si))
+        if not commit:
+            for t_abs, chosen, si_idx, used_cap in assigned_log:
+                W_busy[chosen, t_abs] = False
+                S_used[si_idx, t_abs] -= used_cap
+            return True
         assigned_workers[oi] = op_assign
         return True
 
@@ -354,18 +406,25 @@ def decode_schedule(mats: Dict, op_order: np.ndarray, machine_choice: np.ndarray
                     continue
                 Rem = C_S_base - S_used
                 feas_vec = mach_ok.copy()
-                for (si, off, Ls, demand) in NeedK.get((oi, mi), []):
-                    ok = sliding_all_true(Rem[si] >= demand, Ls)
-                    if ok.size == 0:
-                        feas_vec[:] = False
-                        break
-                    aligned = np.zeros_like(feas_vec, dtype=bool)
-                    max_t = min(feas_vec.size, ok.size - off)
-                    if max_t > 0:
-                        aligned[:max_t] = ok[off:off + max_t]
-                    feas_vec = np.logical_and(feas_vec, aligned)
-                    if not feas_vec.any():
-                        break
+                kernel = NeedK.get((oi, mi))
+                if kernel is not None:
+                    skill_ids, offsets, lengths, demands = kernel
+                    for seg_idx in range(skill_ids.size):
+                        si = int(skill_ids[seg_idx])
+                        off = int(offsets[seg_idx])
+                        Ls = int(lengths[seg_idx])
+                        demand = int(demands[seg_idx])
+                        ok = sliding_all_true(Rem[si] >= demand, Ls)
+                        if ok.size == 0:
+                            feas_vec[:] = False
+                            break
+                        aligned = np.zeros_like(feas_vec, dtype=bool)
+                        max_t = min(feas_vec.size, ok.size - off)
+                        if max_t > 0:
+                            aligned[:max_t] = ok[off:off + max_t]
+                        feas_vec = np.logical_and(feas_vec, aligned)
+                        if not feas_vec.any():
+                            break
                 if est > 0 and est < feas_vec.size:
                     feas_vec[:est] = False
                 if feas_vec.any():
