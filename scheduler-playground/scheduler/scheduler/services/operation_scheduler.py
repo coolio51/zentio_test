@@ -36,6 +36,11 @@ class OperationScheduler:
         self._core_task_buffer: List[Task] = []
         self._idle_buffer: List[Idle] = []
 
+    def reset_run_state(self) -> None:
+        """Reset transient buffers while keeping cached data warm."""
+        self._core_task_buffer.clear()
+        self._idle_buffer.clear()
+
     @staticmethod
     def _get_phase_cache(operation: OperationNode) -> tuple[Tuple[TaskPhase, timedelta], ...]:
         cached = getattr(operation, "_cached_phase_sequence", None)

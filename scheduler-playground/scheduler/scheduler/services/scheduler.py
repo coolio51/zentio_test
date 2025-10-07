@@ -1,5 +1,6 @@
 from datetime import datetime
 from typing import Dict, List, Optional
+from weakref import WeakKeyDictionary
 import heapq
 
 from scheduler.models import (
@@ -22,6 +23,20 @@ from scheduler.utils.resource_logger import ResourceLogger
 
 class SchedulerService:
     console = get_console()
+    _operation_scheduler_pool: "WeakKeyDictionary[ResourceManager, OperationScheduler]" = (
+        WeakKeyDictionary()
+    )
+
+    @classmethod
+    def _acquire_operation_scheduler(
+        cls, resource_manager: ResourceManager
+    ) -> OperationScheduler:
+        """Get a cached ``OperationScheduler`` for this resource manager."""
+        operation_scheduler = cls._operation_scheduler_pool.get(resource_manager)
+        if operation_scheduler is None:
+            operation_scheduler = OperationScheduler(resource_manager)
+            cls._operation_scheduler_pool[resource_manager] = operation_scheduler
+        return operation_scheduler
 
     @staticmethod
     @profile_function()
@@ -33,7 +48,10 @@ class SchedulerService:
         all_dropped_operations: List[DroppedOperation] = []
         all_idles: List[Idle] = []
 
-        operation_scheduler = OperationScheduler(resource_manager)
+        operation_scheduler = SchedulerService._acquire_operation_scheduler(
+            resource_manager
+        )
+        operation_scheduler.reset_run_state()
 
         operation_tasks, operation_idles, dropped_operations = (
             SchedulerService._schedule_operations(
