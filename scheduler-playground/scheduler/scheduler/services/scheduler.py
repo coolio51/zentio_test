@@ -32,6 +32,18 @@ class OperationSchedulingProfile:
     dependency_keys: tuple[int, ...]
 
 
+@dataclass(frozen=True)
+class OperationGraphMetadata:
+    """Precomputed structural metadata for a scheduling batch."""
+
+    profiles: tuple[OperationSchedulingProfile, ...]
+    dependency_offsets: tuple[int, ...]
+    dependency_indices: tuple[int, ...]
+    dependency_nodes: tuple[OperationNode, ...]
+    successors: tuple[tuple[int, ...], ...]
+    indegree: tuple[int, ...]
+
+
 class SchedulerService:
     console = get_console()
     _operation_scheduler_pool: "WeakKeyDictionary[ResourceManager, OperationScheduler]" = (
@@ -122,22 +134,51 @@ class SchedulerService:
         )
 
     @staticmethod
-    def _build_operation_profiles(
+    def _build_operation_graph_metadata(
         operations: list[OperationNode],
-    ) -> Dict[OperationNode, OperationSchedulingProfile]:
+    ) -> OperationGraphMetadata:
         """Precompute dependency metadata for each operation."""
 
-        profiles: Dict[OperationNode, OperationSchedulingProfile] = {}
-        for operation in operations:
+        profiles: List[OperationSchedulingProfile] = []
+        dependency_offsets: List[int] = [0]
+        dependency_indices: List[int] = []
+        dependency_nodes: List[OperationNode] = []
+
+        index_by_operation = {operation: idx for idx, operation in enumerate(operations)}
+        successors: List[List[int]] = [[] for _ in operations]
+        indegree: List[int] = []
+
+        for idx, operation in enumerate(operations):
             dependencies = tuple(operation.dependencies)
             dependency_keys = tuple(id(dependency) for dependency in dependencies)
-            profiles[operation] = OperationSchedulingProfile(
-                operation=operation,
-                instance_key=id(operation),
-                dependencies=dependencies,
-                dependency_keys=dependency_keys,
+
+            profiles.append(
+                OperationSchedulingProfile(
+                    operation=operation,
+                    instance_key=id(operation),
+                    dependencies=dependencies,
+                    dependency_keys=dependency_keys,
+                )
             )
-        return profiles
+
+            indegree.append(len(dependencies))
+
+            for dependency in dependencies:
+                dep_index = index_by_operation[dependency]
+                dependency_indices.append(dep_index)
+                dependency_nodes.append(dependency)
+                successors[dep_index].append(idx)
+
+            dependency_offsets.append(len(dependency_indices))
+
+        return OperationGraphMetadata(
+            profiles=tuple(profiles),
+            dependency_offsets=tuple(dependency_offsets),
+            dependency_indices=tuple(dependency_indices),
+            dependency_nodes=tuple(dependency_nodes),
+            successors=tuple(tuple(items) for items in successors),
+            indegree=tuple(indegree),
+        )
 
     @staticmethod
     def _schedule_operations_naive(
@@ -150,33 +191,35 @@ class SchedulerService:
         dropped_operations: List[DroppedOperation] = []
         all_idles: List[Idle] = []
 
-        # Track completion times for each operation instance (unique_key -> end_time)
-        operation_completion_times: Dict[int, datetime] = {}
-
         # Counter for generating unique operation instance IDs
         operation_instance_counter: Dict[str, int] = {}
 
-        # Operations are provided directly
-
-        # Keep track of which operation instances have been scheduled and dropped
-        # Use object identity to distinguish between different instances of the same operation_id
-        scheduled_operations = set()
-        dropped_operation_ids = set()
-
-        profiles = SchedulerService._build_operation_profiles(operations)
+        metadata = SchedulerService._build_operation_graph_metadata(operations)
+        profiles = metadata.profiles
+        dependency_offsets = metadata.dependency_offsets
+        dependency_indices = metadata.dependency_indices
+        dependency_nodes = metadata.dependency_nodes
 
         # Schedule operations in dependency order
-        while len(scheduled_operations) + len(dropped_operation_ids) < len(operations):
+        total_operations = len(operations)
+        scheduled_flags = [False] * total_operations
+        dropped_flags = [False] * total_operations
+        completion_times: List[Optional[datetime]] = [None] * total_operations
+
+        def _mark_dropped(index: int, drop: DroppedOperation) -> None:
+            if not dropped_flags[index]:
+                dropped_operations.append(drop)
+                dropped_flags[index] = True
+
+        scheduled_count = 0
+        dropped_count = 0
+
+        while scheduled_count + dropped_count < total_operations:
             progress_made = False
 
             with profile_section("scheduler.dependency_scan"):
-                for operation in operations:
-                    profile = profiles[operation]
-                    operation_instance_key = profile.instance_key
-                    if (
-                        operation_instance_key in scheduled_operations
-                        or operation_instance_key in dropped_operation_ids
-                    ):
+                for index, profile in enumerate(profiles):
+                    if scheduled_flags[index] or dropped_flags[index]:
                         continue
 
                     # Check if all dependencies are scheduled (not dropped)
@@ -184,36 +227,32 @@ class SchedulerService:
                     max_dependency_end_time = None
                     dropped_due_to_dependency = False
 
-                    for dependency, dependency_instance_key in zip(
-                        profile.dependencies, profile.dependency_keys
-                    ):
-                        if dependency_instance_key in dropped_operation_ids:
-                            # This operation must be dropped because its dependency was dropped
-                            if (
-                                operation_instance_key not in dropped_operation_ids
-                            ):  # Prevent duplicate drops
-                                # Removed verbose logging - use summary at the end instead
-                                dropped_operations.append(
-                                    DroppedOperation(
-                                        manufacturing_order_id=operation.manufacturing_order_id,
-                                        operation_id=operation.operation_id,
-                                        operation_name=operation.operation_name,
-                                        reason=DropReason.DEPENDENCY_DROPPED,
-                                        dependent_operation_id=dependency.operation_id,
-                                    )
-                                )
-                                dropped_operation_ids.add(operation_instance_key)
+                    start = dependency_offsets[index]
+                    end = dependency_offsets[index + 1]
+
+                    for offset in range(start, end):
+                        dependency_index = dependency_indices[offset]
+                        dependency = dependency_nodes[offset]
+                        if dropped_flags[dependency_index]:
+                            _mark_dropped(
+                                index,
+                                DroppedOperation(
+                                    manufacturing_order_id=profile.operation.manufacturing_order_id,
+                                    operation_id=profile.operation.operation_id,
+                                    operation_name=profile.operation.operation_name,
+                                    reason=DropReason.DEPENDENCY_DROPPED,
+                                    dependent_operation_id=dependency.operation_id,
+                                ),
+                            )
                             dropped_due_to_dependency = True
+                            dropped_count += 1
                             progress_made = True
                             break
-                        elif dependency_instance_key not in scheduled_operations:
+                        if not scheduled_flags[dependency_index]:
                             dependencies_satisfied = False
                             break
 
-                        # Find the maximum end time among dependencies
-                        dep_end_time = operation_completion_times.get(
-                            dependency_instance_key
-                        )
+                        dep_end_time = completion_times[dependency_index]
                         if dep_end_time is None:
                             dependencies_satisfied = False
                             break
@@ -231,20 +270,16 @@ class SchedulerService:
                         # Try to schedule this operation
                         operation_tasks, operation_idles, operation_dropped = (
                             operation_scheduler.schedule_operation(
-                                operation,
+                                profile.operation,
                                 earliest_start=max_dependency_end_time,
                                 operation_instance_counter=operation_instance_counter,
                             )
-                            )
+                        )
 
                         if operation_dropped:
                             # Operation was dropped, add to dropped list
-                            if (
-                                operation_instance_key not in dropped_operation_ids
-                            ):  # Prevent duplicate drops
-                                # Removed verbose logging - use summary at the end instead
-                                dropped_operations.append(operation_dropped)
-                                dropped_operation_ids.add(operation_instance_key)
+                            _mark_dropped(index, operation_dropped)
+                            dropped_count += 1
                             progress_made = True
                         elif operation_tasks:
                             # Operation was successfully scheduled
@@ -252,39 +287,37 @@ class SchedulerService:
                             tasks.extend(operation_tasks)
                             all_idles.extend(operation_idles)
                             # Record the completion time of this operation instance
-                            operation_completion_times[operation_instance_key] = max(
+                            completion_times[index] = max(
                                 task.datetime_end for task in operation_tasks
                             )
-                            scheduled_operations.add(operation_instance_key)
+                            scheduled_flags[index] = True
+                            scheduled_count += 1
                             progress_made = True
 
             if not progress_made:
                 # This should not happen if the dependency graph is valid
                 remaining_ops = [
-                    op.operation_id
-                    for op in operations
-                    if profiles[op].instance_key not in scheduled_operations
-                    and profiles[op].instance_key not in dropped_operation_ids
+                    profiles[idx].operation.operation_id
+                    for idx in range(total_operations)
+                    if not scheduled_flags[idx] and not dropped_flags[idx]
                 ]
                 SchedulerService.console.log(
                     f"Warning: Could not schedule operations due to circular dependencies or missing dependencies: {remaining_ops}"
                 )
                 # Drop the remaining operations with a circular dependency reason
-                for op in operations:
-                    profile = profiles[op]
-                    if (
-                        profile.instance_key not in scheduled_operations
-                        and profile.instance_key not in dropped_operation_ids
-                    ):
-                        dropped_operations.append(
+                for idx in range(total_operations):
+                    if not scheduled_flags[idx] and not dropped_flags[idx]:
+                        op = profiles[idx].operation
+                        _mark_dropped(
+                            idx,
                             DroppedOperation(
                                 manufacturing_order_id=op.manufacturing_order_id,
                                 operation_id=op.operation_id,
                                 operation_name=op.operation_name,
                                 reason=DropReason.CIRCULAR_DEPENDENCY,
-                            )
+                            ),
                         )
-                        dropped_operation_ids.add(profile.instance_key)
+                        dropped_count += 1
                 break
 
         return tasks, all_idles, dropped_operations
@@ -301,19 +334,13 @@ class SchedulerService:
         all_idles: List[Idle] = []
 
         operation_instance_counter: Dict[str, int] = {}
+        metadata = SchedulerService._build_operation_graph_metadata(operations)
+        profiles = metadata.profiles
+        indegree = list(metadata.indegree)
+        successors = [list(items) for items in metadata.successors]
         completion_times: List[Optional[datetime]] = [None] * len(operations)
-
-        profiles = SchedulerService._build_operation_profiles(operations)
-        index_by_op = {op: idx for idx, op in enumerate(operations)}
-        indegree: List[int] = [len(profiles[op].dependencies) for op in operations]
-        successors: List[List[int]] = [[] for _ in operations]
         ready_times: List[Optional[datetime]] = [None] * len(operations)
         dropped_due_to_dependency: Dict[int, OperationNode] = {}
-
-        for idx, op in enumerate(operations):
-            for dependency in profiles[op].dependencies:
-                dep_index = index_by_op[dependency]
-                successors[dep_index].append(idx)
 
         heap: List[tuple[float, int, int]] = []
         counter = 0

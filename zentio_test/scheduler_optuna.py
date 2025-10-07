@@ -238,6 +238,7 @@ def build_matrices(data: Dict):
     D=np.zeros((nO, len(Phases), nM), dtype=np.int16)
     NeedKernelLists: Dict[Tuple[int, int], List[Tuple[int, int, int, int]]] = {}
     total_len={}
+    total_len_arr = np.zeros((nO, nM), dtype=np.int16)
     demand_profiles: Dict[Tuple[int, int], DemandProfile] = {}
     for oi, op in enumerate(Ops):
         for mi, m in enumerate(Machines):
@@ -251,6 +252,8 @@ def build_matrices(data: Dict):
                     phase_windows.append((offset, L, data["Need"][op][ph]))
                     offset+=L; tot+=L
             total_len[(oi,mi)]=tot
+            if tot>0:
+                total_len_arr[oi, mi] = tot
             if tot>0 and phase_windows:
                 skill_buffers: Dict[int, np.ndarray] = {}
                 segments: List[Tuple[int, int, int, int]] = []
@@ -288,6 +291,17 @@ def build_matrices(data: Dict):
                         worker_requirements=worker_reqs,
                     )
     preds=[(idx["op"][a], idx["op"][b]) for a,b in data["PredEdges"]]
+    pred_counts = np.zeros(nO, dtype=np.int32)
+    for _, b in preds:
+        pred_counts[b] += 1
+    pred_indptr = np.zeros(nO + 1, dtype=np.int32)
+    np.cumsum(pred_counts, out=pred_indptr[1:])
+    pred_indices = np.empty(pred_indptr[-1], dtype=np.int32)
+    fill_pos = pred_indptr[:-1].copy()
+    for a, b in preds:
+        pos = fill_pos[b]
+        pred_indices[pos] = a
+        fill_pos[b] += 1
     JobOf=np.array([idx["job"][data["JobOf"][op]] for op in Ops], dtype=np.int32)
     Due=np.array([data["Due"][j] for j in data["Jobs"]], dtype=np.int32)
     NeedKernels: Dict[Tuple[int, int], Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]] = {}
@@ -300,7 +314,11 @@ def build_matrices(data: Dict):
             seg_arr[:,3].astype(np.int16, copy=False),
         )
     return {"idx":idx,"A_M":A_M,"C_W":C_W,"Q":Q,"C_S":C_S,"E":E,"D":D,"NeedKernels":NeedKernels,"NeedProfiles":demand_profiles,"total_len":total_len,
-            "preds":preds,"JobOf":JobOf,"Due":Due,
+            "total_len_arr":total_len_arr,
+            "preds":preds,
+            "pred_indptr":pred_indptr,
+            "pred_indices":pred_indices,
+            "JobOf":JobOf,"Due":Due,
             "n":{"O":nO,"M":nM,"W":nW,"S":nS,"T":nT,"CAP":CAP},
             "meta":{"Ops":Ops,"Machines":Machines,"Workers":Workers,"Skills":Skills,"Phases":Phases,"T":T}}
 
@@ -310,7 +328,8 @@ class DecodeMetrics: total_ns:int=0; feas_ns:int=0; assign_ns:int=0; ops_schedul
 
 def decode_schedule(mats: Dict, op_order: np.ndarray, machine_choice: np.ndarray, hard_deadlines: bool=False) -> Dict:
     t0=now_ns()
-    A_M=mats["A_M"].copy(); C_S_base=mats["C_S"].copy(); E=mats["E"]; NeedK=mats["NeedKernels"]; total_len=mats["total_len"]; preds=mats["preds"]
+    A_M=mats["A_M"].copy(); C_S_base=mats["C_S"].copy(); E=mats["E"]; NeedK=mats["NeedKernels"]; total_len_arr=mats["total_len_arr"]
+    pred_indptr = mats["pred_indptr"]; pred_indices = mats["pred_indices"]
     demand_profiles=mats.get("NeedProfiles", {})
     nO, nT, CAP = mats["n"]["O"], mats["n"]["T"], mats["n"]["CAP"]
     M_busy=np.zeros_like(A_M, dtype=bool); S_used=np.zeros_like(C_S_base, dtype=np.int16); W_busy=np.zeros((mats["n"]["W"], nT), dtype=bool)
@@ -318,8 +337,6 @@ def decode_schedule(mats: Dict, op_order: np.ndarray, machine_choice: np.ndarray
     skill_workers=[np.flatnonzero(Q[:, si]).astype(np.int32, copy=False) for si in range(mats["n"]["S"])]
     worker_mask=np.empty(mats["n"]["W"], dtype=bool)
     cap_mask=np.empty_like(worker_mask)
-    pred_list=[[] for _ in range(nO)]
-    for a,b in preds: pred_list[b].append(a)
     start=np.full(nO, -1, dtype=np.int32); finish=np.full(nO, -1, dtype=np.int32); chosen_m=np.full(nO, -1, dtype=np.int16)
     assigned_workers={}; dm=DecodeMetrics()
 
@@ -394,27 +411,35 @@ def decode_schedule(mats: Dict, op_order: np.ndarray, machine_choice: np.ndarray
         return True
 
     def earliest_pred_finish(oi):
-        if not pred_list[oi]:
+        start_idx = pred_indptr[oi]
+        end_idx = pred_indptr[oi + 1]
+        if start_idx == end_idx:
             return 0
-        # if ANY predecessor is not scheduled, this op cannot be scheduled now
-        if any(finish[p] < 0 for p in pred_list[oi]):
-            return None  # signal "blocked"
-        return int(max(finish[p] for p in pred_list[oi]))
+        preds_slice = pred_indices[start_idx:end_idx]
+        pred_finish = finish[preds_slice]
+        if np.any(pred_finish < 0):
+            return None
+        return int(pred_finish.max()) if pred_finish.size else 0
 
     for oi in op_order:
         dm.ops_scheduled += 1; dm.tries += 1
         mi_req=machine_choice[oi]; elig=np.where(E[oi])[0]
         cand_machines=list(elig) if mi_req<0 or mi_req not in elig else [mi_req]
         if not cand_machines: dm.ops_failed += 1; continue
-        est=earliest_pred_finish(oi); best_t=None; best_mi=None
+        est=earliest_pred_finish(oi)
+        if est is None:
+            dm.ops_failed += 1
+            continue
+        best_t=None; best_mi=None
         feas_start=now_ns()
+        Rem = C_S_base - S_used
         for mi in cand_machines:
-            tot=total_len.get((oi,mi), 0);
+            tot=int(total_len_arr[oi, mi])
             if tot<=0: continue
             free_m=np.logical_and(A_M[mi], np.logical_not(M_busy[mi]))
             mach_ok=sliding_all_true(free_m, tot)
             if mach_ok.size==0: continue
-            Rem=C_S_base - S_used; feas_vec=mach_ok.copy()
+            feas_vec=mach_ok.copy()
             kernel=NeedK.get((oi,mi))
             if kernel is not None:
                 skill_ids, offsets, lengths, demands = kernel
@@ -446,7 +471,7 @@ def decode_schedule(mats: Dict, op_order: np.ndarray, machine_choice: np.ndarray
         if best_t is None: dm.ops_failed += 1; continue
         assign_start=now_ns(); ok=worker_assign(oi, best_mi, best_t); dm.assign_ns += now_ns() - assign_start
         if not ok: dm.ops_failed += 1; continue
-        tot=total_len[(oi, best_mi)]
+        tot=int(total_len_arr[oi, best_mi])
         M_busy[best_mi, best_t:best_t+tot]=True; chosen_m[oi]=best_mi; start[oi]=best_t; finish[oi]=best_t+tot
 
     res={"feasible": bool(dm.ops_failed == 0) if hard_deadlines else True, "start":start, "finish":finish, "machine":chosen_m,
@@ -455,7 +480,7 @@ def decode_schedule(mats: Dict, op_order: np.ndarray, machine_choice: np.ndarray
 
 # =============== genome helpers & GA ===============
 def default_genome(mats: Dict, strategy="min_total_len"):
-    E=mats["E"]; total_len=mats["total_len"]; nO=mats["n"]["O"]
+    E=mats["E"]; total_len_arr=mats["total_len_arr"]; nO=mats["n"]["O"]
     op_order=np.arange(nO, dtype=np.int32); machine_choice=-np.ones(nO, dtype=np.int16)
     for oi in range(nO):
         elig=np.where(E[oi])[0]
@@ -463,9 +488,12 @@ def default_genome(mats: Dict, strategy="min_total_len"):
         if strategy=="min_total_len":
             best=None; best_val=None
             for mi in elig:
-                tot=total_len.get((oi,mi), 10**9)
+                tot=int(total_len_arr[oi, mi])
+                if tot<=0:
+                    continue
                 if best is None or tot<best_val: best, best_val = mi, tot
-            machine_choice[oi]=best
+            if best is not None:
+                machine_choice[oi]=best
         else:
             machine_choice[oi]=elig[0]
     return op_order, machine_choice
