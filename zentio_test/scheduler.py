@@ -204,6 +204,8 @@ def decode_schedule(mats: Dict, op_order: np.ndarray, machine_choice: np.ndarray
     machine_window_starts=[[int(s) for s, _ in windows] for windows in machine_windows]
     skill_free=mats["C_S"].copy(); skill_used=np.zeros_like(skill_free, dtype=np.int16)
     M_busy=np.zeros_like(mats["A_M"], dtype=bool); W_busy=np.zeros((mats["n"]["W"], nT), dtype=bool)
+    worker_available_buffer=np.empty(mats["n"]["W"], dtype=bool)
+    worker_free_buffer=np.empty_like(worker_available_buffer)
     total_len_arr=mats["total_len_arr"]
     demand_profiles=mats.get("NeedProfiles", {})
     pred_list=mats["pred_list"]
@@ -259,6 +261,9 @@ def decode_schedule(mats: Dict, op_order: np.ndarray, machine_choice: np.ndarray
                     return candidate, idx
         return None
 
+    skill_active_buffers: Dict[int, np.ndarray] = {}
+    required_buffers: Dict[int, np.ndarray] = {}
+
     def worker_assign(oi: int, mi: int, t_start: int) -> bool:
         profile=demand_profiles.get((oi, mi))
         if profile is None:
@@ -266,40 +271,51 @@ def decode_schedule(mats: Dict, op_order: np.ndarray, machine_choice: np.ndarray
             return True
         skill_ids, demand_matrix = profile
         tot=demand_matrix.shape[1]
+        if tot == 0 or skill_ids.size == 0:
+            assigned_workers[oi]={}
+            return True
+        active_buf = skill_active_buffers.setdefault(skill_ids.size, np.empty(skill_ids.size, dtype=bool))
+        required_buf = required_buffers.setdefault(skill_ids.size, np.empty(skill_ids.size, dtype=np.int16))
         op_assign={}
         for local_t in range(tot):
             abs_t=t_start + local_t
             if abs_t >= nT:
                 return False
-            active = demand_matrix[:, local_t] > 0
-            if not active.any():
+            np.greater(demand_matrix[:, local_t], 0, out=active_buf)
+            if not active_buf.any():
                 continue
-            available_mask = (C_W[:, abs_t] > 0) & (~W_busy[:, abs_t])
-            if not available_mask.any():
+            np.greater(C_W[:, abs_t], 0, out=worker_available_buffer)
+            np.logical_not(W_busy[:, abs_t], out=worker_free_buffer)
+            np.logical_and(worker_available_buffer, worker_free_buffer, out=worker_available_buffer)
+            if not worker_available_buffer.any():
                 return False
+            np.copyto(required_buf, demand_matrix[:, local_t], casting="unsafe")
+            if CAP > 1:
+                np.add(required_buf, CAP - 1, out=required_buf, casting="unsafe")
+            np.floor_divide(required_buf, CAP, out=required_buf, casting="unsafe")
             counts=[]
             for row_idx, si in enumerate(skill_ids):
-                if not active[row_idx]:
+                if not active_buf[row_idx]:
                     continue
                 pool = skill_workers[si]
                 if pool.size == 0:
                     return False
-                pool_available = pool[available_mask[pool]]
+                pool_available = pool[worker_available_buffer[pool]]
                 counts.append((row_idx, pool_available))
             counts.sort(key=lambda x: x[1].size)
             for row_idx, pool_available in counts:
-                need_units=demand_matrix[row_idx, local_t]
-                if need_units <= 0:
+                required = int(required_buf[row_idx])
+                if required <= 0:
                     continue
-                required=int(math.ceil(need_units / CAP))
                 if pool_available.size < required:
                     return False
                 chosen=pool_available[:required]
                 W_busy[chosen, abs_t]=True
-                available_mask[chosen]=False
+                worker_available_buffer[chosen]=False
                 op_assign.setdefault(abs_t, [])
+                skill_id=int(skill_ids[row_idx])
                 for w in chosen:
-                    op_assign[abs_t].append((int(w), int(skill_ids[row_idx])))
+                    op_assign[abs_t].append((int(w), skill_id))
         assigned_workers[oi]=op_assign
         return True
 
