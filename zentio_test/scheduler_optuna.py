@@ -79,6 +79,15 @@ class NeedsCfg: cap:int=10
 @dataclass
 class ShiftCfg: break_bucket_offset:int=3; day_start:int=8; day_end:int=16; eve_start:int=16; eve_end:int=22; assign_evening_fraction:float=0.5
 
+
+@dataclass
+class DemandProfile:
+    skill_ids: np.ndarray
+    demand: np.ndarray
+    active_cols: np.ndarray
+    active_rows: Tuple[np.ndarray, ...]
+    worker_requirements: np.ndarray
+
 # =============== dataset gen ===============
 def build_time_axis(hcfg: HorizonCfg):
     bph = 60 // hcfg.bucket_min
@@ -229,7 +238,7 @@ def build_matrices(data: Dict):
     D=np.zeros((nO, len(Phases), nM), dtype=np.int16)
     NeedKernelLists: Dict[Tuple[int, int], List[Tuple[int, int, int, int]]] = {}
     total_len={}
-    demand_profiles: Dict[Tuple[int, int], Tuple[np.ndarray, np.ndarray]] = {}
+    demand_profiles: Dict[Tuple[int, int], DemandProfile] = {}
     for oi, op in enumerate(Ops):
         for mi, m in enumerate(Machines):
             if not E[oi, mi]:
@@ -258,7 +267,26 @@ def build_matrices(data: Dict):
                     NeedKernelLists[(oi,mi)] = segments
                     skill_ids=np.array(list(skill_buffers.keys()), dtype=np.int16)
                     demand_matrix=np.vstack([skill_buffers[si] for si in skill_ids])
-                    demand_profiles[(oi, mi)] = (skill_ids, demand_matrix)
+                    active_mask = demand_matrix > 0
+                    active_cols = np.nonzero(active_mask.any(axis=0))[0].astype(np.int16, copy=False)
+                    if active_cols.size:
+                        active_rows = tuple(
+                            np.nonzero(active_mask[:, col])[0].astype(np.int16, copy=False)
+                            for col in active_cols
+                        )
+                        worker_reqs = np.empty((skill_ids.size, active_cols.size), dtype=np.int16)
+                        np.add(demand_matrix[:, active_cols], CAP - 1, out=worker_reqs, casting="unsafe")
+                        np.floor_divide(worker_reqs, CAP, out=worker_reqs, casting="unsafe")
+                    else:
+                        active_rows = tuple()
+                        worker_reqs = np.zeros((skill_ids.size, 0), dtype=np.int16)
+                    demand_profiles[(oi, mi)] = DemandProfile(
+                        skill_ids=skill_ids,
+                        demand=demand_matrix,
+                        active_cols=active_cols,
+                        active_rows=active_rows,
+                        worker_requirements=worker_reqs,
+                    )
     preds=[(idx["op"][a], idx["op"][b]) for a,b in data["PredEdges"]]
     JobOf=np.array([idx["job"][data["JobOf"][op]] for op in Ops], dtype=np.int32)
     Due=np.array([data["Due"][j] for j in data["Jobs"]], dtype=np.int32)
@@ -298,30 +326,34 @@ def decode_schedule(mats: Dict, op_order: np.ndarray, machine_choice: np.ndarray
     def worker_assign(oi, mi, t_start, commit=True)->bool:
         nonlocal S_used, W_busy, assigned_workers
         profile=demand_profiles.get((oi, mi))
-        if profile is None:
+        if not isinstance(profile, DemandProfile):
             if commit:
                 assigned_workers[oi]={}
             return True
-        skill_ids, demand_matrix = profile
+        skill_ids = profile.skill_ids
+        demand_matrix = profile.demand
         tot=demand_matrix.shape[1]
         if t_start + tot > nT:
             return False
+        if skill_ids.size == 0 or profile.active_cols.size == 0:
+            if commit:
+                assigned_workers[oi]={}
+            return True
         op_assign: Dict[int, List[Tuple[int, int]]] = {}
         assigned_log: List[Tuple[int, np.ndarray, int, int]] = []
-        for local_t in range(tot):
-            abs_t=t_start + local_t
+        for col_idx, local_t in enumerate(profile.active_cols):
+            abs_t=t_start + int(local_t)
             np.greater(C_W[:, abs_t], 0, out=cap_mask)
             np.logical_not(W_busy[:, abs_t], out=worker_mask)
             np.logical_and(worker_mask, cap_mask, out=worker_mask)
-            demand_slice=demand_matrix[:, local_t]
-            active_rows=np.nonzero(demand_slice > 0)[0]
-            if active_rows.size == 0:
-                continue
             if not worker_mask.any():
                 for t_abs, chosen, si_idx, used_cap in assigned_log:
                     W_busy[chosen, t_abs] = False
                     S_used[si_idx, t_abs] -= used_cap
                 return False
+            active_rows = profile.active_rows[col_idx]
+            if active_rows.size == 0:
+                continue
             pools: List[Tuple[int, np.ndarray]] = []
             for row_idx in active_rows:
                 si=int(skill_ids[row_idx])
@@ -335,10 +367,9 @@ def decode_schedule(mats: Dict, op_order: np.ndarray, machine_choice: np.ndarray
                 pools.append((row_idx, available))
             pools.sort(key=lambda x: x[1].size)
             for row_idx, available in pools:
-                need_units=int(demand_slice[row_idx])
-                if need_units <= 0:
+                required=int(profile.worker_requirements[row_idx, col_idx])
+                if required <= 0:
                     continue
-                required=int(math.ceil(need_units / CAP))
                 if available.size < required:
                     for t_abs, chosen, si_idx, used_cap in assigned_log:
                         W_busy[chosen, t_abs] = False

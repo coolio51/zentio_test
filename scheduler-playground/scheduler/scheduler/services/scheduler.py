@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from datetime import datetime
 from typing import Dict, List, Optional
 from weakref import WeakKeyDictionary
@@ -19,6 +20,16 @@ from scheduler.common.profiling import profile_function, profile_section
 from scheduler.common.settings import get_scheduler_mode
 from scheduler.common.console import get_console
 from scheduler.utils.resource_logger import ResourceLogger
+
+
+@dataclass(frozen=True)
+class OperationSchedulingProfile:
+    """Lightweight cache of dependency data for an operation instance."""
+
+    operation: OperationNode
+    instance_key: int
+    dependencies: tuple[OperationNode, ...]
+    dependency_keys: tuple[int, ...]
 
 
 class SchedulerService:
@@ -111,6 +122,24 @@ class SchedulerService:
         )
 
     @staticmethod
+    def _build_operation_profiles(
+        operations: list[OperationNode],
+    ) -> Dict[OperationNode, OperationSchedulingProfile]:
+        """Precompute dependency metadata for each operation."""
+
+        profiles: Dict[OperationNode, OperationSchedulingProfile] = {}
+        for operation in operations:
+            dependencies = tuple(operation.dependencies)
+            dependency_keys = tuple(id(dependency) for dependency in dependencies)
+            profiles[operation] = OperationSchedulingProfile(
+                operation=operation,
+                instance_key=id(operation),
+                dependencies=dependencies,
+                dependency_keys=dependency_keys,
+            )
+        return profiles
+
+    @staticmethod
     def _schedule_operations_naive(
         operations: list[OperationNode],
         resource_manager: ResourceManager,
@@ -122,7 +151,7 @@ class SchedulerService:
         all_idles: List[Idle] = []
 
         # Track completion times for each operation instance (unique_key -> end_time)
-        operation_completion_times: Dict[tuple[str, int], datetime] = {}
+        operation_completion_times: Dict[int, datetime] = {}
 
         # Counter for generating unique operation instance IDs
         operation_instance_counter: Dict[str, int] = {}
@@ -134,10 +163,7 @@ class SchedulerService:
         scheduled_operations = set()
         dropped_operation_ids = set()
 
-        dependency_cache: Dict[int, tuple[OperationNode, ...]] = {
-            id(operation): tuple(operation.dependencies)
-            for operation in operations
-        }
+        profiles = SchedulerService._build_operation_profiles(operations)
 
         # Schedule operations in dependency order
         while len(scheduled_operations) + len(dropped_operation_ids) < len(operations):
@@ -145,7 +171,8 @@ class SchedulerService:
 
             with profile_section("scheduler.dependency_scan"):
                 for operation in operations:
-                    operation_instance_key = id(operation)
+                    profile = profiles[operation]
+                    operation_instance_key = profile.instance_key
                     if (
                         operation_instance_key in scheduled_operations
                         or operation_instance_key in dropped_operation_ids
@@ -157,10 +184,9 @@ class SchedulerService:
                     max_dependency_end_time = None
                     dropped_due_to_dependency = False
 
-                    for dependency in dependency_cache.get(
-                        operation_instance_key, ()
+                    for dependency, dependency_instance_key in zip(
+                        profile.dependencies, profile.dependency_keys
                     ):
-                        dependency_instance_key = id(dependency)
                         if dependency_instance_key in dropped_operation_ids:
                             # This operation must be dropped because its dependency was dropped
                             if (
@@ -185,12 +211,12 @@ class SchedulerService:
                             break
 
                         # Find the maximum end time among dependencies
-                        # Use a unique key that combines operation_id and instance for completion times
-                        dep_completion_key = (
-                            dependency.operation_id,
-                            dependency_instance_key,
+                        dep_end_time = operation_completion_times.get(
+                            dependency_instance_key
                         )
-                        dep_end_time = operation_completion_times[dep_completion_key]
+                        if dep_end_time is None:
+                            dependencies_satisfied = False
+                            break
                         if (
                             max_dependency_end_time is None
                             or dep_end_time > max_dependency_end_time
@@ -209,7 +235,7 @@ class SchedulerService:
                                 earliest_start=max_dependency_end_time,
                                 operation_instance_counter=operation_instance_counter,
                             )
-                        )
+                            )
 
                         if operation_dropped:
                             # Operation was dropped, add to dropped list
@@ -226,11 +252,7 @@ class SchedulerService:
                             tasks.extend(operation_tasks)
                             all_idles.extend(operation_idles)
                             # Record the completion time of this operation instance
-                            completion_key = (
-                                operation.operation_id,
-                                operation_instance_key,
-                            )
-                            operation_completion_times[completion_key] = max(
+                            operation_completion_times[operation_instance_key] = max(
                                 task.datetime_end for task in operation_tasks
                             )
                             scheduled_operations.add(operation_instance_key)
@@ -241,17 +263,18 @@ class SchedulerService:
                 remaining_ops = [
                     op.operation_id
                     for op in operations
-                    if id(op) not in scheduled_operations
-                    and id(op) not in dropped_operation_ids
+                    if profiles[op].instance_key not in scheduled_operations
+                    and profiles[op].instance_key not in dropped_operation_ids
                 ]
                 SchedulerService.console.log(
                     f"Warning: Could not schedule operations due to circular dependencies or missing dependencies: {remaining_ops}"
                 )
                 # Drop the remaining operations with a circular dependency reason
                 for op in operations:
+                    profile = profiles[op]
                     if (
-                        id(op) not in scheduled_operations
-                        and id(op) not in dropped_operation_ids
+                        profile.instance_key not in scheduled_operations
+                        and profile.instance_key not in dropped_operation_ids
                     ):
                         dropped_operations.append(
                             DroppedOperation(
@@ -261,7 +284,7 @@ class SchedulerService:
                                 reason=DropReason.CIRCULAR_DEPENDENCY,
                             )
                         )
-                        dropped_operation_ids.add(id(op))
+                        dropped_operation_ids.add(profile.instance_key)
                 break
 
         return tasks, all_idles, dropped_operations
@@ -280,14 +303,15 @@ class SchedulerService:
         operation_instance_counter: Dict[str, int] = {}
         completion_times: List[Optional[datetime]] = [None] * len(operations)
 
+        profiles = SchedulerService._build_operation_profiles(operations)
         index_by_op = {op: idx for idx, op in enumerate(operations)}
-        indegree: List[int] = [len(op.dependencies) for op in operations]
+        indegree: List[int] = [len(profiles[op].dependencies) for op in operations]
         successors: List[List[int]] = [[] for _ in operations]
         ready_times: List[Optional[datetime]] = [None] * len(operations)
         dropped_due_to_dependency: Dict[int, OperationNode] = {}
 
         for idx, op in enumerate(operations):
-            for dependency in op.dependencies:
+            for dependency in profiles[op].dependencies:
                 dep_index = index_by_op[dependency]
                 successors[dep_index].append(idx)
 
