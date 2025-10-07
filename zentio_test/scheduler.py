@@ -183,7 +183,7 @@ def build_matrices(data: Dict):
     for a,b in preds:
         pred_list[b].append(a)
     pred_list=[np.array(p, dtype=np.int32) for p in pred_list]
-    skill_workers=[np.flatnonzero(Q[:, si]) for si in range(nS)]
+    skill_workers=[np.flatnonzero(Q[:, si]).astype(np.int32, copy=False) for si in range(nS)]
     machine_windows=[_extract_intervals(A_M[mi]) for mi in range(nM)]
     machine_window_starts=[[int(seg[0]) for seg in windows] for windows in machine_windows]
     JobOf=np.array([idx["job"][data["JobOf"][op]] for op in Ops], dtype=np.int32)
@@ -274,24 +274,29 @@ def decode_schedule(mats: Dict, op_order: np.ndarray, machine_choice: np.ndarray
             active = demand_matrix[:, local_t] > 0
             if not active.any():
                 continue
-            base_mask = np.logical_and(C_W[:, abs_t] > 0, np.logical_not(W_busy[:, abs_t]))
+            available_mask = (C_W[:, abs_t] > 0) & (~W_busy[:, abs_t])
+            if not available_mask.any():
+                return False
             counts=[]
             for row_idx, si in enumerate(skill_ids):
                 if not active[row_idx]:
                     continue
-                available = skill_workers[si][base_mask[skill_workers[si]]]
-                counts.append((row_idx, available))
+                pool = skill_workers[si]
+                if pool.size == 0:
+                    return False
+                pool_available = pool[available_mask[pool]]
+                counts.append((row_idx, pool_available))
             counts.sort(key=lambda x: x[1].size)
-            for row_idx, available in counts:
+            for row_idx, pool_available in counts:
                 need_units=demand_matrix[row_idx, local_t]
                 if need_units <= 0:
                     continue
                 required=int(math.ceil(need_units / CAP))
-                if available.size < required:
+                if pool_available.size < required:
                     return False
-                chosen=available[:required]
+                chosen=pool_available[:required]
                 W_busy[chosen, abs_t]=True
-                base_mask[chosen]=False
+                available_mask[chosen]=False
                 op_assign.setdefault(abs_t, [])
                 for w in chosen:
                     op_assign[abs_t].append((int(w), int(skill_ids[row_idx])))
