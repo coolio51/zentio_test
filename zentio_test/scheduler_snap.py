@@ -222,11 +222,15 @@ def build_matrices(data: Dict):
     Q=np.array([[data["Q"][w][s] for s in Skills] for w in Workers], dtype=bool)  # (W,S)
     C_S=Q.T.astype(np.int16) @ C_W  # (S,T)
     E=np.array([[data["E"][op][m] for m in Machines] for op in Ops], dtype=bool)  # (O,M)
-    D=np.zeros((nO, len(Phases), nM), dtype=np.int16); NeedKernels={}; total_len={}
+    D=np.zeros((nO, len(Phases), nM), dtype=np.int16)
+    total_len_arr=np.zeros((nO, nM), dtype=np.int16)
+    need_segments=[[[] for _ in range(nM)] for _ in range(nO)]
+    demand_profiles=[[None for _ in range(nM)] for _ in range(nO)]
     for oi, op in enumerate(Ops):
         for mi, m in enumerate(Machines):
-            if not E[oi, mi]: continue
-            offset=0; tot=0
+            if not E[oi, mi]:
+                continue
+            offset=0; tot=0; segments=[]
             for pi, ph in enumerate(Phases):
                 L=int(data["D"][op][ph].get(m, 0)); D[oi, pi, mi]=L
                 if L>0:
@@ -234,14 +238,59 @@ def build_matrices(data: Dict):
                         demand=int(math.ceil(float(need) * CAP))
                         si=idx["s"].get(s, None)
                         if si is not None and demand>0:
-                            NeedKernels.setdefault((oi,mi), []).append((si, offset, L, demand))
+                            segments.append((int(si), offset, L, demand))
                     offset+=L; tot+=L
-            total_len[(oi,mi)]=tot
+            if tot>0:
+                total_len_arr[oi, mi]=tot
+                need_segments[oi][mi]=segments
+                skill_buffers: Dict[int, np.ndarray] = {}
+                for si, start_off, Ls, demand in segments:
+                    buf=skill_buffers.setdefault(si, np.zeros(tot, dtype=np.int16))
+                    buf[start_off:start_off+Ls] += demand
+                if skill_buffers:
+                    skill_ids=np.array(list(skill_buffers.keys()), dtype=np.int16)
+                    demand_matrix=np.vstack([skill_buffers[si] for si in skill_ids])
+                    demand_profiles[oi][mi]=(skill_ids, demand_matrix)
+            else:
+                need_segments[oi][mi]=segments
     preds=[(idx["op"][a], idx["op"][b]) for a,b in data["PredEdges"]]
+    pred_indptr=np.zeros(nO+1, dtype=np.int32)
+    for (a,b) in preds:
+        pred_indptr[b+1] += 1
+    np.cumsum(pred_indptr, out=pred_indptr)
+    pred_indices=np.empty(pred_indptr[-1], dtype=np.int32)
+    fill=pred_indptr.copy()
+    for a,b in preds:
+        pos=fill[b]; pred_indices[pos]=a; fill[b]+=1
+    pair_count=nO*nM
+    need_ptr=np.zeros(pair_count+1, dtype=np.int32)
+    seg_total=sum(len(need_segments[oi][mi]) for oi in range(nO) for mi in range(nM))
+    need_si=np.empty(seg_total, dtype=np.int16)
+    need_off=np.empty(seg_total, dtype=np.int16)
+    need_len=np.empty(seg_total, dtype=np.int16)
+    need_dem=np.empty(seg_total, dtype=np.int16)
+    cursor=0
+    for oi in range(nO):
+        for mi in range(nM):
+            pair_idx=oi*nM + mi
+            segs=need_segments[oi][mi]
+            need_ptr[pair_idx]=cursor
+            for si, start_off, Ls, demand in segs:
+                need_si[cursor]=si
+                need_off[cursor]=start_off
+                need_len[cursor]=Ls
+                need_dem[cursor]=demand
+                cursor+=1
+            need_ptr[pair_idx + 1]=cursor
     JobOf=np.array([idx["job"][data["JobOf"][op]] for op in Ops], dtype=np.int32)
     Due=np.array([data["Due"][j] for j in data["Jobs"]], dtype=np.int32)
-    return {"idx":idx,"A_M":A_M,"C_W":C_W,"Q":Q,"C_S":C_S,"E":E,"D":D,"NeedKernels":NeedKernels,"total_len":total_len,
-            "preds":preds,"JobOf":JobOf,"Due":Due,
+    skill_workers=[np.flatnonzero(Q[:, si]).astype(np.int32, copy=False) for si in range(nS)]
+    return {"idx":idx,"A_M":A_M,"C_W":C_W,"Q":Q,"C_S":C_S,"E":E,"D":D,
+            "total_len_arr":total_len_arr,
+            "need_ptr":need_ptr,"need_si":need_si,"need_off":need_off,"need_len":need_len,"need_dem":need_dem,
+            "demand_profiles":demand_profiles,
+            "preds":preds,"pred_indptr":pred_indptr,"pred_indices":pred_indices,
+            "JobOf":JobOf,"Due":Due,"skill_workers":skill_workers,
             "n":{"O":nO,"M":nM,"W":nW,"S":nS,"T":nT,"CAP":CAP},
             "meta":{"Ops":Ops,"Machines":Machines,"Workers":Workers,"Skills":Skills,"Phases":Phases,"T":T}}
 
@@ -254,73 +303,117 @@ def decode_schedule(mats: Dict, op_order: np.ndarray, machine_choice: np.ndarray
                     max_candidates_per_op: int = 2000) -> Dict:
     t0 = now_ns()
     A_M = mats["A_M"].copy(); C_S_base = mats["C_S"].copy(); E = mats["E"]
-    NeedK = mats["NeedKernels"]; total_len = mats["total_len"]; preds = mats["preds"]
+    total_len_arr = mats["total_len_arr"]
+    need_ptr = mats["need_ptr"]; need_si = mats["need_si"]; need_off = mats["need_off"]; need_len = mats["need_len"]; need_dem = mats["need_dem"]
+    demand_profiles = mats["demand_profiles"]
+    pred_indptr = mats["pred_indptr"]; pred_indices = mats["pred_indices"]
+    skill_workers = mats["skill_workers"]
     nO, nT, CAP = mats["n"]["O"], mats["n"]["T"], mats["n"]["CAP"]
+    nM = mats["n"]["M"]
     M_busy = np.zeros_like(A_M, dtype=bool)
     S_used = np.zeros_like(C_S_base, dtype=np.int16)
     W_busy = np.zeros((mats["n"]["W"], nT), dtype=bool)
+    worker_available_buffer = np.empty(mats["n"]["W"], dtype=bool)
+    worker_free_buffer = np.empty_like(worker_available_buffer)
     Q = mats["Q"]; C_W = mats["C_W"]
-    pred_list = [[] for _ in range(nO)]
-    for a, b in preds:
-        pred_list[b].append(a)
     start = np.full(nO, -1, dtype=np.int32)
     finish = np.full(nO, -1, dtype=np.int32)
     chosen_m = np.full(nO, -1, dtype=np.int16)
     assigned_workers = {}
     dm = DecodeMetrics()
 
+    skill_active_buffers: Dict[int, np.ndarray] = {}
+    required_buffers: Dict[int, np.ndarray] = {}
+
     def worker_assign(oi, mi, t_start) -> bool:
         nonlocal S_used, W_busy, assigned_workers
-        segments = NeedK.get((oi, mi), [])
-        if not segments:
+        profile = demand_profiles[oi][mi]
+        if profile is None:
+            assigned_workers[oi] = {}
             return True
-        t_end = t_start + total_len[(oi, mi)]
-        req = {}
-        for (si, off, Ls, demand) in segments:
-            for t in range(t_start + off, t_start + off + Ls):
-                req.setdefault(si, np.zeros((t_end - t_start,), dtype=np.int16))
-                req[si][t - t_start] += demand
+        skill_ids, demand_matrix = profile
+        tot = demand_matrix.shape[1]
+        if tot == 0 or skill_ids.size == 0:
+            assigned_workers[oi] = {}
+            return True
+        active_buf = skill_active_buffers.setdefault(skill_ids.size, np.empty(skill_ids.size, dtype=bool))
+        required_buf = required_buffers.setdefault(skill_ids.size, np.empty(skill_ids.size, dtype=np.int32))
         op_assign = {}
         w_mod = []
         s_mod = []
-        for local_t in range(t_end - t_start):
+        for local_t in range(tot):
             abs_t = t_start + local_t
-            skills_here = [si for si, arr in req.items() if arr[local_t] > 0]
-            if not skills_here:
+            if abs_t >= nT:
+                for w, t in w_mod:
+                    W_busy[w, t] = False
+                for si2, t2, units in s_mod:
+                    S_used[si2, t2] -= units
+                return False
+            np.greater(demand_matrix[:, local_t], 0, out=active_buf)
+            if not active_buf.any():
                 continue
+            np.greater(C_W[:, abs_t], 0, out=worker_available_buffer)
+            np.logical_not(W_busy[:, abs_t], out=worker_free_buffer)
+            np.logical_and(worker_available_buffer, worker_free_buffer, out=worker_available_buffer)
+            if not worker_available_buffer.any():
+                for w, t in w_mod:
+                    W_busy[w, t] = False
+                for si2, t2, units in s_mod:
+                    S_used[si2, t2] -= units
+                return False
+            np.copyto(required_buf, demand_matrix[:, local_t], casting="unsafe")
+            if CAP > 1:
+                np.add(required_buf, CAP - 1, out=required_buf, casting="unsafe")
+                np.floor_divide(required_buf, CAP, out=required_buf, casting="unsafe")
             counts = []
-            for si in skills_here:
-                cand = np.where(np.logical_and(Q[:, si], np.logical_and(C_W[:, abs_t] > 0, np.logical_not(W_busy[:, abs_t]))))[0]
-                counts.append((si, cand.size))
-            skills_sorted = [si for si, _ in sorted(counts, key=lambda x: x[1])]
-            for si in skills_sorted:
-                need_units = req[si][local_t]
-                if need_units <= 0:
+            for row_idx, si in enumerate(skill_ids):
+                if not active_buf[row_idx]:
                     continue
-                K = int(math.ceil(need_units / CAP))
-                cand = np.where(np.logical_and(Q[:, si], np.logical_and(C_W[:, abs_t] > 0, np.logical_not(W_busy[:, abs_t]))))[0]
-                if cand.size < K:
+                pool = skill_workers[si]
+                if pool.size == 0:
                     for w, t in w_mod:
                         W_busy[w, t] = False
-                    for si2, t, units in s_mod:
-                        S_used[si2, t] -= units
+                    for si2, t2, units in s_mod:
+                        S_used[si2, t2] -= units
                     return False
-                chosen = cand[:K]
+                pool_available = pool[worker_available_buffer[pool]]
+                counts.append((row_idx, pool_available))
+            counts.sort(key=lambda x: x[1].size)
+            for row_idx, pool_available in counts:
+                required = int(required_buf[row_idx])
+                if required <= 0:
+                    continue
+                if pool_available.size < required:
+                    for w, t in w_mod:
+                        W_busy[w, t] = False
+                    for si2, t2, units in s_mod:
+                        S_used[si2, t2] -= units
+                    return False
+                chosen = pool_available[:required]
+                skill_id = int(skill_ids[row_idx])
+                op_assign.setdefault(abs_t, [])
                 for w in chosen:
-                    W_busy[w, abs_t] = True
-                    w_mod.append((int(w), abs_t))
-                    op_assign.setdefault(abs_t, []).append((int(w), int(si)))
-                S_used[si, abs_t] += K * CAP
-                s_mod.append((int(si), abs_t, K * CAP))
+                    w_i = int(w)
+                    W_busy[w_i, abs_t] = True
+                    worker_available_buffer[w_i] = False
+                    w_mod.append((w_i, abs_t))
+                    op_assign[abs_t].append((w_i, skill_id))
+                used_units = required * CAP
+                S_used[skill_id, abs_t] += used_units
+                s_mod.append((skill_id, abs_t, used_units))
         assigned_workers[oi] = op_assign
         return True
 
     def earliest_pred_finish(oi):
-        if not pred_list[oi]:
+        start_idx = pred_indptr[oi]
+        end_idx = pred_indptr[oi + 1]
+        if start_idx == end_idx:
             return 0
-        if any(finish[p] < 0 for p in pred_list[oi]):
-            return None  # blocked by missing predecessor
-        return int(max(finish[p] for p in pred_list[oi]))
+        preds = pred_indices[start_idx:end_idx]
+        pred_finish = finish[preds]
+        if np.any(pred_finish < 0):
+            return None
+        return int(pred_finish.max())
 
     unscheduled = list(op_order)
     for _ in range(int(max_rounds)):
@@ -344,17 +437,24 @@ def decode_schedule(mats: Dict, op_order: np.ndarray, machine_choice: np.ndarray
                 continue
             candidates: List[Tuple[int, int]] = []
             feas_start = now_ns()
+            Rem = C_S_base - S_used
             for mi in cand_machines:
-                tot = total_len.get((oi, mi), 0)
+                tot = int(total_len_arr[oi, mi])
                 if tot <= 0:
                     continue
                 free_m = np.logical_and(A_M[mi], np.logical_not(M_busy[mi]))
                 mach_ok = sliding_all_true(free_m, tot)
                 if mach_ok.size == 0:
                     continue
-                Rem = C_S_base - S_used
                 feas_vec = mach_ok.copy()
-                for (si, off, Ls, demand) in NeedK.get((oi, mi), []):
+                pair_idx = oi * nM + mi
+                seg_start = need_ptr[pair_idx]
+                seg_end = need_ptr[pair_idx + 1]
+                for seg_idx in range(seg_start, seg_end):
+                    si = need_si[seg_idx]
+                    off = int(need_off[seg_idx])
+                    Ls = int(need_len[seg_idx])
+                    demand = int(need_dem[seg_idx])
                     ok = sliding_all_true(Rem[si] >= demand, Ls)
                     if ok.size == 0:
                         feas_vec[:] = False
@@ -384,7 +484,7 @@ def decode_schedule(mats: Dict, op_order: np.ndarray, machine_choice: np.ndarray
                 ok = worker_assign(oi, mi, t_candidate)
                 dm.assign_ns += now_ns() - assign_start
                 if ok:
-                    tot = total_len[(oi, mi)]
+                    tot = int(total_len_arr[oi, mi])
                     M_busy[mi, t_candidate:t_candidate + tot] = True
                     chosen_m[oi] = mi
                     start[oi] = t_candidate
@@ -412,7 +512,7 @@ def decode_schedule(mats: Dict, op_order: np.ndarray, machine_choice: np.ndarray
 
 # =============== genome helpers & GA ===============
 def default_genome(mats: Dict, strategy="min_total_len"):
-    E=mats["E"]; total_len=mats["total_len"]; nO=mats["n"]["O"]
+    E=mats["E"]; total_len_arr=mats["total_len_arr"]; nO=mats["n"]["O"]
     op_order=np.arange(nO, dtype=np.int32); machine_choice=-np.ones(nO, dtype=np.int16)
     for oi in range(nO):
         elig=np.where(E[oi])[0]
@@ -420,8 +520,12 @@ def default_genome(mats: Dict, strategy="min_total_len"):
         if strategy=="min_total_len":
             best=None; best_val=None
             for mi in elig:
-                tot=total_len.get((oi,mi), 10**9)
+                tot=int(total_len_arr[oi, mi])
+                if tot<=0:
+                    continue
                 if best is None or tot<best_val: best, best_val = mi, tot
+            if best is None:
+                best = int(elig[0])
             machine_choice[oi]=best
         else:
             machine_choice[oi]=elig[0]
