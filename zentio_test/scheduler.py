@@ -145,7 +145,9 @@ def build_matrices(data: Dict):
     A_M=np.array([data["A_M"][m] for m in Machines], dtype=bool); A_W_frac=np.array([data["A_W_frac"][w] for w in Workers], dtype=float)
     C_W=np.rint(A_W_frac * CAP).astype(np.int16); Q=np.array([[data["Q"][w][s] for s in Skills] for w in Workers], dtype=bool);C_S=Q.T.astype(np.int16) @ C_W
     E=np.array([[data["E"][op][m] for m in Machines] for op in Ops], dtype=bool)
-    D=np.zeros((nO, len(Phases), nM), dtype=np.int16); NeedKernels={}; total_len={}
+    D=np.zeros((nO, len(Phases), nM), dtype=np.int16)
+    NeedKernelLists: Dict[Tuple[int, int], List[Tuple[int, int, int, int]]] = {}
+    total_len={}
     total_len_arr=np.zeros((nO, nM), dtype=np.int16)
     demand_profiles: Dict[Tuple[int, int], Tuple[np.ndarray, np.ndarray]] = {}
     for oi, op in enumerate(Ops):
@@ -169,7 +171,7 @@ def build_matrices(data: Dict):
                         demand=int(math.ceil(float(need) * CAP)); si=idx["s"].get(s, None)
                         if si is None or demand<=0:
                             continue
-                        NeedKernels.setdefault((oi,mi), []).append((si, start_off, L, demand))
+                        NeedKernelLists.setdefault((oi,mi), []).append((si, start_off, L, demand))
                         buf=skill_buffers.setdefault(si, np.zeros(tot, dtype=np.int16))
                         buf[start_off:start_off+L] += demand
                 if skill_buffers:
@@ -178,6 +180,17 @@ def build_matrices(data: Dict):
                     demand_profiles[(oi, mi)] = (skill_ids, demand_matrix)
             else:
                 total_len[(oi,mi)]=0
+    NeedKernels: Dict[Tuple[int, int], Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]] = {}
+    for key, segments in NeedKernelLists.items():
+        if not segments:
+            continue
+        seg_arr = np.array(segments, dtype=np.int32)
+        NeedKernels[key] = (
+            seg_arr[:, 0].astype(np.int16, copy=False),
+            seg_arr[:, 1].astype(np.int32, copy=False),
+            seg_arr[:, 2].astype(np.int16, copy=False),
+            seg_arr[:, 3].astype(np.int16, copy=False),
+        )
     preds=[(idx["op"][a], idx["op"][b]) for a,b in data["PredEdges"]]
     pred_list=[[] for _ in range(nO)]
     for a,b in preds:
