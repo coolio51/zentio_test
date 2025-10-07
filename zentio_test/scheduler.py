@@ -2,6 +2,7 @@
 # Streamlit Matrix Scheduler — GA + CP-SAT Polishing (Stress Test Edition)
 # (See previous cell for the full description and features.)
 import json, math, time, random
+from bisect import bisect_left
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 from typing import Dict, List, Tuple, Optional
@@ -184,11 +185,13 @@ def build_matrices(data: Dict):
     pred_list=[np.array(p, dtype=np.int32) for p in pred_list]
     skill_workers=[np.flatnonzero(Q[:, si]) for si in range(nS)]
     machine_windows=[_extract_intervals(A_M[mi]) for mi in range(nM)]
+    machine_window_starts=[[int(seg[0]) for seg in windows] for windows in machine_windows]
     JobOf=np.array([idx["job"][data["JobOf"][op]] for op in Ops], dtype=np.int32)
     Due=np.array([data["Due"][j] for j in data["Jobs"]], dtype=np.int32)
     return {"idx":idx,"A_M":A_M,"C_W":C_W,"Q":Q,"C_S":C_S,"E":E,"D":D,"NeedKernels":NeedKernels,"NeedProfiles":demand_profiles,
             "total_len":total_len,"total_len_arr":total_len_arr,"preds":preds,"pred_list":pred_list,"skill_workers":skill_workers,
-            "machine_windows":machine_windows,"JobOf":JobOf,"Due":Due,
+            "machine_windows":machine_windows,"machine_window_starts":machine_window_starts,
+            "JobOf":JobOf,"Due":Due,
             "n":{"O":nO,"M":nM,"W":nW,"S":nS,"T":nT,"CAP":CAP},"meta":{"Ops":Ops,"Machines":Machines,"Workers":Workers,"Skills":Skills,"Phases":Phases,"T":T}}
 
 
@@ -198,6 +201,7 @@ def decode_schedule(mats: Dict, op_order: np.ndarray, machine_choice: np.ndarray
     t0=now_ns();
     nO, nT, CAP = mats["n"]["O"], mats["n"]["T"], mats["n"]["CAP"]
     machine_windows=[[(int(s), int(e)) for s, e in mats["machine_windows"][mi]] for mi in range(mats["n"]["M"])]
+    machine_window_starts=[[int(s) for s, _ in windows] for windows in machine_windows]
     skill_free=mats["C_S"].copy(); skill_used=np.zeros_like(skill_free, dtype=np.int16)
     M_busy=np.zeros_like(mats["A_M"], dtype=bool); W_busy=np.zeros((mats["n"]["W"], nT), dtype=bool)
     total_len_arr=mats["total_len_arr"]
@@ -219,25 +223,38 @@ def decode_schedule(mats: Dict, op_order: np.ndarray, machine_choice: np.ndarray
         return int(valid.max())
 
     def find_machine_start(mi: int, est: int, tot: int, demand_profile):
-        if not machine_windows[mi]:
+        windows = machine_windows[mi]
+        starts = machine_window_starts[mi]
+        if not windows:
             return None
         skills=None; demand=None
         if demand_profile is not None:
             skills, demand = demand_profile
-        for idx, (seg_start, seg_end) in enumerate(machine_windows[mi]):
-            candidate=max(est, seg_start)
+        start_idx = 0
+        if starts:
+            pos = bisect_left(starts, est)
+            if pos >= len(windows):
+                pos = len(windows) - 1
+            if pos > 0 and est < windows[pos - 1][1]:
+                start_idx = pos - 1
+            else:
+                start_idx = pos
+        for idx in range(start_idx, len(windows)):
+            seg_start, seg_end = windows[idx]
+            candidate = max(est, seg_start)
             if candidate + tot > seg_end:
                 continue
+            if skills is None:
+                return candidate, idx
             while candidate + tot <= seg_end:
-                feasible=True
-                if skills is not None:
-                    for row_idx, si in enumerate(skills):
-                        demand_vec=demand[row_idx]
-                        slice_view = skill_free[si, candidate:candidate+tot] < demand_vec
-                        if slice_view.any():
-                            candidate += int(slice_view.argmax()) + 1
-                            feasible=False
-                            break
+                feasible = True
+                for row_idx, si in enumerate(skills):
+                    demand_vec = demand[row_idx]
+                    slice_view = skill_free[si, candidate:candidate+tot] < demand_vec
+                    if slice_view.any():
+                        candidate += int(slice_view.argmax()) + 1
+                        feasible = False
+                        break
                 if feasible:
                     return candidate, idx
         return None
@@ -313,11 +330,14 @@ def decode_schedule(mats: Dict, op_order: np.ndarray, machine_choice: np.ndarray
             continue
         dm.assign_ns += now_ns() - assign_start
         seg_start, seg_end = machine_windows[best_mi].pop(interval_idx)
+        machine_window_starts[best_mi].pop(interval_idx)
         if seg_start < best_t:
             machine_windows[best_mi].insert(interval_idx, (seg_start, best_t))
+            machine_window_starts[best_mi].insert(interval_idx, seg_start)
             interval_idx += 1
         if best_t + tot < seg_end:
             machine_windows[best_mi].insert(interval_idx, (best_t + tot, seg_end))
+            machine_window_starts[best_mi].insert(interval_idx, best_t + tot)
         M_busy[best_mi, best_t:best_t+tot] = True
         if demand_profile is not None:
             skills, demand = demand_profile
