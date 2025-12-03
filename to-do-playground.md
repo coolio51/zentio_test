@@ -48,3 +48,5 @@ Reviewing the current codebase showed several of the earlier suggestions are alr
 - [ ] Add performance regression tests (e.g., `pytest-benchmark`) that assert scheduling N operations stays under a target budget.
 - [ ] Add large-scale interval tests for `ResourceManager` to guard upcoming tree/bitset optimisations.
 - [ ] Provide profiling visualisation scripts (flamegraphs) to help interpret profiler output.
+
+# Check for wrong splitting and randomness in GA
