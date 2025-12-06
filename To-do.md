@@ -382,3 +382,16 @@ These are nice-to-haves after the core behavior is under control.
 
 
 We need to add early stopping. Very often the optimization continues without any gain. We have a very long patience (I think it was 50). It needs to be tweaked to stop much earlier.
+
+
+Current Scheduler Log example:
+[2025-12-05T14:41:29.963Z] [TRACE-MO] run_id=fda873fc-d35f-40da-b09a-f0622ea403dc mo_id=27245f85-dea0-47a8-8548-9c26b26c5b17 stage=SCHEDULE_OPERATION_START mo_name=MO-000115 op_id=e07d6701-9773-4117-a54d-507237afbcea
+[2025-12-05T14:41:29.963Z] [TRACE-MO] [TRACE-MO-DETAIL] run_id=fda873fc-d35f-40da-b09a-f0622ea403dc mo_id=27245f85-dea0-47a8-8548-9c26b26c5b17 stage=IDLE_SUPPORT_ENTER required_block=57
+[2025-12-05T14:41:29.963Z] [TRACE-MO] [TRACE-MO-DETAIL] run_id=fda873fc-d35f-40da-b09a-f0622ea403dc mo_id=27245f85-dea0-47a8-8548-9c26b26c5b17 stage=CANDIDATE_WINDOW machine=b9c068bd-2764-4f55-9c66-901b1d1c837f idle_start=1764946800000 idle_end=1764968400000 window=21600000
+[2025-12-05T14:41:29.963Z] [TRACE-MO] [TRACE-MO-DETAIL] run_id=fda873fc-d35f-40da-b09a-f0622ea403dc mo_id=27245f85-dea0-47a8-8548-9c26b26c5b17 stage=IDLE_SUPPORT_OK machine=b9c068bd-2764-4f55-9c66-901b1d1c837f start=1764946800000 end=1764968400000
+[2025-12-05T14:41:29.963Z] [TRACE-MO] [TRACE-MO-DETAIL] run_id=fda873fc-d35f-40da-b09a-f0622ea403dc mo_id=27245f85-dea0-47a8-8548-9c26b26c5b17 stage=CANDIDATE_WINDOW machine=b9c068bd-2764-4f55-9c66-901b1d1c837f idle_start=1765198800000 idle_end=1765227600000 window=28800000
+[2025-12-05T14:41:29.963Z] [TRACE-MO] [TRACE-MO-DETAIL] run_id=fda873fc-d35f-40da-b09a-f0622ea403dc mo_id=27245f85-dea0-47a8-8548-9c26b26c5b17 stage=CANDIDATE_WINDOW machine=b9c068bd-2764-4f55-9c66-901b1d1c837f idle_start=1765200600000 idle_end=1765227600000 window=27000000
+[2025-12-05T14:41:29.963Z] [TRACE-MO] [TRACE-MO-DETAIL] run_id=fda873fc-d35f-40da-b09a-f0622ea403dc mo_id=27245f85-dea0-47a8-8548-9c26b26c5b17 stage=CANDIDATE_WINDOW machine=b9c068bd-2764-4f55-9c66-901b1d1c837f idle_start=1765202400000 idle_end=1765227600000 window=25200000
+[2025-12-05T14:41:29.963Z] [TRACE-MO] [TRACE-MO-DETAIL] run_id=fda873fc-d35f-40da-b09a-f0622ea403dc mo_id=27245f85-dea0-47a8-8548-9c26b26c5b17 stage=CANDIDATE_WINDOW machine=b9c068bd-2764-4f55-9c66-901b1d1c837f idle_start=1765204200000 idle_end=1765227600000 window=23400000
+[2025-12-05T14:41:29.963Z] [TRACE-MO] [TRACE-MO-DETAIL] run_id=fda873fc-d35f-40da-b09a-f0622ea403dc mo_id=27245f85-dea0-47a8-8548-9c26b26c5b17 stage=CANDIDATE_WINDOW machine=b9c068bd-2764-4f55-9c66-901b1d1c837f idle_start=1765206000000 idle_end=1765227600000 window=21600000
+[2025-12-05T14:41:29.963Z] [TRACE-MO] [TRACE-MO-DETAIL] run_id=fda873fc-d35f-40da-b09a-f0622ea403dc mo_id=27245f85-dea0-47a8-8548-9c26b26c5b17 stage=CANDIDATE_WINDOW machine=b9c068bd-2764-4f55-9c66-901b1d1c837f idle_start=1765207800000 idle_end=1765227600000 window=19800000
